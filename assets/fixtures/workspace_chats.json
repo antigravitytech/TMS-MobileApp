@@ -1,0 +1,1733 @@
+{
+  "business": {
+    "name": "Acme Group",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.tasks"
+    ],
+    "section": "chat.labels.task_conversations",
+    "pinned": {
+      "initials": "CP",
+      "color": "#9184d9",
+      "name": "Customer Portal Revamp › General",
+      "preview": "Tunde: On it. Looks like a cold start, recording a quick video now.",
+      "time": "12m",
+      "badge": "3",
+      "online": false
+    },
+    "task": [
+      "Checkout screens to approved mockup",
+      "Amaka: @Chioma rebuilt the address step. Can you confirm the spacing token for 360px?",
+      "50m"
+    ],
+    "online": [
+      [
+        "AE",
+        "a4",
+        "Amaka"
+      ],
+      [
+        "IM",
+        "a5",
+        "Ibrahim"
+      ],
+      [
+        "NA",
+        "a7",
+        "Ngozi"
+      ],
+      [
+        "TB",
+        "a2",
+        "Tunde"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "TB",
+        "color": "a2",
+        "name": "Tunde Bakare",
+        "preview": "Voice message · 0:42",
+        "time": "19m",
+        "badge": "2",
+        "online": true
+      },
+      {
+        "initials": "NA",
+        "color": "a7",
+        "name": "Ngozi Adeyemi",
+        "preview": "@Chioma assigned you TK-191. Can you sign off by tomorrow?",
+        "time": "02:59",
+        "badge": "@",
+        "online": true
+      },
+      {
+        "initials": "AE",
+        "color": "a4",
+        "name": "Amaka Eze",
+        "preview": "You: Anytime. Ping me when breakpoints are in.",
+        "time": "1h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "IM",
+        "color": "a5",
+        "name": "Ibrahim Musa",
+        "preview": "Let’s go through the Q4 plan on Thursday.",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "DM",
+        "color": "a6",
+        "name": "David Mensah",
+        "preview": "Regression suite is green on staging.",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "CP",
+        "color": "#9184d9",
+        "name": "Customer Portal Revamp",
+        "preview": "Tunde: On it. Looks like a cold start…",
+        "time": "12m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "MA",
+        "color": "#86d6cb",
+        "name": "Mobile App Launch",
+        "preview": "Sarah: Screenshots v2 are in the folder",
+        "time": "2h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "TT",
+        "color": "#a3c8f1",
+        "name": "Tech Team",
+        "preview": "Ibrahim: Retro moved to Wednesday",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "PO",
+        "color": "#eccb84",
+        "name": "POS rollout — Lagos, Abuja, Kano",
+        "preview": "Ibrahim: Abuja terminals shipped",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "CO",
+        "color": "#eeabb0",
+        "name": "Compliance",
+        "preview": "Ngozi: Policy pack due end of month",
+        "time": "Thu",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "AE",
+        "a4",
+        "Amaka Eze",
+        "Tech Team · Member",
+        1
+      ],
+      [
+        "IM",
+        "a5",
+        "Ibrahim Musa",
+        "Your line manager",
+        1
+      ],
+      [
+        "NA",
+        "a7",
+        "Ngozi Adeyemi",
+        "Compliance · Team lead",
+        1
+      ],
+      [
+        "TB",
+        "a2",
+        "Tunde Bakare",
+        "Tech Team · Member",
+        1
+      ],
+      [
+        "SJ",
+        "a3",
+        "Sarah Johnson",
+        "Tech Team · Member",
+        0
+      ],
+      [
+        "DM",
+        "a6",
+        "David Mensah",
+        "Tech Team · Member",
+        0
+      ],
+      [
+        "ZB",
+        "a8",
+        "Zainab Bello",
+        "Acme Group · Member",
+        0
+      ]
+    ],
+    "request": [
+      "LM",
+      "a8",
+      "Leo Martins",
+      "chat.labels.external",
+      "Integration Engineer · 02:59",
+      "chat.labels.accepting_lets_you_message_each_other_it_gives_no_access_to_your_workspace",
+      "chat.labels.you_and_leo_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "TB",
+        "a2",
+        "Tunde Bakare"
+      ],
+      "intro": "Morning! Resubmitted the webhook handler. Round 2.",
+      "mine": "Nice. Did the sandbox keys come through?",
+      "reply": "On it. I’ll post the test run in the task thread.",
+      "voice": "0:42",
+      "card": [
+        "chat.labels.submitted",
+        "Round 2",
+        "Payment webhook retry handler",
+        "TK-142 · Customer Portal Revamp"
+      ]
+    }
+  },
+  "family": {
+    "name": "The Ibrahim Family",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.errands"
+    ],
+    "section": "chat.labels.chores_errands",
+    "pinned": {
+      "initials": "IF",
+      "color": "#5fd3c4",
+      "name": "The Ibrahim Family › Everyone",
+      "preview": "Funmi: Who is picking Ada up from lesson today?",
+      "time": "8m",
+      "badge": "4",
+      "online": false
+    },
+    "task": [
+      "Market run — Mile 12",
+      "Bisi: @Ibrahim tomatoes are ₦1,500 more than last week. Should I still buy the full basket?",
+      "25m"
+    ],
+    "online": [
+      [
+        "FI",
+        "a4",
+        "Funmi"
+      ],
+      [
+        "TI",
+        "a3",
+        "Tobi"
+      ],
+      [
+        "BO",
+        "a7",
+        "Bisi"
+      ],
+      [
+        "KM",
+        "a5",
+        "Kwame"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "FI",
+        "color": "a4",
+        "name": "Funmi Ibrahim",
+        "preview": "I paid DSTV. Estate charge is still pending.",
+        "time": "12m",
+        "badge": "2",
+        "online": true
+      },
+      {
+        "initials": "TI",
+        "color": "a3",
+        "name": "Tobi",
+        "preview": "Daddy I finished the worksheet! Photo sent",
+        "time": "30m",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "KM",
+        "color": "a5",
+        "name": "Kwame Mensah",
+        "preview": "Madam is back from the market. Change is ₦2,500.",
+        "time": "1h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "AI",
+        "color": "a6",
+        "name": "Ada",
+        "preview": "You: Well done on the spelling. Do the last five again neatly.",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "SG",
+        "color": "a8",
+        "name": "Sule Garba",
+        "preview": "Visitor at the gate: John Okafor",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "P",
+        "color": "#eeabb0",
+        "name": "Parents",
+        "preview": "Funmi: School fees reminder came in",
+        "time": "20m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "K",
+        "color": "#eccb84",
+        "name": "Kids’ corner",
+        "preview": "Tobi: Can we get ice cream on Saturday?",
+        "time": "1h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "H",
+        "color": "#86d6cb",
+        "name": "Helpers",
+        "preview": "Bisi: Gas is almost finished",
+        "time": "2h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "X",
+        "color": "#bcd995",
+        "name": "Christmas in the village",
+        "preview": "Funmi: Bus tickets booked for the 23rd",
+        "time": "Thu",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "FI",
+        "a4",
+        "Funmi Ibrahim",
+        "Co-head",
+        1
+      ],
+      [
+        "TI",
+        "a3",
+        "Tobi Ibrahim",
+        "Child · family tablet",
+        1
+      ],
+      [
+        "AI",
+        "a6",
+        "Ada Ibrahim",
+        "Child",
+        0
+      ],
+      [
+        "BO",
+        "a7",
+        "Bisi Ola",
+        "Cook",
+        1
+      ],
+      [
+        "KM",
+        "a5",
+        "Kwame Mensah",
+        "Driver",
+        1
+      ],
+      [
+        "SG",
+        "a8",
+        "Sule Garba",
+        "Security",
+        0
+      ]
+    ],
+    "request": [
+      "MO",
+      "a1",
+      "Mrs Okoro",
+      "chat.labels.teacher",
+      "Tobi’s class teacher · Primary 5 · 07:42",
+      "chat.labels.accepting_lets_you_message_each_other_she_can_t_see_anything_else_in_your_family_space",
+      "chat.labels.you_and_mrs_okoro_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "TI",
+        "a3",
+        "Tobi"
+      ],
+      "intro": "Daddy I finished the worksheet!",
+      "mine": "Let me see. Did you do number 5 as well?",
+      "reply": "Yes! Can I have my screen time now?",
+      "voice": "0:18",
+      "card": [
+        "chat.labels.waiting_for_your_check",
+        "Photo",
+        "Fractions worksheet, page 14",
+        "School · Maths · due today"
+      ]
+    }
+  },
+  "individual": {
+    "name": "Studio Kemi",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.clients",
+      "chat.labels.team"
+    ],
+    "section": "chat.labels.gig_conversations",
+    "pinned": {
+      "initials": "BR",
+      "color": "#a3c8f1",
+      "name": "Brand Refresh › Client room",
+      "preview": "Tolu: Can we see the moodboard before Friday?",
+      "time": "15m",
+      "badge": "3",
+      "online": false
+    },
+    "task": [
+      "Moodboard · Brand Refresh",
+      "Femi: Uploaded three directions. @Kemi which one do we take to Tolu?",
+      "40m"
+    ],
+    "online": [
+      [
+        "FO",
+        "a6",
+        "Femi"
+      ],
+      [
+        "TA",
+        "a5",
+        "Tolu"
+      ],
+      [
+        "SE",
+        "a2",
+        "Seyi"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "TA",
+        "color": "a5",
+        "name": "Tolu Adewale",
+        "preview": "Unique Engineering · Invoice INV-204 received, thank you",
+        "time": "1h",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "SE",
+        "color": "a2",
+        "name": "Seyi Bankole",
+        "preview": "Nexora · December content calendar approved",
+        "time": "2h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "FO",
+        "color": "a6",
+        "name": "Femi Ola",
+        "preview": "You: Send the logo files tonight please",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "MA",
+        "color": "a4",
+        "name": "Mrs Ade",
+        "preview": "The balance of ₦60,000 will come on Friday",
+        "time": "Sun",
+        "badge": "@",
+        "online": true
+      },
+      {
+        "initials": "BS",
+        "color": "a3",
+        "name": "Bola Shittu",
+        "preview": "KD Squares · Is the 3-week timeline firm?",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "UE",
+        "color": "#a3c8f1",
+        "name": "Brand Refresh — Unique Engineering",
+        "preview": "Tolu: Moodboard before Friday?",
+        "time": "15m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "NP",
+        "color": "#86d6cb",
+        "name": "Nexora retainer",
+        "preview": "Seyi: Calendar approved",
+        "time": "2h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "SK",
+        "color": "#c4bdf6",
+        "name": "Studio Kemi team",
+        "preview": "Femi: Logo files tonight",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "FO",
+        "a6",
+        "Femi Ola",
+        "Collaborator · designer",
+        1
+      ],
+      [
+        "TA",
+        "a5",
+        "Tolu Adewale",
+        "Client · Unique Engineering",
+        1
+      ],
+      [
+        "SE",
+        "a2",
+        "Seyi Bankole",
+        "Client · Nexora Properties",
+        1
+      ],
+      [
+        "MA",
+        "a4",
+        "Mrs Ade",
+        "Client · Lekki",
+        0
+      ],
+      [
+        "BS",
+        "a3",
+        "Bola Shittu",
+        "Lead · KD Squares",
+        0
+      ]
+    ],
+    "request": [
+      "BS",
+      "a3",
+      "Bola Shittu",
+      "chat.labels.lead",
+      "KD Squares · about the brand guide · 09:12",
+      "chat.labels.accepting_lets_you_message_each_other_leads_see_nothing_in_your_workspace_until_you_share_a_project",
+      "chat.labels.you_and_bola_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "TA",
+        "a5",
+        "Tolu Adewale"
+      ],
+      "intro": "Morning Kemi! Can we see the moodboard before Friday?",
+      "mine": "Yes. Three directions by Thursday evening.",
+      "reply": "Perfect. INV-206 is with finance too.",
+      "voice": "0:31",
+      "card": [
+        "chat.labels.at_risk",
+        "Gig",
+        "Moodboard · Brand Refresh",
+        "Unique Engineering · promised 29 Nov"
+      ]
+    }
+  },
+  "church": {
+    "name": "Victory Chapel",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.units"
+    ],
+    "section": "chat.labels.assignment_threads",
+    "pinned": {
+      "initials": "WF",
+      "color": "#c4bdf6",
+      "name": "Workers’ forum",
+      "preview": "Grace: Choir rehearsal moved to Friday 6 pm. Wear white on Sunday.",
+      "time": "10m",
+      "badge": "5",
+      "online": false
+    },
+    "task": [
+      "Harvest thanksgiving lists",
+      "Emeka: Welfare list is in. @Pastor Ade please review before Friday.",
+      "35m"
+    ],
+    "online": [
+      [
+        "GO",
+        "a6",
+        "Grace"
+      ],
+      [
+        "EO",
+        "a5",
+        "Emeka"
+      ],
+      [
+        "DC",
+        "a3",
+        "Dayo"
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "EO",
+        "color": "a5",
+        "name": "Deacon Emeka",
+        "preview": "Mama Ibe is stable, thank God",
+        "time": "20m",
+        "badge": "2",
+        "online": true
+      },
+      {
+        "initials": "GO",
+        "color": "a6",
+        "name": "Grace Okafor",
+        "preview": "Opening hymn for Sunday: Great is Thy faithfulness",
+        "time": "1h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "CE",
+        "color": "a4",
+        "name": "Chinwe Eke",
+        "preview": "Usher roster for Sunday is ready",
+        "time": "2h",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "DC",
+        "color": "a3",
+        "name": "Dayo Coker",
+        "preview": "You: Thank you for leading worship",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "IM",
+        "color": "a2",
+        "name": "Ibrahim Musa",
+        "preview": "Street outreach on Allen Avenue, Monday 9 am",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "CH",
+        "color": "#c4bdf6",
+        "name": "Choir",
+        "preview": "Grace: Rehearsal moved to Friday",
+        "time": "10m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "US",
+        "color": "#eccb84",
+        "name": "Ushering unit",
+        "preview": "Chinwe: All ushers 7:15 am sharp",
+        "time": "1h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "ME",
+        "color": "#a3c8f1",
+        "name": "Media unit",
+        "preview": "Grace: Livestream test on Saturday",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "WE",
+        "color": "#86d6cb",
+        "name": "Welfare",
+        "preview": "Emeka: Hospital visit Saturday",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "HP",
+        "color": "#bcd995",
+        "name": "Harvest planning",
+        "preview": "Pastor Ade: Lists by Friday",
+        "time": "Thu",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "GO",
+        "a6",
+        "Grace Okafor",
+        "Choir lead",
+        1
+      ],
+      [
+        "EO",
+        "a5",
+        "Deacon Emeka",
+        "Welfare · Media",
+        1
+      ],
+      [
+        "DC",
+        "a3",
+        "Dayo Coker",
+        "Worship leader",
+        1
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe Eke",
+        "Ushering",
+        1
+      ],
+      [
+        "IM",
+        "a2",
+        "Ibrahim Musa",
+        "Evangelism",
+        0
+      ]
+    ],
+    "request": [
+      "DM",
+      "a8",
+      "Daniel Musa",
+      "chat.labels.first_timer",
+      "Came on Sunday · wants to join the choir",
+      "chat.labels.accepting_lets_you_message_each_other_first_timers_only_see_what_the_church_shares_with_them",
+      "chat.labels.you_and_daniel_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "EO",
+        "a5",
+        "Deacon Emeka"
+      ],
+      "intro": "Pastor, Mama Ibe is stable now. Thank God.",
+      "mine": "Praise God. We’ll visit after the welfare meeting on Saturday.",
+      "reply": "Thank you Pastor. She’ll be so glad.",
+      "voice": "0:26",
+      "card": [
+        "chat.labels.3_praying",
+        "Prayer",
+        "Healing for Mama Ibe",
+        "Prayer requests · shared yesterday"
+      ]
+    }
+  },
+  "alumni": {
+    "name": "Class of 2006",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.committees"
+    ],
+    "section": "chat.labels.committee_threads",
+    "pinned": {
+      "initials": "06",
+      "color": "#86d6cb",
+      "name": "Class of 2006 › Everyone",
+      "preview": "Chinwe: Venue shortlist is out. Vote by Friday!",
+      "time": "18m",
+      "badge": "9",
+      "online": false
+    },
+    "task": [
+      "Venue committee",
+      "Dayo: Eko Hall wants a 50% deposit by 5 Dec. @Ibrahim can we release it?",
+      "45m"
+    ],
+    "online": [
+      [
+        "DC",
+        "a2",
+        "Dayo"
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe"
+      ],
+      [
+        "TA",
+        "a5",
+        "Tolu"
+      ],
+      [
+        "UN",
+        "a6",
+        "Uche"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "DC",
+        "color": "a2",
+        "name": "Dayo Coker",
+        "preview": "Dues update: ₦650,000 in so far",
+        "time": "30m",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "CE",
+        "color": "a4",
+        "name": "Chinwe Eke",
+        "preview": "Minutes from Sunday’s call are up",
+        "time": "1h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "TA",
+        "color": "a5",
+        "name": "Tolu Adeyemi",
+        "preview": "20 years! Who is bringing the old photos?",
+        "time": "2h",
+        "badge": "3",
+        "online": true
+      },
+      {
+        "initials": "UN",
+        "color": "a6",
+        "name": "Uche N.",
+        "preview": "Paid my dues",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "ST",
+        "color": "a8",
+        "name": "Segun T.",
+        "preview": "Will pay before month end",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "EX",
+        "color": "#86d6cb",
+        "name": "Exco",
+        "preview": "Dayo: Deposit due 5 Dec",
+        "time": "45m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "V",
+        "color": "#a3c8f1",
+        "name": "Venue committee",
+        "preview": "Dayo: Eko Hall quote attached",
+        "time": "1h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "M",
+        "color": "#eeabb0",
+        "name": "Media",
+        "preview": "Chinwe: Photographer shortlist",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "F",
+        "color": "#bcd995",
+        "name": "Finance",
+        "preview": "Dayo: Event account opened",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "S",
+        "color": "#eccb84",
+        "name": "Souvenirs",
+        "preview": "You: T-shirt sizes by Sunday",
+        "time": "Thu",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "DC",
+        "a2",
+        "Dayo Coker",
+        "Treasurer · Lagos",
+        1
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe Eke",
+        "Secretary · Abuja",
+        1
+      ],
+      [
+        "TA",
+        "a5",
+        "Tolu Adeyemi",
+        "Classmate",
+        1
+      ],
+      [
+        "UN",
+        "a6",
+        "Uche N.",
+        "Engineer · Port Harcourt",
+        0
+      ],
+      [
+        "ST",
+        "a8",
+        "Segun T.",
+        "Classmate",
+        0
+      ]
+    ],
+    "request": [
+      "BA",
+      "a3",
+      "Bola A.",
+      "chat.labels.classmate",
+      "Doctor · London · found the join link",
+      "chat.labels.accepting_lets_you_message_each_other_add_her_to_the_set_from_the_directory",
+      "chat.labels.you_and_bola_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "DC",
+        "a2",
+        "Dayo Coker"
+      ],
+      "intro": "Dues update: ₦650,000 in so far.",
+      "mine": "Good progress. Can we remind the four still owing?",
+      "reply": "Sending the reminder to the group now.",
+      "voice": "0:22",
+      "card": [
+        "chat.labels.part_paid",
+        "Dues",
+        "Chinwe Eke · ₦50,000 of ₦100,000",
+        "Dues & pledges · Class of 2006"
+      ]
+    }
+  },
+  "estate": {
+    "name": "Palm Grove Estate",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.issues"
+    ],
+    "section": "chat.labels.issue_threads",
+    "pinned": {
+      "initials": "PG",
+      "color": "#eccb84",
+      "name": "Palm Grove residents",
+      "preview": "Amaka: Water will be off on Thursday, 9 am–1 pm, for tank cleaning.",
+      "time": "6m",
+      "badge": "12",
+      "online": false
+    },
+    "task": [
+      "Street light out — Close 2",
+      "Electrician: The bulb arrives tomorrow. @Amaka can security open the pole box?",
+      "1h"
+    ],
+    "online": [
+      [
+        "YB",
+        "a5",
+        "Yusuf"
+      ],
+      [
+        "FM",
+        "a3",
+        "Facility"
+      ],
+      [
+        "H4",
+        "a4",
+        "House 4"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "YB",
+        "color": "a5",
+        "name": "Yusuf Bello",
+        "preview": "Mr Okon has arrived at the gate",
+        "time": "4m",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "H2",
+        "color": "a2",
+        "name": "House 2 · Bello",
+        "preview": "Paying the balance of my levy this week",
+        "time": "40m",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "FM",
+        "color": "a3",
+        "name": "Facility manager",
+        "preview": "Gate motor serviced, no more noise",
+        "time": "2h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "H5",
+        "color": "a6",
+        "name": "House 5 · Musa",
+        "preview": "Party on Friday, 12 guests. Pass sent.",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "H3",
+        "color": "a7",
+        "name": "House 3 · Adeyemi",
+        "preview": "Levy will come at month end",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "EX",
+        "color": "#eccb84",
+        "name": "Exco",
+        "preview": "Amaka: AGM agenda draft",
+        "time": "30m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "SE",
+        "color": "#86d6cb",
+        "name": "Security team",
+        "preview": "Yusuf: Night shift swapped",
+        "time": "2h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "AG",
+        "color": "#a3c8f1",
+        "name": "AGM planning",
+        "preview": "Amaka: Clubhouse booked for 7 Dec",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "YB",
+        "a5",
+        "Yusuf Bello",
+        "Security lead",
+        1
+      ],
+      [
+        "FM",
+        "a3",
+        "Facility manager",
+        "Estate staff",
+        1
+      ],
+      [
+        "H4",
+        "a4",
+        "House 4 · Eze",
+        "Resident · Exco",
+        1
+      ],
+      [
+        "H2",
+        "a2",
+        "House 2 · Bello",
+        "Resident",
+        0
+      ],
+      [
+        "H5",
+        "a6",
+        "House 5 · Musa",
+        "Resident",
+        0
+      ]
+    ],
+    "request": [
+      "MO",
+      "a8",
+      "Mr Okon",
+      "chat.labels.visitor",
+      "Plumber for House 3 · gate pass 4821",
+      "chat.labels.accepting_lets_you_message_each_other_while_his_pass_is_active",
+      "chat.labels.you_and_mr_okon_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "YB",
+        "a5",
+        "Yusuf Bello"
+      ],
+      "intro": "Madam, Mr Okon is at the gate.",
+      "mine": "Let him in. House 3 is expecting him.",
+      "reply": "Done. He’s on his way in.",
+      "voice": "0:12",
+      "card": [
+        "chat.labels.today_14_00",
+        "Gate pass",
+        "Mr Okon (plumber) → House 3",
+        "Code 4821 · Palm Grove Estate"
+      ]
+    }
+  },
+  "event": {
+    "name": "Chinwe & Dayo’s Wedding",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.vendors"
+    ],
+    "section": "chat.labels.vendor_threads",
+    "pinned": {
+      "initials": "PT",
+      "color": "#eeabb0",
+      "name": "Wedding planning team",
+      "preview": "Nkechi: Final headcount is due on 9 Dec. Chase the last RSVPs.",
+      "time": "5m",
+      "badge": "6",
+      "online": false
+    },
+    "task": [
+      "Mama’s Kitchen · catering",
+      "Mama Tolu: Next payment of ₦900,000 is due Monday. @Ibrahim confirm transfer?",
+      "30m"
+    ],
+    "online": [
+      [
+        "NU",
+        "a6",
+        "Nkechi"
+      ],
+      [
+        "FO",
+        "a5",
+        "Femi"
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe"
+      ],
+      [
+        "DC",
+        "a2",
+        "Dayo"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "NU",
+        "color": "a6",
+        "name": "Nkechi Ude",
+        "preview": "Seating chart v2 is up",
+        "time": "15m",
+        "badge": "2",
+        "online": true
+      },
+      {
+        "initials": "FO",
+        "color": "a5",
+        "name": "Femi Ola",
+        "preview": "Groomsmen fitting is on Saturday",
+        "time": "1h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "CE",
+        "color": "a4",
+        "name": "Chinwe Eke",
+        "preview": "Aso-ebi collection this Saturday at my house",
+        "time": "2h",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "PD",
+        "color": "a7",
+        "name": "Petals Decor",
+        "preview": "Flower arch confirmed: emerald and gold",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "LS",
+        "color": "a8",
+        "name": "Lens Studio",
+        "preview": "Shot list received, thank you",
+        "time": "Sat",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "PT",
+        "color": "#eeabb0",
+        "name": "Planning team",
+        "preview": "Nkechi: Headcount by 9 Dec",
+        "time": "5m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "BF",
+        "color": "#c4bdf6",
+        "name": "Bride’s family",
+        "preview": "Mr Okafor: High table names",
+        "time": "1h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "GF",
+        "color": "#a3c8f1",
+        "name": "Groom’s family",
+        "preview": "Dayo: Bus from Ibadan",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "GM",
+        "color": "#bcd995",
+        "name": "Groomsmen",
+        "preview": "Femi: Fitting Saturday",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "VE",
+        "color": "#eccb84",
+        "name": "Vendors",
+        "preview": "Nkechi: Arrival times sent",
+        "time": "Thu",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "NU",
+        "a6",
+        "Nkechi Ude",
+        "Wedding planner",
+        1
+      ],
+      [
+        "FO",
+        "a5",
+        "Femi Ola",
+        "Best man",
+        1
+      ],
+      [
+        "CE",
+        "a4",
+        "Chinwe Eke",
+        "Bride",
+        1
+      ],
+      [
+        "DC",
+        "a2",
+        "Dayo Coker",
+        "Groom",
+        1
+      ],
+      [
+        "MT",
+        "a3",
+        "Mama Tolu",
+        "Vendor · catering",
+        0
+      ]
+    ],
+    "request": [
+      "MT",
+      "a3",
+      "Mama Tolu",
+      "chat.labels.vendor",
+      "Mama’s Kitchen · catering · 300 plates",
+      "chat.labels.accepting_lets_you_message_each_other_vendors_only_see_their_own_bookings",
+      "chat.labels.you_and_mama_tolu_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "NU",
+        "a6",
+        "Nkechi Ude"
+      ],
+      "intro": "Seating chart v2 is up. Two tables still short.",
+      "mine": "Great. Put Uncle Ben’s family at Table 3.",
+      "reply": "Done. Sending the updated chart to the ushers.",
+      "voice": "0:35",
+      "card": [
+        "chat.labels.10_items",
+        "Programme",
+        "Run of show for 25 Dec",
+        "Starts 8:00 am · Eko Hall"
+      ]
+    }
+  },
+  "committee": {
+    "name": "Harvest Planning Committee",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.actions"
+    ],
+    "section": "chat.labels.action_item_threads",
+    "pinned": {
+      "initials": "HC",
+      "color": "#d8b4ec",
+      "name": "Harvest Planning Committee",
+      "preview": "Chinwe: Minutes from 15 Nov are up. Please read before Sunday.",
+      "time": "20m",
+      "badge": "4",
+      "online": false
+    },
+    "task": [
+      "Get three venue quotes",
+      "Chinwe: Civic Centre came in at ₦1.2m. @Grace shall I ask Eko Hall to match?",
+      "50m"
+    ],
+    "online": [
+      [
+        "CE",
+        "a4",
+        "Chinwe"
+      ],
+      [
+        "DC",
+        "a2",
+        "Dayo"
+      ],
+      [
+        "EO",
+        "a5",
+        "Emeka"
+      ],
+      [
+        "AE",
+        "a6",
+        "Amaka"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "CE",
+        "color": "a4",
+        "name": "Chinwe Eke",
+        "preview": "Quotes from all three venues are in",
+        "time": "30m",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "DC",
+        "color": "a2",
+        "name": "Dayo Coker",
+        "preview": "Budget draft attached",
+        "time": "2h",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "EO",
+        "color": "a5",
+        "name": "Emeka Obi",
+        "preview": "I can book the speaker by Thursday",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "AE",
+        "color": "a6",
+        "name": "Amaka Eze",
+        "preview": "You: Thanks for the venue shortlist",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "FC",
+        "color": "#d8b4ec",
+        "name": "Full committee",
+        "preview": "Chinwe: Minutes are up",
+        "time": "20m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "FS",
+        "color": "#bcd995",
+        "name": "Finance sub-committee",
+        "preview": "Dayo: Budget draft",
+        "time": "2h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "VT",
+        "color": "#a3c8f1",
+        "name": "Venue team",
+        "preview": "Chinwe: Three quotes in",
+        "time": "30m",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "CE",
+        "a4",
+        "Chinwe Eke",
+        "Secretary",
+        1
+      ],
+      [
+        "DC",
+        "a2",
+        "Dayo Coker",
+        "Treasurer",
+        1
+      ],
+      [
+        "EO",
+        "a5",
+        "Emeka Obi",
+        "Member",
+        1
+      ],
+      [
+        "AE",
+        "a6",
+        "Amaka Eze",
+        "Member",
+        1
+      ],
+      [
+        "IM",
+        "a3",
+        "Ibrahim Musa",
+        "Member",
+        0
+      ]
+    ],
+    "request": null,
+    "thread": {
+      "peer": [
+        "CE",
+        "a4",
+        "Chinwe Eke"
+      ],
+      "intro": "All three venue quotes are in.",
+      "mine": "Thanks. Let’s put the choice to a vote before Sunday.",
+      "reply": "I’ll open the decision now.",
+      "voice": "0:28",
+      "card": [
+        "chat.labels.in_progress",
+        "Action item",
+        "Get three venue quotes",
+        "Due Sat, 28 Nov · from last meeting"
+      ]
+    }
+  },
+  "club": {
+    "name": "Ikoyi Sunday League FC",
+    "filters": [
+      "chat.labels.all",
+      "chat.labels.unread",
+      "chat.labels.mentions",
+      "chat.labels.sessions"
+    ],
+    "section": "chat.labels.session_threads",
+    "pinned": {
+      "initials": "IK",
+      "color": "#bcd995",
+      "name": "Ikoyi Sunday League FC",
+      "preview": "Coach Femi: Training 7 am sharp on Saturday. Bring both kits.",
+      "time": "12m",
+      "badge": "8",
+      "online": false
+    },
+    "task": [
+      "Friendly vs Lekki FC",
+      "Captain: Bus leaves at 2 pm. @Musa bring the spare gloves.",
+      "1h"
+    ],
+    "online": [
+      [
+        "FL",
+        "a5",
+        "Coach Femi"
+      ],
+      [
+        "TB",
+        "a2",
+        "Tunde"
+      ],
+      [
+        "CO",
+        "a3",
+        "Chidi"
+      ],
+      [
+        "KE",
+        "a6",
+        "Kenny"
+      ]
+    ],
+    "recent": [
+      {
+        "initials": "TB",
+        "color": "a2",
+        "name": "Tunde Bakare",
+        "preview": "I’m in for Saturday",
+        "time": "25m",
+        "badge": "",
+        "online": true
+      },
+      {
+        "initials": "CO",
+        "color": "a3",
+        "name": "Chidi Okeke",
+        "preview": "Paying the rest of my fee on Friday",
+        "time": "1h",
+        "badge": "1",
+        "online": true
+      },
+      {
+        "initials": "MB",
+        "color": "a7",
+        "name": "Musa Bello",
+        "preview": "Keeper gloves are torn, need new ones",
+        "time": "2h",
+        "badge": "2",
+        "online": true
+      },
+      {
+        "initials": "KE",
+        "color": "a6",
+        "name": "Kenny Eze",
+        "preview": "Can’t make Saturday, I’m travelling",
+        "time": "Sun",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "groups": [
+      {
+        "initials": "SQ",
+        "color": "#bcd995",
+        "name": "Squad",
+        "preview": "Coach: 7 am sharp",
+        "time": "12m",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "OF",
+        "color": "#a3c8f1",
+        "name": "Officials",
+        "preview": "Treasurer: Kits invoice paid",
+        "time": "3h",
+        "badge": "",
+        "online": false
+      },
+      {
+        "initials": "SC",
+        "color": "#eccb84",
+        "name": "Social committee",
+        "preview": "Kenny: Clubhouse booked for the 14th",
+        "time": "Fri",
+        "badge": "",
+        "online": false
+      }
+    ],
+    "people": [
+      [
+        "FL",
+        "a5",
+        "Coach Femi",
+        "Coach",
+        1
+      ],
+      [
+        "TB",
+        "a2",
+        "Tunde Bakare",
+        "Striker",
+        1
+      ],
+      [
+        "CO",
+        "a3",
+        "Chidi Okeke",
+        "Midfield",
+        1
+      ],
+      [
+        "MB",
+        "a7",
+        "Musa Bello",
+        "Goalkeeper",
+        0
+      ],
+      [
+        "KE",
+        "a6",
+        "Kenny Eze",
+        "Defence",
+        1
+      ]
+    ],
+    "request": [
+      "OB",
+      "a8",
+      "Ola Bakare",
+      "chat.labels.new_player",
+      "Winger · wants to join for the new season",
+      "chat.labels.accepting_lets_you_message_each_other_add_him_from_members_when_he_pays_the_fee",
+      "chat.labels.you_and_ola_can_now_message"
+    ],
+    "thread": {
+      "peer": [
+        "FL",
+        "a5",
+        "Coach Femi"
+      ],
+      "intro": "Two players are out for Saturday. We need cover at the back.",
+      "mine": "I’ll ask Ola to come and try out.",
+      "reply": "Good. Tell him to bring boots and shin pads.",
+      "voice": "0:20",
+      "card": [
+        "chat.labels.sat_07_00",
+        "Session",
+        "Saturday training",
+        "Oval pitch · 2 of 4 coming"
+      ]
+    }
+  }
+}
