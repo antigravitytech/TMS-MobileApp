@@ -3,8 +3,11 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/services/media_service.dart';
-import '../../../core/services/shared_pref_service.dart';
-import '../../workspace/application/workspace_preview.dart';
+import '../../../core/config/environment.dart';
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../data/profile_setup_repository.dart';
+import '../data/onboarding_progress.dart';
 
 final profileSetupProvider =
     NotifierProvider.autoDispose<ProfileSetupNotifier, ProfileSetupState>(
@@ -13,7 +16,7 @@ final profileSetupProvider =
 
 enum ProfileSetupStep { profile, birthday, notifications }
 
-enum ProfileSetupResult { stay, complete, photoFailed, saveFailed }
+enum ProfileSetupResult { stay, complete, photoFailed, saveFailed, expired }
 
 class ProfileSetupState {
   const ProfileSetupState({
@@ -23,6 +26,7 @@ class ProfileSetupState {
     this.job = 'Tech Lead',
     this.color = 0,
     this.photo,
+    this.photoUrl,
     this.step = ProfileSetupStep.profile,
     this.birthdayVisible = true,
     this.saving = false,
@@ -43,6 +47,7 @@ class ProfileSetupState {
   final String first, last, job;
   final int color;
   final Uint8List? photo;
+  final String? photoUrl;
   final ProfileSetupStep step;
   final DateTime birthday;
   final bool birthdayVisible, saving;
@@ -79,6 +84,7 @@ class ProfileSetupState {
     job: job ?? this.job,
     color: color ?? this.color,
     photo: clearPhoto ? null : photo ?? this.photo,
+    photoUrl: clearPhoto ? null : photoUrl,
     step: step ?? this.step,
     birthday: birthday ?? this.birthday,
     birthdayVisible: birthdayVisible ?? this.birthdayVisible,
@@ -90,10 +96,61 @@ class ProfileSetupState {
 
 class ProfileSetupNotifier extends Notifier<ProfileSetupState> {
   bool _pickingPhoto = false;
+  String? _noticeWorkspaceId;
+  final _noticeEdits = <String, bool>{};
 
   @override
-  ProfileSetupState build() =>
-      ProfileSetupState(birthday: DateTime(1997, 11, 23));
+  ProfileSetupState build() {
+    if (!ref.read(environmentProvider).isLive) {
+      return ProfileSetupState(birthday: DateTime(1997, 11, 23));
+    }
+    final account = ref.read(accountSessionProvider);
+    final today = DateTime.now();
+    return ProfileSetupState(
+      first: account?.firstName ?? '',
+      last: account?.lastName ?? '',
+      job: account?.jobTitle ?? '',
+      photoUrl: account?.photo,
+      birthday:
+          account?.birthday ?? DateTime(today.year, today.month, today.day),
+      birthdayVisible: account?.birthdayVisible ?? true,
+      roles: const {},
+      notices: const {},
+    );
+  }
+
+  Future<ProfileSetupResult> loadProfile() async {
+    final repository = ref.read(profileSetupRepositoryProvider);
+    if (repository is! LiveProfileSetupRepository) {
+      return ProfileSetupResult.stay;
+    }
+    final session = ref.read(accountSessionProvider.notifier);
+    state = state.copyWith(saving: true);
+    try {
+      final account = await repository.getProfile();
+      session.update(account);
+      final saved = await OnboardingProgress(account.id).load();
+      final step = switch (saved) {
+        'birthday' => ProfileSetupStep.birthday,
+        'notifications' => ProfileSetupStep.notifications,
+        _ => ProfileSetupStep.profile,
+      };
+      if (!ref.mounted) return ProfileSetupResult.stay;
+      final notices = step == ProfileSetupStep.notifications
+          ? await _loadNotices(repository)
+          : null;
+      if (ref.mounted) state = build().copyWith(step: step, notices: notices);
+      return ProfileSetupResult.stay;
+    } on AccountFailure catch (error) {
+      return await session.expire(error)
+          ? ProfileSetupResult.expired
+          : ProfileSetupResult.saveFailed;
+    } catch (_) {
+      return ProfileSetupResult.saveFailed;
+    } finally {
+      if (ref.mounted) state = state.copyWith(saving: false);
+    }
+  }
 
   void setFirstName(String value) => state = state.copyWith(first: value);
   void setLastName(String value) => state = state.copyWith(last: value);
@@ -124,9 +181,26 @@ class ProfileSetupNotifier extends Notifier<ProfileSetupState> {
   void setBirthdayVisibility(bool visible) =>
       state = state.copyWith(birthdayVisible: visible);
 
-  void setNotice(String key, bool enabled) => state = state.copyWith(
-    notices: Map.unmodifiable({...state.notices, key: enabled}),
-  );
+  Future<Map<String, bool>> _loadNotices(
+    LiveProfileSetupRepository repository,
+  ) async {
+    final workspaces = await ref.read(accountWorkspacesProvider.future);
+    _noticeWorkspaceId = null;
+    for (final workspace in workspaces) {
+      if (workspace.approval == 'approved') {
+        _noticeWorkspaceId = workspace.id;
+        return {...await repository.getNotices(workspace.id), ..._noticeEdits};
+      }
+    }
+    return const {};
+  }
+
+  void setNotice(String key, bool enabled) {
+    _noticeEdits[key] = enabled;
+    state = state.copyWith(
+      notices: Map.unmodifiable({...state.notices, key: enabled}),
+    );
+  }
 
   void previousStep() {
     final index = state.step.index;
@@ -154,42 +228,53 @@ class ProfileSetupNotifier extends Notifier<ProfileSetupState> {
       return ProfileSetupResult.stay;
     }
 
-    if (draft.step == ProfileSetupStep.profile) {
-      if (!skip) {
-        ref
-            .read(workspacePreviewProvider)
-            .saveProfile(draft.first, draft.last, draft.job);
-      }
-      state = state.copyWith(step: ProfileSetupStep.birthday);
-      return ProfileSetupResult.stay;
-    }
-
+    final repository = ref.read(profileSetupRepositoryProvider);
+    final session = ref.read(accountSessionProvider.notifier);
+    final live = repository is LiveProfileSetupRepository;
+    final accountId = live ? ref.read(accountSessionProvider)?.id : null;
+    final progress = accountId == null ? null : OnboardingProgress(accountId);
     state = state.copyWith(saving: true);
     try {
-      if (draft.step == ProfileSetupStep.birthday) {
-        await SharedPreferencesService.setString(
-          key: 'onboarding.birthday',
-          value: skip ? '' : draft.birthday.toIso8601String(),
-        );
-        await SharedPreferencesService.setBool(
-          key: 'onboarding.birthday_visible',
-          value: draft.birthdayVisible,
-        );
-        if (ref.mounted) {
-          state = state.copyWith(step: ProfileSetupStep.notifications);
-        }
-        return ProfileSetupResult.stay;
+      switch (draft.step) {
+        case ProfileSetupStep.profile:
+          if (!skip) {
+            final account = await repository.saveProfile(
+              draft.first,
+              draft.last,
+              draft.job,
+              draft.photo,
+            );
+            if (account != null) session.update(account);
+          }
+        case ProfileSetupStep.birthday:
+          if (!skip || !live) {
+            await repository.saveBirthday(
+              skip ? null : draft.birthday,
+              draft.birthdayVisible,
+            );
+          }
+        case ProfileSetupStep.notifications:
+          if (!skip) {
+            await repository.saveNotices(
+              live ? _noticeEdits : draft.notices,
+              workspaceId: _noticeWorkspaceId,
+            );
+          }
+          await progress?.save('complete');
+          return ProfileSetupResult.complete;
       }
-
-      if (!skip) {
-        for (final entry in draft.notices.entries) {
-          await SharedPreferencesService.setBool(
-            key: 'onboarding.nudge.${entry.key}',
-            value: entry.value,
-          );
-        }
-      }
-      return ProfileSetupResult.complete;
+      final next = ProfileSetupStep.values[draft.step.index + 1];
+      if (!ref.mounted) return ProfileSetupResult.stay;
+      final notices = live && next == ProfileSetupStep.notifications
+          ? await _loadNotices(repository)
+          : null;
+      await progress?.save(next.name);
+      if (ref.mounted) state = state.copyWith(step: next, notices: notices);
+      return ProfileSetupResult.stay;
+    } on AccountFailure catch (error) {
+      return await session.expire(error)
+          ? ProfileSetupResult.expired
+          : ProfileSetupResult.saveFailed;
     } catch (_) {
       return ProfileSetupResult.saveFailed;
     } finally {

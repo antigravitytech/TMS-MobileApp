@@ -14,6 +14,7 @@ class ProfileSetupForm extends StatelessWidget {
     required this.job,
     required this.color,
     required this.photo,
+    this.photoUrl,
     required this.roles,
     required this.onFirst,
     required this.onLast,
@@ -26,6 +27,7 @@ class ProfileSetupForm extends StatelessWidget {
   final String first, last, job;
   final int color;
   final Uint8List? photo;
+  final String? photoUrl;
   final Set<String> roles;
   final ValueChanged<String> onFirst, onLast, onJob, onRole;
   final ValueChanged<int> onColor;
@@ -52,6 +54,7 @@ class ProfileSetupForm extends StatelessWidget {
           last: last,
           color: color,
           photo: photo,
+          photoUrl: photoUrl,
           onPhoto: onPhoto,
           onColor: onColor,
         ),

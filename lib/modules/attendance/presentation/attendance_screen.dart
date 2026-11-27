@@ -7,6 +7,9 @@ import '../../../shared/design/design_widgets.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
 
+part 'widgets/attendance_widgets.dart';
+part 'widgets/attendance_lists.dart';
+
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
   @override
@@ -31,276 +34,176 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(workspacePreviewProvider);
-    final (icon, color, heading, body) = checking
-        ? (
-            TmsIcons.locate,
-            DesignColor.purple,
-            context.tr('attendance.checking_location'),
-            context.tr('attendance.head_office_geofence'),
-          )
-        : state.clockedOut
-        ? (
-            TmsIcons.checkCircle,
-            DesignColor.green,
-            context.tr('attendance.nice_work_today'),
-            context.tr('attendance.logged_today_8_52_17_25'),
-          )
-        : state.clockedIn
-        ? (
-            TmsIcons.check,
-            DesignColor.green,
-            context.tr('attendance.youre_in_have_a_good_one'),
-            context.tr('attendance.in_8_52_8_min_early'),
-          )
-        : (
-            TmsIcons.clock,
-            DesignColor.purple,
-            context.tr(
-              'attendance.good_morning_name',
-              namedArgs: {'name': state.firstName},
-            ),
-            context.tr('attendance.arrive_9_00_9_30_leave_from'),
-          );
     return DesignPage(
       title: context.tr('common.attendance'),
-      children: [
-        DesignChoices(
-          items: [
-            context.tr('common.today'),
-            context.tr('attendance.history'),
-            context.tr('common.team'),
-          ],
-          selected: tab,
-          onChanged: (i) => setState(() => tab = i),
+      leading: const SizedBox.shrink(),
+      actions: [
+        DesignIcon(
+          icon: TmsIcons.close,
+          label: context.tr('common.back'),
+          onPressed: () => Navigator.maybePop(context),
         ),
+      ],
+      children: [
+        _AttendanceTabs(tab, (i) => setState(() => tab = i)),
         if (tab == 0) ...[
-          Row(
-            children: [
-              Expanded(
-                child: DesignLabel(context.tr('common.monday_23_november')),
-              ),
-              DesignPill(context.tr('attendance.29_partly_cloudy')),
-            ],
-          ),
-          DesignCard(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              child: Column(
-                spacing: 14,
-                children: [
-                  DesignPill(
-                    context.tr('attendance.head_office'),
-                    icon: TmsIcons.location,
-                  ),
-                  AnimatedSwitcher(
-                    duration: DesignMotion.duration(
-                      context,
-                      DesignMotion.object,
-                    ),
-                    transitionBuilder: (child, motion) => ScaleTransition(
-                      scale: motion,
-                      child: FadeTransition(opacity: motion, child: child),
-                    ),
-                    child: Container(
-                      key: ValueKey(icon),
-                      width: 110,
-                      height: 110,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: color.withValues(alpha: .12),
-                        border: Border.all(
-                          color: color.withValues(alpha: .45),
-                          width: 2,
-                        ),
-                      ),
-                      child: checking
-                          ? Padding(
-                              padding: const EdgeInsets.all(42),
-                              child: CircularProgressIndicator(
-                                color: color,
-                                strokeWidth: 3,
-                              ),
-                            )
-                          : Icon(icon, color: color, size: 56),
-                    ),
-                  ),
-                  Text(
-                    heading,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 24,
-                    ),
-                  ),
-                  DesignLabel(body),
-                  if (state.clockedIn)
-                    const Text(
-                      '8:52 AM',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  if (state.clockedOut)
-                    Text(
-                      context.tr('attendance.8h_33m'),
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  if (!state.clockedOut)
-                    DesignButton(
-                      state.clockedIn
-                          ? context.tr('attendance.clock_out')
-                          : context.tr('common.clock_in'),
-                      icon: state.clockedIn ? TmsIcons.logout : TmsIcons.login,
-                      onPressed: checking
-                          ? null
-                          : state.clockedIn
-                          ? () => state.setAttendance(inOffice: false)
-                          : clockIn,
-                    ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              gradient: const LinearGradient(
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+                colors: [
+                  Color(0xff203750),
+                  Color(0xff242445),
+                  Color(0xff44478d),
                 ],
               ),
             ),
-          ),
-        ],
-        if (tab != 2) ...[
-          DesignTitle(context.tr('attendance.your_month')),
-          DesignCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 12,
               children: [
-                DesignTitle(context.tr('attendance.november')),
                 Text(
-                  context.tr('attendance.80_on_time'),
-                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800),
+                  context.tr('common.monday_23_november'),
+                  style: TextStyle(color: context.lavender, fontSize: 13),
                 ),
-                _AttendanceCalendar(),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 8,
+                const SizedBox(height: 6),
+                Text(
+                  context.tr(
+                    'attendance.good_morning_name',
+                    namedArgs: {'name': state.firstName},
+                  ),
+                  style: const TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  spacing: 8,
                   children: [
-                    DesignPill(
-                      context.tr('attendance.2_early'),
-                      color: DesignColor.teal,
+                    _AttendanceTag(
+                      context.tr('attendance.29_partly_cloudy'),
+                      context.lavender,
                     ),
-                    DesignPill(
-                      context.tr('attendance.10_on_time'),
-                      color: DesignColor.green,
-                    ),
-                    DesignPill(
-                      context.tr('attendance.1_late'),
-                      color: DesignColor.amber,
-                    ),
-                    DesignPill(
-                      context.tr('attendance.2_absent'),
-                      color: DesignColor.red,
+                    _AttendanceTag(
+                      context.tr('attendance.head_office'),
+                      context.lavender,
                     ),
                   ],
                 ),
+                const SizedBox(height: 18),
+                Center(
+                  child: Container(
+                    width: 226,
+                    height: 226,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: DesignColor.purple.withValues(alpha: .4),
+                        width: 2,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: checking || state.clockedOut
+                            ? null
+                            : state.clockedIn
+                            ? () => state.setAttendance(inOffice: false)
+                            : clockIn,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xffb2a5ef), Color(0xff8274cc)],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Color(0x559184d9),
+                                blurRadius: 30,
+                                offset: Offset(0, 15),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (checking)
+                                const CircularProgressIndicator(
+                                  color: DesignColor.ink,
+                                )
+                              else
+                                Icon(
+                                  state.clockedOut
+                                      ? TmsIcons.check
+                                      : state.clockedIn
+                                      ? TmsIcons.logout
+                                      : TmsIcons.login,
+                                  size: 30,
+                                  color: DesignColor.ink,
+                                ),
+                              const SizedBox(height: 10),
+                              Text(
+                                context.tr(
+                                  checking
+                                      ? 'attendance.checking_location'
+                                      : state.clockedOut
+                                      ? 'attendance.nice_work_today'
+                                      : state.clockedIn
+                                      ? 'attendance.clock_out'
+                                      : 'common.clock_in',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: DesignColor.ink,
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                DateFormat.jm(
+                                  context.locale.toString(),
+                                ).format(DateTime(2026, 11, 23, 8, 52)),
+                                style: const TextStyle(
+                                  color: Color(0xff4f496f),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Center(
+                  child: Text(
+                    context.tr('attendance.arrive_9_00_9_30_leave_from'),
+                    style: TextStyle(color: context.lavender, fontSize: 13),
+                  ),
+                ),
               ],
             ),
           ),
-          if (tab == 1)
-            DesignSection(
-              children: [
-                DesignTile(
-                  title: context.tr('attendance.usual_arrival'),
-                  subtitle: '9:01',
-                  icon: TmsIcons.login,
-                ),
-                DesignTile(
-                  title: context.tr('attendance.usual_leaving'),
-                  subtitle: '17:25',
-                  icon: TmsIcons.logout,
-                ),
-                DesignTile(
-                  title: context.tr('attendance.time_logged'),
-                  subtitle: context.tr('attendance.109h_19m'),
-                  icon: TmsIcons.clock,
-                ),
-              ],
-            ),
-        ] else
-          DesignSection(
-            children: [
-              DesignTile(
-                title: 'Amaka Eze',
-                subtitle: context.tr('attendance.in_8_44'),
-                leading: DesignAvatar('AE', color: DesignColor.rose),
-              ),
-              DesignTile(
-                title: 'Tunde Bakare',
-                subtitle: context.tr('attendance.in_8_59'),
-                leading: DesignAvatar('TB', color: DesignColor.teal),
-              ),
-              DesignTile(
-                title: 'Sarah Johnson',
-                subtitle: context.tr('attendance.not_in'),
-                leading: DesignAvatar('SJ'),
-              ),
-            ],
+          DesignTitle(
+            context.tr('attendance.your_month'),
+            action: context.tr('attendance.november'),
           ),
-      ],
-    );
-  }
-}
-
-class _AttendanceCalendar extends StatelessWidget {
-  const _AttendanceCalendar();
-  @override
-  Widget build(BuildContext context) => Column(
-    spacing: 7,
-    children: [
-      Row(
-        children: [
-          for (final name in [
-            context.tr('attendance.m'),
-            context.tr('attendance.t'),
-            context.tr('attendance.w'),
-            context.tr('attendance.t'),
-            context.tr('attendance.f'),
-            context.tr('attendance.s'),
-            context.tr('attendance.s'),
-          ])
-            Expanded(child: Center(child: DesignLabel(name))),
+          const _AttendanceMonth(),
+          const _AttendanceMetrics(),
         ],
-      ),
-      for (var week = 0; week < 5; week++)
-        Row(
-          children: [
-            for (var day = 0; day < 7; day++)
-              Expanded(child: Center(child: _day(context, week * 7 + day - 5))),
-          ],
-        ),
-    ],
-  );
-  Widget _day(BuildContext context, int day) {
-    if (day < 1 || day > 30) return const SizedBox(height: 28);
-    final color = day == 23
-        ? DesignColor.purple
-        : [7, 8, 14, 15, 21, 22, 28, 29].contains(day) || day > 23
-        ? context.raised
-        : [11, 19].contains(day)
-        ? DesignColor.red
-        : day == 12
-        ? DesignColor.amber
-        : day % 6 == 0
-        ? DesignColor.teal
-        : DesignColor.green;
-    return CircleAvatar(
-      radius: 14,
-      backgroundColor: color,
-      foregroundColor: color == context.raised
-          ? context.foreground
-          : DesignColor.ink,
-      child: Text(
-        '$day',
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-      ),
+        if (tab == 1) const _AttendanceHistory(),
+        if (tab == 2) const _AttendanceTeam(),
+      ],
     );
   }
 }

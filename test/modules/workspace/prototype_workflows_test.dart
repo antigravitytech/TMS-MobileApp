@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sabi_pipu_tms/modules/workspace/data/workspace_repository.dart';
 import 'package:sabi_pipu_tms/modules/chat/application/chat_session.dart';
 import 'package:sabi_pipu_tms/modules/chat/data/chat_directory.dart';
-import 'package:sabi_pipu_tms/modules/workspace/application/family_task_draft.dart';
-import 'package:sabi_pipu_tms/modules/workspace/application/focus_timer.dart';
+import 'package:sabi_pipu_tms/modules/family/application/family_task_draft.dart';
+import 'package:sabi_pipu_tms/modules/individual/application/focus_timer.dart';
 import 'package:sabi_pipu_tms/modules/workspace/application/local_workspaces.dart';
 import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_kind.dart';
 
@@ -13,7 +14,13 @@ void main() {
   late ProviderContainer container;
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    container = ProviderContainer();
+    container = ProviderContainer(
+      overrides: [
+        workspaceRepositoryProvider.overrideWithValue(
+          const LiveWorkspaceRepository(),
+        ),
+      ],
+    );
   });
   tearDown(() => container.dispose());
   test(

@@ -1,11 +1,12 @@
 # Sabi Pipu TMS
 
-Flutter mobile app for Sabi Pipu TMS. The app implements the mobile design with native Flutter screens organized by feature. Onboarding and workspace interactions use local preview data. See the [mobile design guide](design/mobile/README.md) for screen structure and editing.
+Flutter mobile app for Sabi Pipu TMS. Mock mode runs the local workspace previews. Live mode connects authentication, account management, workspace enrollment, and profile setup to the backend.
 
 ```sh
 ./tool/bootstrap
-./tool/check
-flutter run
+./tool/run
 ```
 
-See [development workflow](docs/development.md) for SDK, simulator, and agent tooling. [AGENTS.md](AGENTS.md) is the shared entry point for project instructions. `CLAUDE.md` links to it.
+The launcher creates a local `.env` on first run. Edit it and relaunch to [switch data modes](docs/development.md#environment-configuration). Run `./tool/check` for analysis and tests.
+
+See the [mobile prototype](design/mobile/sabi-pipu-tms-prototype.html) for design, the [architecture guide](docs/mobile-architecture.md) for feature boundaries, and [AGENTS.md](AGENTS.md) for project instructions.

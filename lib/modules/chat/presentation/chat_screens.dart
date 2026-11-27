@@ -6,12 +6,15 @@ import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
-import '../../workspace/presentation/workspace_ui.dart';
+import '../../workspace/presentation/widgets/workspace_ui.dart';
 import '../application/chat_session.dart';
 import '../data/chat_directory.dart';
-import 'chat_widgets.dart';
+import 'widgets/chat_widgets.dart';
+import 'widgets/compose_chat.dart';
 
 export 'conversation_screen.dart';
+
+part 'widgets/chat_inbox_request.dart';
 
 class ChatScreen extends ConsumerWidget {
   const ChatScreen({super.key});
@@ -52,9 +55,13 @@ class _InboxState extends ConsumerState<_Inbox> {
   }
 
   Future<void> compose() async {
-    final result = await designSheet<(ChatRow, bool)>(
-      context,
-      title: context.tr('chat.new_conversation'),
+    final result = await showModalBottomSheet<(ChatRow, bool)>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.panel,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
       builder: (_) => ComposeChat(directory: book),
     );
     if (result == null || !mounted) return;
@@ -88,12 +95,7 @@ class _InboxState extends ConsumerState<_Inbox> {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    (58 - MediaQuery.viewPaddingOf(context).top).clamp(8, 58),
-                    20,
-                    10,
-                  ),
+                  padding: EdgeInsets.fromLTRB(20, 12, 20, 10),
                   child: Row(
                     spacing: 8,
                     children: [
@@ -176,12 +178,15 @@ class _InboxState extends ConsumerState<_Inbox> {
                                     child: Column(
                                       spacing: 5,
                                       children: [
-                                        ChatAvatar(p.row),
+                                        ChatAvatar(p.row, size: 52),
                                         Text(
                                           p.name,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(fontSize: 12),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: context.muted,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -191,87 +196,26 @@ class _InboxState extends ConsumerState<_Inbox> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        DesignChoices(
-                          items: [
-                            for (final key in book.filters) context.tr(key),
-                          ],
-                          selected: filter,
-                          onChanged: (i) => setState(() => filter = i),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            spacing: 8,
+                            children: [
+                              for (var i = 0; i < book.filters.length; i++)
+                                _ChatFilter(
+                                  context.tr(book.filters[i]),
+                                  selected: filter == i,
+                                  onTap: () => setState(() => filter = i),
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                       if (tab == 0) ...[
                         if (request.isNotEmpty && !session.requestHandled)
                           Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: DesignCard(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                spacing: 10,
-                                children: [
-                                  _label(context.tr('chat.chat_request')),
-                                  Row(
-                                    spacing: 12,
-                                    children: [
-                                      DesignAvatar(
-                                        request[0],
-                                        color: chatColor(request[1]),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${request[2]} · ${context.tr(request[3])}',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            DesignLabel(request[4]),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    spacing: 8,
-                                    children: [
-                                      for (final accept in [true, false])
-                                        Expanded(
-                                          child: DesignButton(
-                                            context.tr(
-                                              accept
-                                                  ? 'chat.accept'
-                                                  : 'chat.decline',
-                                            ),
-                                            secondary: !accept,
-                                            onPressed: () {
-                                              controller.resolveRequest(
-                                                accept
-                                                    ? ChatRow(
-                                                        initials: request[0],
-                                                        color: request[1],
-                                                        name: request[2],
-                                                      )
-                                                    : null,
-                                              );
-                                              designToast(
-                                                context,
-                                                context.tr(
-                                                  accept
-                                                      ? request[6]
-                                                      : 'chat.chat_request_declined',
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  DesignLabel(context.tr(request[5])),
-                                ],
-                              ),
-                            ),
+                            child: _requestCard(request),
                           ),
                         if (book.pinned case final pin?) ...[
                           _heading(context.tr('common.pinned')),
@@ -291,10 +235,25 @@ class _InboxState extends ConsumerState<_Inbox> {
                               );
                               return ChatListRow(
                                 row,
-                                leading: const Icon(
-                                  TmsIcons.checkSquare,
-                                  size: 42,
-                                  color: DesignColor.amber,
+                                leading: Container(
+                                  width: 52,
+                                  height: 52,
+                                  decoration: BoxDecoration(
+                                    color: DesignColor.amber.withValues(
+                                      alpha: .12,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: DesignColor.amber.withValues(
+                                        alpha: .3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    TmsIcons.checkSquare,
+                                    size: 20,
+                                    color: DesignColor.amber,
+                                  ),
                                 ),
                                 onTap: () => open(row),
                               );

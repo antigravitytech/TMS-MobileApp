@@ -30,6 +30,9 @@ void main() {
       await EasyLocalization.ensureInitialized();
       tester.view.devicePixelRatio = 1;
       tester.view.physicalSize = const Size(390, 844);
+      const insets = FakeViewPadding(top: 26, bottom: 22);
+      tester.view.padding = insets;
+      addTearDown(tester.view.resetPadding);
       addTearDown(tester.view.resetDevicePixelRatio);
       addTearDown(tester.view.resetPhysicalSize);
 
@@ -78,7 +81,13 @@ void main() {
 
       final next = find.widgetWithText(FilledButton, 'Continue');
       expect(tester.getSize(next).height, 52);
-      expect(tester.getTopLeft(next).dy, closeTo(698, 2));
+      expect(tester.getTopLeft(find.byTooltip('Back')).dy, 34);
+      expect(
+        tester
+            .getBottomLeft(find.widgetWithText(TextButton, 'Skip for now'))
+            .dy,
+        844 - insets.bottom - 12,
+      );
       await tester.enterText(find.byType(TextFormField).first, 'Ada');
       await tester.tap(next);
       await tester.pumpAndSettle();
@@ -123,7 +132,7 @@ void main() {
       expect(find.text('3 waiting for your review'), findsOneWidget);
       final openDay = find.widgetWithText(FilledButton, 'Go to my day');
       expect(tester.getSize(openDay), const Size(350, 52));
-      expect(tester.getTopLeft(openDay).dy, closeTo(756, 1));
+      expect(tester.getBottomLeft(openDay).dy, 844 - insets.bottom - 12);
       await tester.tap(openDay);
       await tester.pumpAndSettle();
       expect(router.current.name, TmsRoute.home.name);

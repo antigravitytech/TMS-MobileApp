@@ -1,4 +1,15 @@
 {
+  "sign_in": {
+    "brand_start": "Sabi",
+    "brand_end": "Pipu",
+    "demo_caption": "Sign in as anyone",
+    "company": "Company",
+    "freelancer": "Freelancer",
+    "wedding": "Wedding",
+    "new_here": "New to Sabi Pipu?",
+    "create_account": "Create an account",
+    "ready_welcome": "Welcome back,"
+  },
   "business_ready": {
     "title": "You're all set, {name}",
     "description": "{workspace} is ready. Here's what's waiting for you today.",
@@ -22,7 +33,8 @@
     "paid_amount": "{amount} paid",
     "outstanding": "Outstanding",
     "billed": "of {amount} billed",
-    "none": "No invoices match this filter."
+    "none": "No invoices match this filter.",
+    "not_paid": "Not paid"
   },
   "building": {
     "title": "Building your space…",
@@ -82,7 +94,9 @@
     "round_1": "Round 1",
     "say_what_needs_to_change_it_starts": "Say what needs to change. It starts the next round.",
     "swipe_right_to_approve_left_to_return": "Swipe right to approve, left to return",
-    "waiting": "Waiting"
+    "waiting": "Waiting",
+    "notes_hint": "Add specifics so it's right first time next round",
+    "round_2": "Round 2"
   },
   "attendance": {
     "109h_19m": "109h 19m",
@@ -117,7 +131,19 @@
     "usual_leaving": "Usual leaving",
     "w": "W",
     "your_month": "Your month",
-    "youre_in_have_a_good_one": "You're in. Have a good one."
+    "youre_in_have_a_good_one": "You're in. Have a good one.",
+    "early": "Early",
+    "late": "Late",
+    "absent": "Absent",
+    "late_arrivals": "Late arrivals",
+    "one_of_five": "1 of 5 allowed",
+    "no_clock_in": "No clock-in",
+    "team_in_count": "TECH TEAM · 3 OF 5 IN",
+    "tunde_arrival": "In at 8:41 · Head office",
+    "david_arrival": "In at 9:12 · Remote",
+    "amaka_arrival": "In at 9:38 · Head office",
+    "not_in_yet": "Not in yet",
+    "expected": "Expected"
   },
   "birthdays": {
     "10_january": "10 January",
@@ -152,9 +178,25 @@
     "sent": "Sent",
     "sep_0": "SEP · 0",
     "today_3": "Today · 3",
-    "warm_wishes": "Warm wishes"
+    "warm_wishes": "Warm wishes",
+    "tech_team_colleague": "Tech Team · colleague",
+    "mama_bisi_details": "Family · turns 64 · loves ofada rice",
+    "mark_as_wished": "Mark as wished",
+    "wished": "Wished",
+    "you": "You!",
+    "expect_cards": "Expect some cards today",
+    "three_cards": "3 cards",
+    "card_sent_label": "Card sent",
+    "colleague": "Colleague",
+    "friend_turns_36": "Friend · turns 36",
+    "in_three_days": "In 3 days",
+    "in_nine_days": "In 9 days",
+    "in_three_weeks": "In 3 weeks"
   },
   "chat": {
+    "voice_call": "Voice call",
+    "attach_action": "Attach",
+    "record_voice_message": "Record voice message",
     "accept": "Accept",
     "accepting_lets_you_message_each_other_it": "Accepting lets you message each other. It gives no access to your workspace.",
     "are_we_still_on_for_our_review": "Are we still on for our review?",
@@ -254,7 +296,13 @@
     "empty_space": "No conversations yet",
     "start_group": "Create group · {count} people",
     "pick_group": "Pick at least 2 people",
-    "pick_direct": "Pick someone to message"
+    "pick_direct": "Pick someone to message",
+    "new_message": "New message",
+    "direct_tab": "Direct",
+    "new_group_tab": "New group",
+    "search_people": "Search people",
+    "group_name_hint": "Group name, e.g. Q4 hiring panel",
+    "in_workspace": "In {workspace}"
   },
   "common": {
     "2_of_5_sent_1_blocker": "2 of 5 sent · 1 blocker",
@@ -343,9 +391,32 @@
     "photos": "Photos",
     "the_file_picker_could_not_open": "The file picker could not open.",
     "try_changing_the_file_filters": "Try changing the file filters.",
-    "upload": "Upload"
+    "upload": "Upload",
+    "all_types": "All types",
+    "pdf": "PDF",
+    "video": "Video",
+    "metadata": "{owner} · {date} · {size}",
+    "download": "Open file",
+    "webhook_task": "Payment webhook retry handler",
+    "errors_task": "Error states for portal forms",
+    "usability_task": "Onboarding flow usability test",
+    "checkout_task": "Checkout screens to approved mockup"
   },
   "home": {
+    "due_heading": "Due today",
+    "awaiting_heading": "Awaiting my review",
+    "review_clear": "Review queue is clear",
+    "review_clear_description": "Nice. Everyone’s unblocked.",
+    "task_source": "From {person} · {project}",
+    "waiting_hours": {
+      "one": "waiting {count}h",
+      "other": "waiting {count}h"
+    },
+    "round_2_now": "Round 2 · just now",
+    "team_summary_count": "2 of 5 sent today’s summary",
+    "blocker_count": "1 blocker raised",
+    "coming_up": "Coming up",
+    "next_week": "Next 7 days",
     "0_overdue": "0 overdue",
     "daily_report": "Daily report",
     "daily_reports": "Daily reports",
@@ -384,7 +455,8 @@
     "search_notes": "Search notes",
     "unpin": "Unpin",
     "untitled": "Untitled",
-    "yours_alone_not_your_managers": "Yours alone. Not your manager’s."
+    "yours_alone_not_your_managers": "Yours alone. Not your manager’s.",
+    "thought_hint": "Write the half-formed thought…"
   },
   "locales": {
     "en": "English"
@@ -444,7 +516,15 @@
       "club": "Club",
       "together": "Together",
       "members": "Members"
-    }
+    },
+    "family_workspace": "Family workspace",
+    "individual_workspace": "Individual workspace",
+    "church_workspace": "Church workspace",
+    "alumni_workspace": "Alumni workspace",
+    "estate_workspace": "Estate workspace",
+    "event_workspace": "Event workspace",
+    "committee_workspace": "Committee workspace",
+    "club_workspace": "Club workspace"
   },
   "navigation": {
     "approvals": "Approvals",
@@ -470,6 +550,24 @@
     }
   },
   "notifications": {
+    "mentions": "Mentions",
+    "reviews": "Reviews",
+    "yesterday": "Yesterday",
+    "just_now": "just now",
+    "minutes_ago_compact": {
+      "one": "{count}m",
+      "other": "{count}m"
+    },
+    "hours_ago_compact": {
+      "one": "{count}h",
+      "other": "{count}h"
+    },
+    "tunde_resubmitted": "Tunde Bakare resubmitted ‘Payment webhook retry handler’ · Round 2",
+    "amaka_submitted": "Amaka Eze submitted ‘Error states for portal forms’",
+    "mama_bisi_birthday": "It's Mama Bisi's birthday today. They turn 64.",
+    "tunde_birthday": "Tunde Bakare is celebrating a birthday today. Send them a card.",
+    "david_mentioned": "David Mensah mentioned you in ‘Regression test plan for portal’",
+    "sarah_submitted": "Sarah Johnson submitted ‘Onboarding flow usability test’",
     "amaka_sent_you_a_message": "Amaka sent you a message",
     "chat_yesterday": "Chat · Yesterday",
     "customer_portal_revamp_general_28m": "Customer Portal Revamp › General · 28m",
@@ -488,6 +586,44 @@
     "unread_only": "Unread only",
     "work": "Work",
     "youre_all_caught_up": "You're all caught up"
+  },
+  "authentication": {
+    "account": "Your account",
+    "add_workspace": "Add a workspace",
+    "action_complete": "Done.",
+    "email_change_sent": "Check your new email address for the confirmation link. You can also paste its token here.",
+    "preferences_pending": "Notification preferences can be saved after workspace approval.",
+    "approval_pending": "Your workspace is awaiting approval.",
+    "approval_rejected": "Your workspace was declined.",
+    "approval_approved": "Approved",
+    "edit_profile": "Edit profile",
+    "refresh_workspaces": "Refresh workspaces",
+    "restore_failed": "Could not check your session. Tap to retry.",
+    "password_reset_complete": "Password reset. Sign in with your new password.",
+    "reset_sent": "If an account exists for that email, we sent a password reset link.",
+    "sign_out": "Sign out",
+    "unverified": "Verify your email address.",
+    "verification_sent": "Verification email sent.",
+    "action": {
+      "register": "Create account",
+      "recover": "Send reset email",
+      "reset": "Reset password",
+      "verify": "Verify email",
+      "resend": "Resend verification email",
+      "requestEmailChange": "Change email address",
+      "confirmEmailChange": "Confirm email address",
+      "changePassword": "Change password",
+      "unsubscribe": "Unsubscribe from emails"
+    },
+    "field": {
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email",
+      "password": "Password",
+      "token": "Link token",
+      "current_password": "Current password",
+      "code": "6-digit code"
+    }
   },
   "onboarding": {
     "1_due_today": "1 due today",
@@ -538,7 +674,7 @@
     "setup_personal": "Individual & Family",
     "setup_personal_short": "Me, or my home",
     "setup_specials_short": "Church, alumni, estate, event, committee and club",
-    "setup_personal_title": "Just you, or your home?",
+    "setup_personal_title": "Just you,\nor your home?",
     "setup_personal_description": "You can add the other later.",
     "setup_specials_title": "What kind?",
     "setup_specials_description": "We’ll use community words: Exco, committees, members and dues.",
@@ -612,6 +748,30 @@
     "photo_pick_failed": "Couldn’t open photos. Try again."
   },
   "profile": {
+    "appraisal_export": "Appraisal export (CSV)",
+    "activity_description": "On-time activity, last 15 weeks",
+    "medals": {
+      "first_time": {
+        "title": "First-time right",
+        "detail": "×5"
+      },
+      "week_streak": {
+        "title": "7-day streak",
+        "detail": "Earned Oct"
+      },
+      "early": {
+        "title": "Early bird",
+        "detail": "10 early days"
+      },
+      "zero_overdue": {
+        "title": "Zero overdue",
+        "detail": "A full month"
+      },
+      "century": {
+        "title": "100 tasks",
+        "detail": "62 of 100"
+      }
+    },
     "3_of_5": "3 of 5",
     "4_days": "4 days",
     "4_direct_reports": "4 direct reports",
@@ -649,7 +809,17 @@
     "on_track": "On track",
     "project_name": "Project name",
     "tasks_done": "Tasks done",
-    "thu_26_nov": "Thu, 26 Nov"
+    "thu_26_nov": "Thu, 26 Nov",
+    "simple": "Simple",
+    "advanced": "Advanced",
+    "promise_summary": "Next promise · {milestone} · {days} working days late",
+    "discovery": "Discovery",
+    "beta": "Beta",
+    "abuja_live": "Abuja live",
+    "discovery_milestone": "Discovery milestone",
+    "abuja_milestone": "Abuja live milestone",
+    "discovery_forecast": "Promised 26 Oct · forecast 20 Nov",
+    "abuja_forecast": "Promised 10 Nov · forecast 25 Nov"
   },
   "quick_create": {
     "close_quick_create": "Close quick create",
@@ -706,16 +876,75 @@
     "waiting_for_report": "Waiting for report",
     "what_did_you_get_done_today": "What did you get done today?",
     "what_is_blocking_you": "What is blocking you?",
-    "whats_next": "What's next?"
+    "whats_next": "What's next?",
+    "tomorrows_focus": "Tomorrow's focus",
+    "points": "+10 points",
+    "on_time_before": "On time, before 5:00 pm",
+    "tunde_summary": "100% this month · 10-day streak",
+    "david_summary": "90% this month · 7-day streak",
+    "no_summary": "No summary yet",
+    "late": "Late",
+    "tunde_done": "Done: Wrote tests for the payment flow",
+    "david_done": "Done: Fixed the login redirect bug; reviewed 2 pull requests",
+    "tunde_blocker": "Blocker: Blocked on sandbox keys again",
+    "level_points": "Level 2 · 640 pts",
+    "next_level": "360 pts to Level 3",
+    "badges_history": "See badges and streak history",
+    "export_appraisal": "Export for appraisal",
+    "metric_tasks_completed": "Tasks completed",
+    "metric_on_time_rate": "On-time rate",
+    "metric_first_time_right": "First-time right",
+    "metric_rework_rounds": "Avg rework rounds",
+    "metric_on_time_streak": "On-time streak",
+    "metric_daily_reports": "Daily reports",
+    "metric_punctuality": "Punctuality",
+    "metric_value_team_0": "4",
+    "metric_caption_team_0": "▲ 3",
+    "metric_value_team_1": "50%",
+    "metric_caption_team_1": "▲ 50 pts",
+    "metric_value_team_2": "50%",
+    "metric_caption_team_2": "▲ 50 pts",
+    "metric_value_team_3": "1.8",
+    "metric_caption_team_3": "▲ 0.8",
+    "metric_value_me_0": "0",
+    "metric_caption_me_0": "No change",
+    "metric_value_me_1": "4 days",
+    "metric_caption_me_1": "Best: 11 days",
+    "metric_value_me_2": "80%",
+    "metric_caption_me_2": "13 of 16 days",
+    "metric_value_me_3": "80%",
+    "metric_caption_me_3": "1 of 5 lates used"
   },
   "search": {
     "clear_search": "Clear search",
     "no_results_for_query": "No results for “{query}”",
     "people": "People",
     "quick_actions": "Quick actions",
-    "try_a_persons_name_a_task_id": "Try a person’s name, a task ID like TK-190, or “report”."
+    "try_a_persons_name_a_task_id": "Try a person’s name, a task ID like TK-190, or “report”.",
+    "input_hint": "Tasks, projects, people or an action",
+    "cancel": "Cancel",
+    "jump_to": "Jump to",
+    "new_task_subtitle": "Assign work with a target date",
+    "log_todays_report": "Log today's report",
+    "report_subtitle": "Daily Status Update · due 5:00 pm",
+    "clock_in_subtitle": "Head office · arrive 9:00–9:30",
+    "guest_subtitle": "Send a visitor code",
+    "note_subtitle": "Private to you",
+    "portal_subtitle": "Off track · 36% of tasks done",
+    "mobile_subtitle": "At risk · 25% of tasks done",
+    "tunde_subtitle": "Tech Team · online",
+    "ibrahim_subtitle": "Your line manager",
+    "hiring_subtitle": "TK-190 · In progress · Today",
+    "webhook_subtitle": "TK-142 · Submitted · Round 2"
   },
   "settings": {
+    "notification_details": {
+      "push_notifications": "On this phone",
+      "reviews_mentions": "Instant",
+      "daily_report_reminder": "Weekdays at 4:30 pm",
+      "quiet_hours": "8:00 pm – 7:00 am",
+      "sounds_vibration": "For chat and approvals"
+    },
     "23_november_colleagues_see_day_and_month": "23 November · colleagues see day and month",
     "account": "Account",
     "appearance": "Appearance",
@@ -789,9 +1018,48 @@
     "upcoming_date": "Fri, 27 Nov",
     "view_task": "View task",
     "view_workspace_files": "View workspace files",
-    "write_a_comment": "Write a comment…"
+    "write_a_comment": "Write a comment…",
+    "more_actions": "More actions",
+    "submit_explanation": "Ibrahim will be asked to approve or return it.",
+    "note_for_assigner": "Note for Ibrahim",
+    "sample_file": "q4-hiring-plan.pdf",
+    "sent_to_assigner": "Sent to Ibrahim for review",
+    "waiting_for_assigner": "Waiting for Ibrahim",
+    "never_changes": "Never changes",
+    "on_original_date": "On original date",
+    "set_on_approval": "Set on approval",
+    "you_submitted_for_review": "You submitted for review",
+    "just_now": "Just now",
+    "chioma_started_work": "Chioma started work",
+    "started_at": "19 Nov · 10:00",
+    "ibrahim_created_task": "Ibrahim created the task and set the target to 23 Nov",
+    "created_at": "17 Nov · 09:00",
+    "ibrahim_2d": "Ibrahim · 2d",
+    "sample_comment": "Keep the QA role contract-to-hire if the budget is tight.",
+    "comment_hint": "Write a comment… use @ to mention",
+    "sample_file_meta": "You · 21 Nov · 310 KB",
+    "attach_a_file": "Attach a file",
+    "visibility": "Visibility",
+    "watching": "Watching",
+    "created": "Created",
+    "created_date": "17 Nov, 09:00",
+    "what_needs_doing": "What needs doing?",
+    "description_hint": "Add details, a definition of done, or links",
+    "created_notice": "{person} has been notified. {id} is due {due}.",
+    "my_tasks": "My tasks",
+    "my_requests": "My requests",
+    "bucket_overdue": "OVERDUE · {count}",
+    "bucket_today": "TODAY · {count}",
+    "bucket_week": "THIS WEEK · {count}",
+    "bucket_done": "DONE · {count}",
+    "show_count_tasks": "Show {count} tasks"
   },
   "teams": {
+    "compliance": "Compliance",
+    "this_week": "This week",
+    "complete": "{progress}% complete",
+    "team_lead": "Team lead",
+    "open_count": "{count} open",
     "lead_members": {
       "one": "Lead: {lead} · {count} member",
       "other": "Lead: {lead} · {count} members"
@@ -823,7 +1091,13 @@
     "tomorrow_10_30_vendor_meeting": "Tomorrow · 10:30 · Vendor meeting",
     "wait_10_min": "Wait 10 min",
     "waiting_for_you": "Waiting for you",
-    "wednesday_2_00_integration_demo": "Wednesday · 2:00 · Integration demo"
+    "wednesday_2_00_integration_demo": "Wednesday · 2:00 · Integration demo",
+    "bayo_expected": "Today, 14:00 · Supplier visit",
+    "asked_to_wait": "Asked Folake to wait 10 minutes",
+    "told_not_today": "Folake has been told not today",
+    "asked_to_come": "Folake has been asked to come in",
+    "day": "Day",
+    "time": "Time"
   },
   "welcome": {
     "all_in_one_place": "all in one place",
@@ -1208,6 +1482,11 @@
         "title": "Members & units",
         "add": "Add church member",
         "empty": "Add a member and their unit to the church directory."
+      },
+      "tasks": {
+        "add": "Add task",
+        "title": "Tasks",
+        "empty": "Add a task with a due day, priority and project."
       }
     },
     "specials": "Specials",
@@ -1458,7 +1737,11 @@
       "relative": "Relative",
       "staff": "Domestic staff",
       "security": "Security",
-      "driver": "Driver"
+      "driver": "Driver",
+      "head": "Head of the house",
+      "cohead": "Co-head",
+      "spouse": "Co-head",
+      "cook": "Cook"
     },
     "agenda": "On the calendar",
     "add_table": "Add table",
@@ -1520,7 +1803,10 @@
       "quote": "Quotation",
       "undo": "Undo",
       "body": "Document text"
-    }
+    },
+    "your_workspaces": "Your workspaces",
+    "one_sign_in": "One sign-in for all of them.",
+    "here": "Here"
   },
   "family": {
     "task": "What needs doing?",
@@ -1603,7 +1889,21 @@
     "reminder_1": "Pack your school bag",
     "reminder_2": "Call Grandma",
     "reminder_3": "Lights off by 9",
-    "reminder_hint": "e.g. Take your medicine"
+    "reminder_hint": "e.g. Take your medicine",
+    "give_everyone": "Give to everyone",
+    "everyone_lower": "everyone",
+    "confirm_when_today": "today",
+    "confirm_when_tomorrow": "tomorrow",
+    "confirm_when_weekend": "weekend",
+    "pts_unit": "pts",
+    "to_go_short": "{n} to go",
+    "arrival_hint": "Tap when you get there",
+    "arrived_title": "Mum and Dad know you’re safe",
+    "arrived_at": "Sent at {time}",
+    "left": "{n} left",
+    "waiting_points": "+{n} pts when they check",
+    "switch_child": "Switch child",
+    "you": "You"
   },
   "dashboard": {
     "overview": "Overview",
@@ -1696,7 +1996,112 @@
     },
     "received": "Received"
   },
+  "setup_specials": {
+    "kinds": {
+      "church": {
+        "title": "Church or ministry",
+        "description": "Services, giving, units",
+        "name_hint": "Victory Chapel — Ikeja",
+        "event_hint": "Harvest thanksgiving"
+      },
+      "alumni": {
+        "title": "Alumni association",
+        "description": "Dues, committees, polls",
+        "name_hint": "Class of 2006 Reunion",
+        "event_hint": "20th Anniversary"
+      },
+      "estate": {
+        "title": "Estate or residents",
+        "description": "Levies, gate passes",
+        "name_hint": "Palm Grove Estate",
+        "event_hint": "Residents’ AGM"
+      },
+      "event": {
+        "title": "Event",
+        "description": "Wedding, burial, conference",
+        "name_hint": "Chinwe & Dayo’s Wedding",
+        "event_hint": "The wedding"
+      },
+      "committee": {
+        "title": "Committee",
+        "description": "Meetings, minutes, decisions",
+        "name_hint": "Harvest Planning Committee",
+        "event_hint": "Term ends"
+      },
+      "club": {
+        "title": "Club or society",
+        "description": "Sessions, fees, attendance",
+        "name_hint": "Ikoyi Sunday League FC",
+        "event_hint": "Season opener"
+      }
+    },
+    "features": {
+      "services": "Services",
+      "giving": "Giving & pledges",
+      "units": "Units",
+      "prayers": "Prayer requests",
+      "first_timers": "First-timers",
+      "notices": "Notices",
+      "committees": "Committees",
+      "dues": "Dues tracker",
+      "polls": "Polls",
+      "directory": "Directory",
+      "whatsapp": "WhatsApp join link",
+      "levies": "Levies",
+      "passes": "Gate passes",
+      "issues": "Facility issues",
+      "guests": "Guest list & RSVP",
+      "seating": "Seating plan",
+      "vendors": "Vendors & budget",
+      "programme": "Programme",
+      "guest_page": "Guest page",
+      "meetings": "Meetings",
+      "actions": "Action items",
+      "minutes": "Minutes",
+      "decisions": "Decisions",
+      "sessions": "Sessions",
+      "fees": "Fees",
+      "attendance": "Attendance"
+    },
+    "event": "Event · optional",
+    "milestone": "Milestone · optional",
+    "date": "Date · optional",
+    "countdown_preview": "Countdown preview",
+    "clear_date": "Clear date",
+    "days": {
+      "one": "Day to go",
+      "other": "Days to go"
+    }
+  },
   "setup_details": {
+    "kind_step": "2 of 5",
+    "perks": {
+      "clients": "Clients",
+      "invoices": "Invoices",
+      "billing": "Time & billing",
+      "proposals": "Proposals",
+      "gigs": "Gigs",
+      "chores": "Chores & points",
+      "school": "School",
+      "bills": "Bills",
+      "shopping": "Shopping list",
+      "errands": "Errands & money"
+    },
+    "audience": {
+      "family": "Parents, children and helpers, each with the right access",
+      "individual": "Designers, consultants, tutors, traders"
+    },
+    "clients_question": "Do you work with clients?",
+    "work_hint": "e.g. Studio Ada",
+    "family_hint": "e.g. The Adeyemi Family",
+    "crest_hint": "Tap the crest to change it",
+    "member_heading": "Members",
+    "owner": "You · {name}",
+    "role_for": "Role for {name}",
+    "tablet_pin": "Family tablet · PIN",
+    "invite_by_link": "Invite by link",
+    "add_member": "Add member",
+    "co_head": "Spouse / Co-head",
     "step": "3 of 5",
     "work": "Your work",
     "family": "Set up your family",
@@ -1710,7 +2115,7 @@
     "set_name": "Set name",
     "countdown": "You’ll get a countdown and:",
     "build": "Build my space",
-    "clients_info": "We’ll set up your work with Client project and Invoice tracker templates.",
+    "clients_info": "We’ll set up your work with Client project and Invoice tracker templates. Clients you invite see only their project, its approvals and files, and every approval is time-stamped.",
     "solo_info": "We’ll set up your work for your own tasks and plans. You can invite people later.",
     "crest": "Change crest",
     "family_name": "Family name",
@@ -1725,6 +2130,969 @@
       "staff": "Own duties and errands; logs money spent",
       "security": "Shift roster and visitor log",
       "driver": "Trips and errands; logs fuel and trip times"
+    },
+    "tablet_info_start": "Children without phones can use the ",
+    "tablet_info_bold": "family tablet",
+    "tablet_info_end": " with their picture and a 4-digit PIN."
+  },
+  "workspace_quick_add": {
+    "label": "Quick add",
+    "family_heading": "What does\nthe house need?",
+    "heading": "What would you\nlike to add?",
+    "plan": "New plan",
+    "bill": "Pay a bill",
+    "shopping": "Add to shopping",
+    "errand": "Say an errand",
+    "homework": "Homework",
+    "chore": "New chore",
+    "individual_heading": "What are we\nbilling today?",
+    "new_task": "New task",
+    "start_timer": "Start timer",
+    "new_invoice": "New invoice",
+    "new_proposal": "New proposal",
+    "start_gig": "Start a gig",
+    "add_client": "Add client",
+    "church_heading": "What’s happening\nin church?",
+    "record_attendance": "Record attendance",
+    "record_giving": "Record giving",
+    "prayer_request": "Prayer request",
+    "add_first_timer": "Add first-timer",
+    "post_notice": "Post notice",
+    "alumni_heading": "What’s new with\nthe class?",
+    "record_dues": "Record dues",
+    "new_poll": "New poll",
+    "committee_todo": "Committee to-do",
+    "add_classmate": "Add classmate",
+    "estate_heading": "What’s up\non the estate?",
+    "new_gate_pass": "New gate pass",
+    "report_issue": "Report an issue",
+    "record_levy": "Record levy",
+    "event_heading": "Let’s plan\nthe big day",
+    "check_in": "Check in guests",
+    "seat_guests": "Seat guests",
+    "pay_vendor": "Pay a vendor",
+    "run_day": "Run the day",
+    "committee_heading": "What’s on\nthe agenda?",
+    "schedule_meeting": "Schedule meeting",
+    "action_item": "Action item",
+    "take_minutes": "Take minutes",
+    "put_to_vote": "Put to a vote",
+    "club_heading": "What’s on\nat the club?",
+    "take_attendance": "Take attendance",
+    "record_fee": "Record a fee",
+    "add_session": "Add session"
+  },
+  "family_home": {
+    "no_reviews": "No items need review",
+    "pay": "Pay",
+    "view": "View",
+    "points_rewards": "Points & rewards",
+    "star_house": "STAR OF THE HOUSE",
+    "start_points": "Start earning points",
+    "person_points": "{name} · {points} points",
+    "errands_money": "Errands & money",
+    "say_errand": "+ Say an errand",
+    "say_naturally": "Say it the way you’d say it. “Carry Madam to the market by 10, buy tomatoes and rice.”",
+    "coming_up": "Coming up",
+    "child_view": "See what the children see"
+  },
+  "family_reference": {
+    "greeting": "Good morning, Ibrahim",
+    "needs_today": "4 things need you today.",
+    "new_plan": "New plan",
+    "chores": "Chores left",
+    "school": "School to check",
+    "bill": "Bill due · {amount}",
+    "say": "Say it the way you’d say it. “Kwame, carry Madam go market by 10, buy tomatoes and rice, I don give you twenty thousand.”",
+    "kid": "See what Tobi sees",
+    "checked": "Checked",
+    "check": "Check",
+    "shopping": "3 items on the shopping list",
+    "open": "Open",
+    "issued": "{name} · issued {amount}",
+    "change_due": "• Change due",
+    "out_now": "• Out now",
+    "change_summary": "Spent ₦17,500 ·\nchange due ₦2,500",
+    "change_received": "Change received",
+    "received": "Received"
+  },
+  "household": {
+    "title": "Household",
+    "subtitle": "{count} people in {name}",
+    "parents": "Parents",
+    "children": "Children",
+    "helpers": "Helpers",
+    "add_member": "Add household member",
+    "tablet": "Family tablet",
+    "tablet_detail": "Children sign in with their picture and a PIN",
+    "on": "• On",
+    "can": "What {name} can do",
+    "message": "Message",
+    "give_task": "Give a task",
+    "whos_using": "Who’s using the tablet?",
+    "pin": "{name} enters their 4-digit PIN",
+    "and": "and",
+    "roles": {
+      "head": "Head of the house",
+      "cohead": "Co-head",
+      "spouse": "Co-head",
+      "child": "Child",
+      "cook": "Cook",
+      "driver": "Driver",
+      "security": "Security"
+    },
+    "permissions": {
+      "head": "Everything: money, staff, settings and every member",
+      "cohead": "Everything, including money and staff",
+      "spouse": "Everything, including money and staff",
+      "child": "Own tasks and the family calendar; earns points",
+      "cook": "Own duties and errands; logs money spent",
+      "driver": "Trips and errands; logs fuel and trip times",
+      "security": "Shift roster and visitor log"
     }
+  },
+  "school": {
+    "title": "School",
+    "intro": "Homework, tests, PTA, forms and fees, and who checks each one.",
+    "add": "Add to school",
+    "assignments": "Assign-\nments open",
+    "waiting": "Waiting for\nyour check",
+    "overdue": "Overdue",
+    "this_week": "This week",
+    "group_od": "Overdue",
+    "group_wk": "This week",
+    "group_later": "Later",
+    "type_hw": "Assignment",
+    "type_test": "Test or exam",
+    "type_form": "Form to sign",
+    "type_pta": "PTA meeting",
+    "type_buy": "To buy or bring",
+    "type_event": "School event",
+    "type_fees": "Fees",
+    "worksheet_title": "Tobi sent his worksheet",
+    "worksheet_detail": "Fractions, page 14 · waiting for your check",
+    "again": "Do it again",
+    "looks_good": "Looks good",
+    "approved": "Checked · Tobi earns 15 points",
+    "returned": "Sent back to Tobi with “Do it again”",
+    "updated": "School item updated",
+    "toggle": "Mark {title} complete",
+    "redo_note": "Do the last five again, neatly.",
+    "science": "Basic Science",
+    "english": "English",
+    "maths": "Maths",
+    "yesterday": "Yesterday",
+    "nov27": "Fri, 27 Nov",
+    "nov28": "Sat, 28 Nov · 10:00 am",
+    "nov29": "Sun, 29 Nov",
+    "nov30": "Mon, 30 Nov",
+    "dec4": "Fri, 4 Dec · 8:00 am",
+    "dec7": "Mon, 7 Dec · ₦650,000",
+    "add_hint": "e.g. Science project — volcano model",
+    "add_for": "For {name} · you’ll check it when it’s done",
+    "add_button": "Add",
+    "default_title": "Science project — volcano model"
+  },
+  "family_plans": {
+    "title": "Family plans",
+    "subtitle": "Big things, broken into small steps",
+    "start": "Start a family plan",
+    "new": "New family plan",
+    "untick": "Untick what you don’t need.",
+    "mode0": "Simple",
+    "mode1": "Intermediate",
+    "mode2": "Advanced",
+    "mode_detail0": "One checklist. Done in seconds.",
+    "mode_detail1": "Steps with owners and dates.",
+    "mode_detail2": "Stages, a budget and progress reports.",
+    "idea": "Pick an idea",
+    "members": "Who’s in?",
+    "steps": "Steps",
+    "kept": "{count} of {total}",
+    "cancel": "Cancel",
+    "create": "Create plan",
+    "your_plan": "Your plan",
+    "done_count": "{done}/{total} done",
+    "trip": {
+      "title": "Family trip",
+      "description": "Plan a family trip day by day: book, pack and go.",
+      "step0": "Pick dates and destination",
+      "step1": "Write the day-by-day plan",
+      "step2": "Book flights or bus",
+      "step3": "Book where we stay",
+      "step4": "Make the packing list",
+      "step5": "Pack the kids’ bags",
+      "step6": "Snacks and medicine",
+      "step7": "Fuel and check the car",
+      "step8": "Travel day"
+    },
+    "bday": {
+      "title": "Birthday party",
+      "description": "Guests, cake, decorations and the big day.",
+      "step0": "Pick the date and theme",
+      "step1": "Guest list and invites",
+      "step2": "Order the cake",
+      "step3": "Food and drinks",
+      "step4": "Decorations",
+      "step5": "Party packs for the kids",
+      "step6": "The big day",
+      "step7": "Thank-you messages"
+    },
+    "term": {
+      "title": "New school term",
+      "description": "Fees, books, uniform and a packed bag for resumption.",
+      "step0": "Pay school fees",
+      "step1": "Buy books on the list",
+      "step2": "Uniform and shoes",
+      "step3": "School bag and stationery",
+      "step4": "Fill and sign forms",
+      "step5": "Label everything",
+      "step6": "Pack the bags the night before",
+      "step7": "Resumption day"
+    },
+    "move": {
+      "title": "Moving house",
+      "description": "Sort, pack, move and settle into the new home.",
+      "step0": "Pick the moving date",
+      "step1": "Sort and give away",
+      "step2": "Book the movers",
+      "step3": "Pack room by room",
+      "step4": "Change address at school and bank",
+      "step5": "Moving day",
+      "step6": "Unpack and settle in"
+    },
+    "xmas": {
+      "title": "Christmas at home",
+      "description": "Plan the season, buy gifts and travel to the village.",
+      "step0": "Plan the season",
+      "step1": "Gift list",
+      "step2": "Shopping for the season",
+      "step3": "Car service before travel",
+      "step4": "Travel to the village",
+      "step5": "Christmas day",
+      "step6": "Back home"
+    },
+    "blank": {
+      "title": "Blank plan",
+      "description": "",
+      "step0": "First step",
+      "step1": "Second step",
+      "step2": "Third step"
+    },
+    "our_plan": "Our plan"
+  },
+  "shopping": {
+    "title": "Shopping list",
+    "subtitle": "One list for the whole household",
+    "back": "Back",
+    "share": "Send list",
+    "shared": "List sent to the family chat",
+    "new_item": "New item",
+    "placeholder": "Add an item, e.g. Garri 2 paint",
+    "add": "Add",
+    "added": "Added · {name}",
+    "bought_toast": "Bought · {name}",
+    "added_meta": "Added by you · just now",
+    "mark_bought": "Bought",
+    "mark_cart": "In the cart",
+    "stores": {
+      "mile12": "Mile 12",
+      "shoprite": "Shoprite",
+      "market": "Market",
+      "anywhere": "Anywhere"
+    },
+    "filters": {
+      "all": "All",
+      "buy": "To buy",
+      "cart": "In the cart",
+      "got": "Bought"
+    },
+    "empty_title": "Nothing here",
+    "empty_body": "Add what the house needs above.",
+    "live_title": "Bisi is at Mile 12 market",
+    "live_body": "She ticks items as she buys them",
+    "live": "Live"
+  },
+  "chores": {
+    "title": "Chores",
+    "intro": "Who does what at home. Children earn points for finished chores.",
+    "add": "Add chore",
+    "new": "New chore",
+    "placeholder": "e.g. Sweep the compound",
+    "example": "Sweep the compound",
+    "who": "Who does it",
+    "due": "Due",
+    "dues": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "week": "This week"
+    },
+    "points": "Points",
+    "points_hint": "Children trade points for rewards",
+    "fewer": "Fewer points",
+    "more": "More points",
+    "filters": {
+      "all": "All",
+      "todo": "To do",
+      "ip": "In progress",
+      "done": "Done"
+    },
+    "all_done": "Every chore done. Great house!",
+    "left": {
+      "one": "{} chore left today",
+      "other": "{} chores left today"
+    },
+    "points_line": "{name} has ",
+    "points_value": "{points} points",
+    "points_tail": " this week",
+    "rewards": "Rewards",
+    "empty_title": "Nothing here",
+    "empty_body": "Add a chore with the + button.",
+    "mark_done": "Mark done",
+    "mark_not_done": "Mark not done",
+    "in_progress": "In progress",
+    "earned": "{name} earned {points} points",
+    "done_toast": "Done · {name}",
+    "gained": "+{points} pts",
+    "added": "Chore added for {name}"
+  },
+  "rewards": {
+    "title": "Points & rewards",
+    "subtitle": "How everyone is doing this week",
+    "tabs": {
+      "board": "Points board",
+      "shop": "Rewards"
+    },
+    "star": "Star of the week",
+    "kpi": {
+      "chores_done": "Chores done",
+      "school_checked": "School checked",
+      "overdue": "Overdue",
+      "streak": "On a streak"
+    },
+    "everyone": "Everyone",
+    "nothing": "Nothing assigned yet",
+    "chores_line": "Chores {done}/{total}",
+    "school_line": "School {done}/{total}",
+    "roles": {
+      "head": "Head",
+      "cohead": "Co-head",
+      "spouse": "Co-head",
+      "child": "Child",
+      "cook": "Cook",
+      "driver": "Driver",
+      "security": "Security"
+    },
+    "cheer": "Cheer",
+    "cheered": "Cheered!",
+    "cheer_toast": "You cheered {name}",
+    "has_points": "{name} has {points} points",
+    "trade": "Children trade points for rewards you set",
+    "can_have": "{cost} pts · {name} can have this now",
+    "more_needed": "{left} more points · {cost} pts",
+    "give": "Give",
+    "given": "{reward} given to {name} · −{cost} pts",
+    "add": "+ Add a reward",
+    "add_hint": "Rewards are set by parents in Workspace settings"
+  },
+  "bills": {
+    "title": "Bills",
+    "subtitle": "Household bills and school fees",
+    "add": "Add bill",
+    "new": "New bill",
+    "paid_so_far": "Paid so far",
+    "of_total": "of {amount} this term",
+    "trio": {
+      "outstanding": "Outstanding",
+      "due_week": "Due this week",
+      "count": "Bills"
+    },
+    "filters": {
+      "all": "All",
+      "open": "Still owing",
+      "paid": "Paid"
+    },
+    "status": {
+      "paid": "Paid",
+      "part": "Part paid",
+      "unpaid": "Not paid"
+    },
+    "pay": "Pay",
+    "due_on": "Due {date}",
+    "record": "Record a payment",
+    "balance": "Balance {amount}",
+    "full": "Full {amount}",
+    "half": "Half",
+    "paid_with": "Paid with",
+    "methods": {
+      "transfer": "Transfer",
+      "cash": "Cash",
+      "card": "Card"
+    },
+    "record_amount": "Record {amount}",
+    "recorded": "{amount} recorded for {name}",
+    "name_hint": "e.g. Water vendor",
+    "amount_hint": "Amount ₦",
+    "due_hint": "Due",
+    "example_name": "Water vendor",
+    "example_due": "Fri, 27 Nov",
+    "added": "Bill added"
+  },
+  "individual": {
+    "greeting": "Good morning, ",
+    "quick_hint": "Add a task… try “fri !high #brand”",
+    "add": "Add",
+    "token_due": "Due {day}",
+    "token_priority": "Priority {level}",
+    "token_project": "Project {name}",
+    "token_person": "For {name}",
+    "priority": {
+      "high": "High",
+      "urgent": "Urgent",
+      "low": "Low",
+      "med": "Medium"
+    },
+    "tomorrow": "Tomorrow",
+    "task_added": "Task added · {title}",
+    "your_business": "Your business",
+    "active_clients": "Active clients",
+    "billed_line": {
+      "zero": "of {total} · all paid",
+      "one": "of {total} · {} owing",
+      "other": "of {total} · {} owing"
+    },
+    "hours": "{n}h",
+    "billable_week": "Billable {amount} this week",
+    "open_proposals": "Open proposals",
+    "gig_to_watch": "Gig to watch",
+    "all_gigs": "All gigs",
+    "at_risk": "At risk",
+    "watch_line": {
+      "zero": "“{step}” now looks like {forecast}, promised {promised}",
+      "one": "“{step}” now looks like {forecast}, promised {promised} · {} working day late",
+      "other": "“{step}” now looks like {forecast}, promised {promised} · {} working days late"
+    },
+    "coming_up": "Coming up",
+    "view_all": "View all",
+    "nothing_due": "Nothing due. Add a task above.",
+    "standalone": "Standalone",
+    "not_started": "Not started",
+    "rhythm": "Your rhythm",
+    "performance": "Performance",
+    "streak_title": "3-day on-time streak",
+    "streak_body": "Level 1 · 360 pts · 140 to level 2",
+    "invite_title": "Invite your team and clients",
+    "invite_body": "Clients see only what you allow: progress, files, invoices and the timeline.",
+    "new_client": "New client",
+    "pick_template": "Pick a template, or start blank",
+    "templates": "{n} templates",
+    "running": "Running",
+    "on_track": "On track",
+    "mode": {
+      "simple": "Simple",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "next_promise": "Next promise: {step} · {promised} → forecast {forecast}",
+    "accepted": "Accepted delivery",
+    "tasks_done": "Tasks done",
+    "done": "Done",
+    "focus_session": "Focus session",
+    "logged": "{hours} logged for {client}",
+    "tracking": "Tracking for {client}",
+    "tap_play": "Tap play to start tracking",
+    "start": "Start timer",
+    "stop": "Stop timer",
+    "this_week": "This week",
+    "billable": "Billable",
+    "not_billable": "Not billable",
+    "at_rate": "at {rate}/h",
+    "by_client": "This week by client",
+    "logged_heading": "Logged",
+    "bill_it": "Bill it",
+    "yesterday": "Yesterday",
+    "clients_sub": "Who you work for, and where each one stands",
+    "proposals_sub": "Quotes you’re working on or waiting to hear back on",
+    "stages": {
+      "active": "Active",
+      "lead": "Lead",
+      "past": "Past",
+      "invited": "Invited",
+      "todo": "To do",
+      "sent": "Sent",
+      "accepted": "Accepted"
+    },
+    "client_sees": "What a client sees",
+    "sees": {
+      "progress": "Progress",
+      "files": "Files",
+      "invoices": "Invoices",
+      "timeline": "Timeline",
+      "comments": "Comments"
+    },
+    "sees_note": "Every approval they give is time-stamped.",
+    "accepted_on": "Accepted {date}",
+    "due_on": "due {date}",
+    "open_document": "Open document",
+    "send_client": "Send to client",
+    "mark_accepted": "Mark accepted",
+    "stage": "Stage",
+    "message": "Message",
+    "sent_toast": "Sent · {name}",
+    "accepted_toast": "Accepted · start the gig from Gigs",
+    "invoice": {
+      "title": "New invoice",
+      "client": "Client",
+      "amount": "Amount ₦",
+      "from_time": "From time · {amount}",
+      "create": "Create and send",
+      "sent": "{number} sent to {client}",
+      "need_amount": "Enter an amount first",
+      "client_hint": "Client name"
+    }
+  },
+  "church": {
+    "tabs": {
+      "overview": "Overview",
+      "services": "Services",
+      "giving": "Giving",
+      "units": "Units",
+      "prayer": "Prayer requests",
+      "firstTimers": "First-timers",
+      "notices": "Notices"
+    },
+    "event_line": "{date} · {members} members",
+    "intro": "Services, giving, units and prayer requests for the whole congregation.",
+    "kpi": {
+      "attendance": "Last Sunday attendance",
+      "giving": "Giving this month",
+      "prayer": "Prayer requests open",
+      "first_timers": "First-timers not yet called"
+    },
+    "workers_title": "3 of 6 workers sent today’s summary",
+    "workers_blockers": "2 blockers raised",
+    "next_service": "Next service · {when}",
+    "record_attendance": "Record attendance",
+    "serving": "Who’s serving",
+    "trend": "Attendance trend",
+    "last_services": {
+      "one": "Last service",
+      "other": "Last {} services"
+    },
+    "coming_up": "Coming up",
+    "groups": {
+      "men": "Men",
+      "women": "Women",
+      "children": "Children",
+      "online": "Online"
+    },
+    "less": "Less",
+    "more": "More",
+    "save_people": "Save {n} people",
+    "attendance_saved": "{n} people recorded for {service}",
+    "this_month": "This month",
+    "tithes": "Tithes",
+    "offerings": "Offerings",
+    "funds": "Funds",
+    "of_target": " of {target}",
+    "recent_giving": "Recent giving",
+    "anonymous": "Anonymous",
+    "methods": {
+      "transfer": "Transfer",
+      "cash": "Cash",
+      "pos": "POS"
+    },
+    "record_giving": "Record giving",
+    "amount_hint": "Amount ₦",
+    "record": "Record",
+    "gift_saved": "{amount} recorded to {fund}",
+    "me": {
+      "serve": "You serve here",
+      "lead": "You lead"
+    },
+    "prayer_hint": "Share a prayer request…",
+    "send": "Send",
+    "pastors_only": "Only the pastors",
+    "hide_name": "Don’t show my name",
+    "sent_pastors": "Sent to the pastors only",
+    "shared": "Shared with the church",
+    "praying": "Praying",
+    "answered": "Answered",
+    "someone": "Someone",
+    "private": "Private",
+    "praying_on": "Praying 🙏🏾",
+    "will_pray": "I’ll pray",
+    "praying_for": "You’re praying for {name}",
+    "praying_count": "{n} praying",
+    "mark_answered": "Mark answered",
+    "answered_toast": "Praise God! Marked answered",
+    "first_line": "{n} people · {pct}% became members",
+    "stages": {
+      "new": "New",
+      "called": "Called",
+      "visited": "Visited",
+      "class": "In class",
+      "member": "Member"
+    },
+    "next": {
+      "new": "Call",
+      "called": "Visit",
+      "visited": "Class",
+      "class": "Member"
+    },
+    "first_came": "First came {when} · {who}",
+    "nobody": "No one following up",
+    "moved": "{name} moved to {stage}",
+    "add_first_timer": "+ Add first-timer",
+    "add_first_timer_title": "Add first-timer",
+    "first_name_hint": "Their name, from the welcome card",
+    "first_note": "They start as New. Whoever calls them first follows up.",
+    "first_added": "{name} added",
+    "add": "Add"
+  },
+  "specials": {
+    "days_to_go": {
+      "zero": "today",
+      "one": "day to go",
+      "other": "days to go"
+    },
+    "reports": "Reports",
+    "notices_intro": "Announcements everyone sees, with how many have read them.",
+    "notice_hint": "Write a notice for everyone…",
+    "post": "Post",
+    "goes_to": "Goes to all {n} members",
+    "notice_posted": "Notice posted to everyone",
+    "read_by": "Read by {n} of {total}",
+    "record_payment": "Record payment",
+    "balance": "Balance {amount}",
+    "full": "Full {amount}",
+    "half": "Half {amount}",
+    "paid_with": "Paid with",
+    "methods": {
+      "transfer": "Transfer",
+      "cash": "Cash",
+      "pos": "POS"
+    },
+    "record_amount": "Record {amount}",
+    "poll_intro": "Ask everyone and see the results live.",
+    "poll_by_you": "Poll · by you",
+    "poll_chip": "Poll",
+    "voted": "{n} of {of} voted",
+    "your_vote": "Your vote: {option}",
+    "vote_hint": "Tap an option to vote. You can change it until the poll closes.",
+    "vote_in": "Your vote is in · tap another option to change it",
+    "new_poll": "+ New poll",
+    "poll_by": "Poll · by {name}",
+    "collected": "Collected",
+    "target": "Target {amount}",
+    "outstanding": "Outstanding",
+    "paid": "Paid",
+    "owing": "Still owing",
+    "payment_saved": "{amount} recorded for {name}",
+    "mark_done": "Mark done",
+    "done_toast": "Done · {title}",
+    "add": "Add",
+    "item_added": "Added · {title}",
+    "reply_toast": "{reply} · {meeting}"
+  },
+  "alumni": {
+    "tabs": {
+      "overview": "Overview",
+      "dues": "Dues & pledges",
+      "committees": "Committees",
+      "poll": "Poll",
+      "notices": "Notices",
+      "directory": "Directory"
+    },
+    "chip": "Alumni",
+    "event_line": "{date} · {n} classmates",
+    "intro": "Dues, committees and polls for your set, with a directory of classmates.",
+    "kpi": {
+      "dues": {
+        "zero": "Dues of {target} · all paid",
+        "one": "Dues of {target} · {} owing",
+        "other": "Dues of {target} · {} owing"
+      },
+      "committees": {
+        "zero": "Committees · all done",
+        "one": "Committees · {} to-do",
+        "other": "Committees · {} to-dos"
+      },
+      "poll": "{option} leads the {poll} poll",
+      "no_votes": "No votes yet",
+      "active": "Active classmates"
+    },
+    "workers_title": "2 of 5 sent today’s summary",
+    "workers_blockers": "1 blocker raised",
+    "dues_intro": "What each member pledged and has paid towards the target.",
+    "add_pledge": "+ Add pledge",
+    "committees_intro": "Committees, their leads and their to-dos.",
+    "lead": {
+      "one": "Lead: {name} · {} member",
+      "other": "Lead: {name} · {} members"
+    },
+    "no_lead": {
+      "one": "No lead yet · {} member",
+      "other": "No lead yet · {} members"
+    },
+    "pick_lead": "Pick a lead",
+    "you_lead": "You now lead {name}",
+    "directory_intro": "Classmates, where they are and who’s active.",
+    "activity": {
+      "active": "Active",
+      "occasional": "Occasional",
+      "inactive": "Inactive"
+    },
+    "add_classmate": "+ Add classmate"
+  },
+  "estate": {
+    "tabs": {
+      "overview": "Overview",
+      "levies": "Levies",
+      "passes": "Gate passes",
+      "issues": "Facility issues",
+      "notices": "Notices",
+      "poll": "Poll"
+    },
+    "chip": "Estate",
+    "event_line": "{date} · {venue} · {n} houses",
+    "intro": "Levies, gate passes, facility issues and notices for residents.",
+    "kpi": {
+      "levies": {
+        "zero": "Levies of {target} · all paid",
+        "one": "Levies of {target} · {} owing",
+        "other": "Levies of {target} · {} owing"
+      },
+      "passes": "Gate passes today and soon",
+      "issues": "Facility issues open",
+      "no_poll": "No poll yet"
+    },
+    "workers_title": "3 of 6 exco sent today’s summary",
+    "workers_blockers": "2 blockers raised",
+    "levies_intro": "Service charges per house, with who has paid.",
+    "record_levy": "Record levy",
+    "add_house": "+ Add house",
+    "passes_intro": "Expected visitors and their access codes for security.",
+    "any_time": "any time",
+    "new": "New",
+    "soon": "Soon",
+    "gate_code": "Gate code",
+    "new_pass": "+ New gate pass",
+    "new_pass_title": "New gate pass",
+    "who_hint": "Who’s coming? e.g. Mr Okon (plumber)",
+    "pass_example": "Guest → House 5",
+    "when": "When",
+    "days": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "saturday": "Saturday"
+    },
+    "share_hint": "Security gets the code. Share it with your visitor on WhatsApp.",
+    "create_code": "Create code",
+    "code_sent": "Code {code} sent to security",
+    "issues": {
+      "intro": "Things that need fixing around the estate.",
+      "hint": "Report an issue, e.g. Water leak by Gate 2",
+      "added_by": "Reported by you · just now",
+      "stages": {
+        "reported": "Reported",
+        "fixing": "Being fixed",
+        "fixed": "Fixed"
+      }
+    }
+  },
+  "event": {
+    "tabs": {
+      "overview": "Overview",
+      "guests": "Guest list",
+      "seating": "Seating",
+      "vendors": "Vendors",
+      "programme": "Programme"
+    },
+    "hosted_by": "Hosted by {hosts}",
+    "share_invite": "Share invite",
+    "guest_page": "Guest page",
+    "seats_confirmed": "Seats confirmed",
+    "awaiting": "{n} awaiting reply",
+    "awaiting_by": "{n} awaiting reply · RSVP by {date}",
+    "budget_used": "Budget used",
+    "budget_line": "{committed} of {budget} · {paid} paid",
+    "rsvp_progress": "RSVP progress",
+    "rsvp_count": {
+      "confirmed": "attending",
+      "maybe": "maybe",
+      "pending": "invited",
+      "notInvited": "not sent",
+      "declined": "can’t come"
+    },
+    "rsvp": {
+      "confirmed": "Attending",
+      "maybe": "Maybe",
+      "pending": "Invited",
+      "notInvited": "Not invited yet",
+      "declined": "Can’t come"
+    },
+    "due_soon": "Payments due soon",
+    "guest_list": "Guest list",
+    "door": "Check-in at the door",
+    "checked_in_of": "guests checked in of {n} expected. Tap a name as they arrive.",
+    "checked_in": "{name} checked in · {table}",
+    "no_table": "no table yet",
+    "status_in": "Checked in",
+    "status_expected": "Expected",
+    "import": "Import list",
+    "share_rsvp": "Share RSVP link",
+    "seats_filled": "of {n} seats filled · {tables} tables",
+    "auto_seat": "Auto-seat",
+    "auto_seated": {
+      "one": "{} guest auto-seated by group",
+      "other": "{} guests auto-seated by group"
+    },
+    "all_seated_toast": "Everyone already has a seat",
+    "seat_hint": "Tap a guest, then tap the table to seat them.",
+    "seat_now": "Now tap a table for {name}",
+    "everyone_seated": "Everyone attending has a seat",
+    "seated_at": "{name} seated at {table}",
+    "table_full": "That table is full",
+    "floor_hint": "Chairs fill up as you seat guests. Tap a table to see who’s there.",
+    "peek": "{table} · {n} of {seats} seats",
+    "nobody": "Nobody yet",
+    "stage": "Stage",
+    "entrance": "Entrance",
+    "budget": "Budget",
+    "committed": "Committed",
+    "paid": "Paid",
+    "to_pay": "Still to pay",
+    "vendor_stages": {
+      "enquiry": "Enquiry",
+      "quoted": "Quoted",
+      "booked": "Booked",
+      "paid": "Paid in full"
+    },
+    "paid_full": "Paid in full",
+    "next_payment": "Next payment {date}",
+    "no_quote": "No quote",
+    "vendor_paid": "{amount} paid to {name}",
+    "now": "Now: {name}",
+    "up_next": "Up next: {name}",
+    "next": "Next",
+    "items": {
+      "one": "· {} item",
+      "other": "· {} items"
+    },
+    "stop": "Stop",
+    "run_day": "Run the day",
+    "minutes": {
+      "one": "{} min",
+      "other": "{} min"
+    },
+    "parts": {
+      "before": "Before",
+      "reception": "Reception",
+      "after": "After"
+    }
+  },
+  "committee": {
+    "tabs": {
+      "overview": "Overview",
+      "meetings": "Meetings",
+      "actions": "Action items",
+      "minutes": "Minutes",
+      "decisions": "Decisions"
+    },
+    "chip": "Committee",
+    "term_ends": "Term ends",
+    "term_line": "{date} · {n} members",
+    "intro": "Meetings, action items, minutes and decisions for the term.",
+    "kpi": {
+      "no_meeting": "No meeting scheduled",
+      "actions": "Open action items",
+      "minutes": "Minutes to read",
+      "leading": "Leading the venue vote",
+      "no_decision": "No open decision"
+    },
+    "workers_title": "3 of 6 sent today’s summary",
+    "workers_blockers": "2 blockers raised",
+    "actions": {
+      "intro": "What members agreed to do, and by when.",
+      "hint": "Add an action item",
+      "added_by": "Owner: {name} · from this meeting",
+      "stages": {
+        "todo": "To do",
+        "doing": "In progress",
+        "done": "Done"
+      }
+    },
+    "minutes_intro": "Minutes from each meeting.",
+    "minutes_meta": "Read by {n} of {total} · taken by {name}",
+    "minutes_hint": "Write the minutes…",
+    "draft": "Draft",
+    "saved": "Saved · sent",
+    "save": "Save",
+    "to_actions": "Turn into action items",
+    "minutes_saved": "Minutes saved and sent to members",
+    "from_minutes": "From the minutes",
+    "no_jobs": "No action items found. Try lines like “Chinwe to get quotes”.",
+    "jobs_found": {
+      "one": "{} action item found in the minutes",
+      "other": "{} action items found in the minutes"
+    },
+    "decisions_intro": "Put a question to the committee and record the outcome.",
+    "meetings": {
+      "intro": "Upcoming meetings and their agendas.",
+      "add": "+ Schedule meeting",
+      "replies": {
+        "coming": "Coming",
+        "maybe": "Maybe",
+        "cant": "Can’t"
+      }
+    }
+  },
+  "club": {
+    "tabs": {
+      "overview": "Overview",
+      "sessions": "Sessions",
+      "fees": "Fees",
+      "attendance": "Attendance",
+      "notices": "Notices"
+    },
+    "chip": "Club",
+    "season_line": "{date} · {n} members",
+    "intro": "Sessions, fees and attendance for members.",
+    "kpi": {
+      "no_session": "No session scheduled",
+      "fees": {
+        "zero": "Fees of {target} · all paid",
+        "one": "Fees of {target} · {} owing",
+        "other": "Fees of {target} · {} owing"
+      },
+      "coming": "Coming next session",
+      "notices": {
+        "one": "New notice",
+        "other": "New notices"
+      },
+      "no_notice": "No notices yet"
+    },
+    "workers_title": "3 of 6 sent today’s summary",
+    "workers_blockers": "2 blockers raised",
+    "sessions": {
+      "intro": "Training, matches and socials.",
+      "add": "+ Add session",
+      "replies": {
+        "in": "I’m in",
+        "maybe": "Maybe",
+        "out": "Out"
+      }
+    },
+    "fees_intro": "Membership fees and who has paid.",
+    "record_fee": "Record payment",
+    "add_fee": "+ Add member fee",
+    "attendance_intro": "Who’s coming to the next session.",
+    "marks": {
+      "present": "Present",
+      "maybe": "Maybe",
+      "absent": "Absent"
+    },
+    "add_member": "+ Add member"
   }
 }

@@ -38,25 +38,52 @@ class QuickCreate extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => FloatingActionButton(
-    heroTag: null,
-    tooltip: context.tr('quick_create.quick_create'),
-    backgroundColor: DesignColor.purple,
-    foregroundColor: DesignColor.ink,
-    onPressed: () async {
-      final route = await showGeneralDialog<TmsRoute>(
-        context: context,
-        barrierDismissible: true,
-        barrierLabel: context.tr('quick_create.close_quick_create'),
-        barrierColor: const Color(0xdd080910),
-        transitionDuration: DesignMotion.duration(context, DesignMotion.page),
-        transitionBuilder: (_, progress, _, child) =>
-            FadeTransition(opacity: progress, child: child),
-        pageBuilder: (context, _, _) => const _QuickCreateMenu(),
-      );
-      if (context.mounted && route != null) route.open(context);
-    },
-    child: const Icon(TmsIcons.add, size: 32),
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0xb09184d9),
+          offset: Offset(0, 14),
+          blurRadius: 30,
+          spreadRadius: -6,
+        ),
+      ],
+    ),
+    child: SizedBox.square(
+      dimension: 60,
+      child: FloatingActionButton(
+        heroTag: null,
+        elevation: 0,
+        hoverElevation: 0,
+        focusElevation: 0,
+        highlightElevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0x55ffffff), width: .5),
+        ),
+        tooltip: context.tr('quick_create.quick_create'),
+        backgroundColor: DesignColor.purple,
+        foregroundColor: DesignColor.ink,
+        onPressed: () async {
+          final route = await showGeneralDialog<TmsRoute>(
+            context: context,
+            barrierDismissible: true,
+            barrierLabel: context.tr('quick_create.close_quick_create'),
+            barrierColor: const Color(0xdd080910),
+            transitionDuration: DesignMotion.duration(
+              context,
+              DesignMotion.page,
+            ),
+            transitionBuilder: (_, progress, _, child) =>
+                FadeTransition(opacity: progress, child: child),
+            pageBuilder: (context, _, _) => const _QuickCreateMenu(),
+          );
+          if (context.mounted && route != null) route.open(context);
+        },
+        child: const Icon(TmsIcons.add, size: 26),
+      ),
+    ),
   );
 }
 

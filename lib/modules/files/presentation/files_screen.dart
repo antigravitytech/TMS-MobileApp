@@ -3,7 +3,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/design/design_widgets.dart';
+import '../../../shared/design/design_tokens.dart';
+import '../../../router/tms_routes.dart';
+
 import '../../../shared/design/tms_icons.dart';
+
+part 'widgets/file_list_widgets.dart';
 
 class FilesScreen extends StatefulWidget {
   const FilesScreen({super.key});
@@ -13,21 +18,25 @@ class FilesScreen extends StatefulWidget {
 
 class _FilesScreenState extends State<FilesScreen> {
   static const types = [
-    'files.all_files',
-    'files.documents',
+    'files.all_types',
+    'files.pdf',
     'files.images',
-    'files.other',
+    'files.documents',
+    'files.video',
   ];
   final files = <(String, String, String, String)>[
-    ('Q4 hiring budget.xlsx', 'files.documents', 'common.standalone', 'Chioma'),
+    ('webhook-retry-tests.pdf', 'files.pdf', 'Customer Portal Revamp', 'Tunde'),
+    ('form-errors.png', 'files.images', 'Customer Portal Revamp', 'Amaka'),
+    ('usability-findings.pdf', 'files.pdf', 'Customer Portal Revamp', 'Sarah'),
+    ('session-3-clip.mp4', 'files.video', 'Customer Portal Revamp', 'Sarah'),
+    ('checkout-step2.png', 'files.images', 'Customer Portal Revamp', 'Amaka'),
+    ('retry-sequence.png', 'files.images', 'Customer Portal Revamp', 'Tunde'),
     (
-      'Usability test findings.pdf',
+      'checkout-v2-mockup.fig',
       'files.documents',
       'Customer Portal Revamp',
-      'Sarah',
+      'Amaka',
     ),
-    ('Checkout mockup.png', 'files.images', 'Customer Portal Revamp', 'Amaka'),
-    ('Webhook test run.zip', 'files.other', 'Customer Portal Revamp', 'Tunde'),
   ];
   int type = 0, project = 0, owner = 0;
   static const projects = [
@@ -73,8 +82,8 @@ class _FilesScreenState extends State<FilesScreen> {
               ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension)
               ? 'files.images'
               : ['pdf', 'doc', 'docx', 'xlsx', 'txt'].contains(extension)
-              ? 'files.documents'
-              : 'files.other';
+              ? (extension == 'pdf' ? 'files.pdf' : 'files.documents')
+              : 'files.video';
           files.insert(0, (item.name, category, 'common.standalone', 'Chioma'));
         }
         type = 0;
@@ -110,25 +119,40 @@ class _FilesScreenState extends State<FilesScreen> {
         ),
       ],
       children: [
-        DesignChoices(
-          items: types.map(context.tr).toList(),
-          selected: type,
-          onChanged: (i) => setState(() => type = i),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              for (var i = 0; i < types.length; i++)
+                _FileChip(
+                  context.tr(types[i]),
+                  selected: type == i,
+                  onTap: () => setState(() => type = i),
+                ),
+            ],
+          ),
         ),
-        Wrap(
-          spacing: 8,
-          children: [
-            DesignPill(
-              projectLabel(context, projects[project]),
-              icon: TmsIcons.folder,
-              onTap: () =>
-                  setState(() => project = (project + 1) % projects.length),
-            ),
-            DesignPill(
-              owner == 0 ? context.tr(owners.first) : owners[owner],
-              onTap: () => setState(() => owner = (owner + 1) % owners.length),
-            ),
-          ],
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              _FileChip(
+                projectLabel(context, projects[project]),
+                icon: TmsIcons.monitor,
+                onTap: () =>
+                    setState(() => project = (project + 1) % projects.length),
+                dropdown: true,
+              ),
+              _FileChip(
+                owner == 0 ? context.tr(owners.first) : owners[owner],
+                onTap: () =>
+                    setState(() => owner = (owner + 1) % owners.length),
+                dropdown: true,
+              ),
+            ],
+          ),
         ),
         if (visible.isEmpty)
           DesignEmpty(
@@ -137,32 +161,17 @@ class _FilesScreenState extends State<FilesScreen> {
             icon: TmsIcons.folderMissing,
           ),
         if (visible.isNotEmpty)
-          DesignSection(
-            children: [
-              for (final (name, type, project, owner) in visible)
-                DesignTile(
-                  title: name,
-                  subtitle: '${projectLabel(context, project)} · $owner',
-                  icon: type == 'files.images' ? TmsIcons.image : TmsIcons.file,
-                  onTap: () => designSheet<void>(
-                    context,
-                    title: name,
-                    builder: (_) => DesignLabel(
-                      context.tr(
-                        'files.file_details',
-                        namedArgs: {
-                          'type': context.tr(type),
-                          'project': (projectLabel(
-                            context,
-                            project,
-                          )).toString(),
-                          'owner': owner,
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          DesignCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                for (final file in visible) ...[
+                  if (file != visible.first)
+                    Divider(height: 1, color: context.outline),
+                  _FileRow(name: file.$1, owner: file.$4, category: file.$2),
+                ],
+              ],
+            ),
           ),
       ],
     );

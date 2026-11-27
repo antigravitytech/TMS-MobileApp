@@ -23,24 +23,6 @@ extension WorkspaceEventActions on LocalWorkspaces {
         );
       });
 
-  Future<void> lineUpProgramme(String workspaceId, DateTime start) =>
-      _updateWorkspace(workspaceId, (workspace) {
-        final entries = workspace.items(WorkspaceSection.programme).toList()
-          ..sort((a, b) => a.date!.compareTo(b.date!));
-        var cursor = start;
-        final times = <String, DateTime>{};
-        for (final item in entries) {
-          times[item.id] = cursor;
-          cursor = cursor.add(Duration(minutes: item.duration));
-        }
-        return workspace.copyWith(
-          records: [
-            for (final r in workspace.records)
-              times.containsKey(r.id) ? r.copyWith(date: times[r.id]) : r,
-          ],
-        );
-      });
-
   Future<void> respondToInvite(
     String workspaceId,
     String guestId,
@@ -73,21 +55,6 @@ extension WorkspaceEventActions on LocalWorkspaces {
           records: [
             for (final r in w.records)
               r.id == guestId ? r.copyWith(group: table) : r,
-          ],
-        );
-      });
-  Future<void> removeTable(String id, String tableId) =>
-      _updateWorkspace(id, (w) {
-        final table = w
-            .items(WorkspaceSection.seating)
-            .firstWhere((r) => r.id == tableId);
-        return w.copyWith(
-          records: [
-            for (final r in w.records)
-              if (r.id != tableId)
-                r.section == WorkspaceSection.guests && r.group == table.title
-                    ? r.copyWith(group: '')
-                    : r,
           ],
         );
       });

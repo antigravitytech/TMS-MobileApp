@@ -4,15 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../config/environment.dart';
 import 'api_constants.dart';
 import 'dio_exception_handler.dart';
 import 'token_utils.dart';
 
-final dioRepositoryProvider = Provider<DioRepository>((ref) {
-  final repository = DioRepositoryImpl();
-  ref.onDispose(repository.close);
-  return repository;
-});
+part 'dio_repository_provider.dart';
 
 abstract class DioRepository {
   Future<void> initialize();

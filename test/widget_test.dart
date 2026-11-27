@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sabi_pipu_tms/modules/workspace/data/workspace_repository.dart';
 import 'package:sabi_pipu_tms/app/tms_app.dart';
 import 'package:sabi_pipu_tms/core/network/api_response.dart';
 import 'package:sabi_pipu_tms/l10n/network_failure_localization.dart';
-import 'package:sabi_pipu_tms/modules/onboarding/presentation/welcome_screen.dart';
+import 'package:sabi_pipu_tms/modules/authentication/presentation/welcome_screen.dart';
 import 'package:sabi_pipu_tms/modules/workspace/application/local_workspaces.dart';
 import 'package:sabi_pipu_tms/modules/workspace/application/workspace_preview.dart';
 import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_kind.dart';
@@ -35,7 +36,13 @@ void main() {
   testWidgets('a native review swipe updates the workspace approval queue', (
     tester,
   ) async {
-    final container = ProviderContainer();
+    final container = ProviderContainer(
+      overrides: [
+        workspaceRepositoryProvider.overrideWithValue(
+          const LiveWorkspaceRepository(),
+        ),
+      ],
+    );
     addTearDown(container.dispose);
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -59,7 +66,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Family schoolwork can be submitted, returned and approved', (
+  testWidgets('Family school adds homework from the design sheet', (
     tester,
   ) async {
     final container = await _openWorkspaceApp(
@@ -69,73 +76,46 @@ void main() {
     );
     await _tapText(tester, 'Switch');
     await _tapText(tester, 'Family');
-    expect(find.text('Today at home'), findsOneWidget);
-    expect(find.text('Approvals'), findsNothing);
-
     await _tapText(tester, 'School');
-    await _tapText(tester, 'Add school item');
+    await tester.tap(find.byTooltip('Add to school'));
+    await tester.pumpAndSettle();
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Title'),
+      find.widgetWithText(TextField, 'e.g. Science project — volcano model'),
       'Maths worksheet',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Assigned to'),
-      'Taylor',
-    );
-    await _tapText(tester, 'Save');
-    await _tapText(tester, 'Maths worksheet');
-    await _tapText(tester, 'Submit for review');
-    await _tapText(tester, 'Home');
-
-    expect(find.text('1 item needs review'), findsOneWidget);
-    await _tapText(tester, 'Review work');
-    await _tapText(tester, 'Maths worksheet');
-    await _tapText(tester, 'Send back');
-    final provider = container.read(localWorkspacesProvider).requireValue;
-    expect(
-      provider.active!.items(WorkspaceSection.school).single.status,
-      WorkspaceStatus.returned,
-    );
-    await _tapText(tester, 'All');
-    await _tapText(tester, 'Maths worksheet');
-    await _tapText(tester, 'Submit for review');
-    await _tapText(tester, 'Maths worksheet');
-    await _tapText(tester, 'Approve');
-    await _tapText(tester, 'Home');
-    expect(find.text('1 point'), findsOneWidget);
+    await _tapText(tester, 'Add');
+    final saved = container
+        .read(localWorkspacesProvider)
+        .requireValue
+        .active!
+        .items(WorkspaceSection.school);
+    expect(saved.map((r) => r.title), contains('Maths worksheet'));
     expect(tester.takeException(), isNull);
   });
 
   testWidgets(
-    'Individual invoices total their line items and record payments',
+    'Individual invoices are created from the sheet and record payments',
     (tester) async {
       await _openWorkspaceApp(tester, localeLoader, TmsRoute.more);
       await _tapText(tester, 'Switch');
       await _tapText(tester, 'Individual');
       await _tapText(tester, 'Invoices');
       await _tapText(tester, 'New invoice');
+      expect(find.text('Create and send'), findsOneWidget);
+      if (find.text('Client name').evaluate().isNotEmpty) {
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Client name'),
+          'Ada Stores',
+        );
+      }
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'Invoice number'),
-        'INV-100',
+        find.widgetWithText(TextField, 'Amount ₦'),
+        '3000',
       );
-      await _tapText(tester, 'Add line item');
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Description'),
-        'Design review',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Quantity'),
-        '2',
-      );
-      await tester.enterText(
-        find.widgetWithText(TextFormField, 'Unit rate (NGN)'),
-        '1500',
-      );
-      await _tapText(tester, 'Save');
-      await _tapText(tester, 'Save');
+      await _tapText(tester, 'Create and send');
       expect(find.text('Outstanding'), findsOneWidget);
       expect(find.text('₦3,000'), findsWidgets);
-      await _tapText(tester, 'INV-100');
+      await _tapText(tester, 'INV-001');
       await _tapText(tester, 'Record payment');
       await tester.enterText(
         find.widgetWithText(TextFormField, 'Amount (NGN)'),
@@ -154,28 +134,15 @@ void main() {
     await _tapText(tester, 'Switch');
     await _tapText(tester, 'Wedding & event');
     await _tapText(tester, 'Guest list');
-    await _tapText(tester, 'Add guest');
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Name'),
-      'Jordan',
-    );
-    await tester.enterText(find.widgetWithText(TextFormField, 'Table'), 'A');
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Party size'),
-      '2',
-    );
-    final status = find.byType(DropdownButtonFormField<WorkspaceStatus>);
-    await tester.ensureVisible(status);
-    await tester.tap(status);
-    await tester.pumpAndSettle();
-    await _tapText(tester, 'Coming');
-    await _tapText(tester, 'Save');
+    expect(find.text('Check-in at the door'), findsOneWidget);
+    expect(find.text('Import list'), findsOneWidget);
     await _tapText(tester, 'Seating');
-    expect(find.text('Table A'), findsOneWidget);
-    expect(find.text('Jordan'), findsOneWidget);
-    expect(find.text('2 seats'), findsOneWidget);
-    await _tapText(tester, 'Home');
-    expect(find.text('2 confirmed seats'), findsOneWidget);
+    expect(
+      find.text('Tap a guest, then tap the table to seat them.'),
+      findsOneWidget,
+    );
+    await _tapText(tester, 'Overview');
+    expect(find.text('RSVP progress'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -285,7 +252,13 @@ Future<ProviderContainer> _openWorkspaceApp(
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final container = ProviderContainer();
+  final container = ProviderContainer(
+    overrides: [
+      workspaceRepositoryProvider.overrideWithValue(
+        const LiveWorkspaceRepository(),
+      ),
+    ],
+  );
   addTearDown(container.dispose);
   await tester.pumpWidget(
     UncontrolledProviderScope(

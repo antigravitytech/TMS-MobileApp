@@ -17,6 +17,7 @@ enum WorkspaceSection {
   invoices(WorkspaceView.money),
   time(WorkspaceView.time),
   proposals(WorkspaceView.checklist),
+  tasks(WorkspaceView.checklist),
   chores(WorkspaceView.review),
   shopping(WorkspaceView.checklist),
   bills(WorkspaceView.money),
@@ -65,6 +66,7 @@ enum WorkspaceKind {
     WorkspaceSection.invoices,
     WorkspaceSection.time,
     WorkspaceSection.proposals,
+    WorkspaceSection.tasks,
   ]),
   family([
     WorkspaceSection.chores,

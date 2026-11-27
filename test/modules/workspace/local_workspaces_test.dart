@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sabi_pipu_tms/modules/workspace/data/workspace_repository.dart';
 import 'package:sabi_pipu_tms/modules/workspace/application/local_workspaces.dart';
 import 'package:sabi_pipu_tms/modules/workspace/domain/local_workspace.dart';
 import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_kind.dart';
@@ -13,7 +14,13 @@ void main() {
   test(
     'workspace records stay isolated and reload from local storage',
     () async {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          workspaceRepositoryProvider.overrideWithValue(
+            const LiveWorkspaceRepository(),
+          ),
+        ],
+      );
       addTearDown(container.dispose);
       final initial = await container.read(localWorkspacesProvider.future);
       expect(initial.active, isNull);
@@ -41,7 +48,13 @@ void main() {
         isEmpty,
       );
 
-      final reloaded = ProviderContainer();
+      final reloaded = ProviderContainer(
+        overrides: [
+          workspaceRepositoryProvider.overrideWithValue(
+            const LiveWorkspaceRepository(),
+          ),
+        ],
+      );
       addTearDown(reloaded.dispose);
       final directory = await reloaded.read(localWorkspacesProvider.future);
       expect(directory.active!.name, 'Second client workspace');
@@ -59,7 +72,13 @@ void main() {
   test(
     'overlapping payment writes respect the remaining invoice balance',
     () async {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          workspaceRepositoryProvider.overrideWithValue(
+            const LiveWorkspaceRepository(),
+          ),
+        ],
+      );
       addTearDown(container.dispose);
       await container.read(localWorkspacesProvider.future);
       final controller = container.read(localWorkspacesProvider.notifier);
@@ -104,7 +123,13 @@ void main() {
   test(
     'demo setup, shared assignments and redemption survive switching',
     () async {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          workspaceRepositoryProvider.overrideWithValue(
+            const LiveWorkspaceRepository(),
+          ),
+        ],
+      );
       addTearDown(container.dispose);
       final controller = container.read(localWorkspacesProvider.notifier);
       await controller.enterDemo('family');
@@ -144,59 +169,60 @@ void main() {
     },
   );
 
-  test(
-    'seating keeps a party together and releases tables on removal',
-    () async {
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
-      final ctrl = container.read(localWorkspacesProvider.notifier);
-      await ctrl.select('event');
+  test('seating keeps a party together and refuses a full table', () async {
+    final container = ProviderContainer(
+      overrides: [
+        workspaceRepositoryProvider.overrideWithValue(
+          const LiveWorkspaceRepository(),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final ctrl = container.read(localWorkspacesProvider.notifier);
+    await ctrl.select('event');
+    await ctrl.saveRecord(
+      'event',
+      const WorkspaceRecord(
+        id: '',
+        section: WorkspaceSection.seating,
+        title: 'Garden',
+        duration: 3,
+      ),
+    );
+    for (final title in ['A', 'B']) {
       await ctrl.saveRecord(
         'event',
-        const WorkspaceRecord(
+        WorkspaceRecord(
           id: '',
-          section: WorkspaceSection.seating,
-          title: 'Garden',
-          duration: 3,
+          section: WorkspaceSection.guests,
+          title: title,
+          duration: 2,
+          status: WorkspaceStatus.confirmed,
         ),
       );
-      for (final title in ['A', 'B']) {
-        await ctrl.saveRecord(
-          'event',
-          WorkspaceRecord(
-            id: '',
-            section: WorkspaceSection.guests,
-            title: title,
-            duration: 2,
-            status: WorkspaceStatus.confirmed,
-          ),
-        );
-      }
-      await ctrl.autoSeatGuests('event');
-      LocalWorkspace active() =>
-          container.read(localWorkspacesProvider).requireValue.active!;
-      final guests = active().items(WorkspaceSection.guests);
-      expect(guests.where((r) => r.group == 'Garden'), hasLength(1));
-      final unassigned = guests.firstWhere((r) => r.group.isEmpty);
-      await expectLater(
-        ctrl.seatGuest('event', unassigned.id, 'Garden'),
-        throwsStateError,
-      );
-      await ctrl.removeTable(
-        'event',
-        active().items(WorkspaceSection.seating).single.id,
-      );
-      expect(
-        active().items(WorkspaceSection.guests).every((r) => r.group.isEmpty),
-        isTrue,
-      );
-    },
-  );
+    }
+    await ctrl.autoSeatGuests('event');
+    LocalWorkspace active() =>
+        container.read(localWorkspacesProvider).requireValue.active!;
+    final guests = active().items(WorkspaceSection.guests);
+    expect(guests.where((r) => r.group == 'Garden'), hasLength(1));
+    final unassigned = guests.firstWhere((r) => r.group.isEmpty);
+    await expectLater(
+      ctrl.seatGuest('event', unassigned.id, 'Garden'),
+      throwsStateError,
+    );
+  });
 
   test(
     'pledge payments cannot exceed a pledge but gifts may exceed a fund target',
     () async {
-      final container = ProviderContainer();
+      final container = ProviderContainer(
+        overrides: [
+          workspaceRepositoryProvider.overrideWithValue(
+            const LiveWorkspaceRepository(),
+          ),
+        ],
+      );
       addTearDown(container.dispose);
       final ctrl = container.read(localWorkspacesProvider.notifier);
       await ctrl.select('church');

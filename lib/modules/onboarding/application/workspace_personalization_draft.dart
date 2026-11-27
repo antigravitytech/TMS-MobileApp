@@ -30,7 +30,7 @@ class PersonalizationDraft extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setDate(DateTime value) {
+  void setDate(DateTime? value) {
     date = value;
     notifyListeners();
   }

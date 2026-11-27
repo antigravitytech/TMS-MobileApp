@@ -52,98 +52,135 @@ class _JournalScreenState extends State<JournalScreen> {
     String title = '', body = '';
     int color = 0;
     String? reminder;
-    final note = await designSheet<_Note>(
-      context,
-      title: context.tr('common.new_note'),
+    final note = await showModalBottomSheet<_Note>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (sheet) => StatefulBuilder(
-        builder: (context, update) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 12,
-          children: [
-            DesignField(
-              label: context.tr('common.title'),
-              onChanged: (value) => title = value,
-            ),
-            DesignField(
-              label: context.tr('journal.note'),
-              lines: 4,
-              onChanged: (value) => body = value,
-            ),
-            Wrap(
-              spacing: 3,
-              children: [
-                for (var i = 0; i < colors.length; i++)
-                  IconButton(
-                    tooltip: context.tr(
-                      'journal.note_colour',
-                      namedArgs: {'number': (i + 1).toString()},
-                    ),
-                    icon: CircleAvatar(
-                      radius: 14,
-                      backgroundColor: colors[i],
-                      child: color == i
-                          ? const Icon(
-                              TmsIcons.check,
-                              size: 16,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
-                    onPressed: () => update(() => color = i),
-                  ),
-              ],
-            ),
-            Row(
-              spacing: 8,
-              children: [
-                Expanded(
-                  child: DesignButton(
-                    reminder ?? context.tr('journal.remind_me'),
-                    secondary: true,
-                    icon: TmsIcons.clock,
-                    onPressed: () async {
-                      final now = DateTime.now();
-                      final day = await showDatePicker(
-                        switchToInputEntryModeIcon: const Icon(
-                          TmsIcons.keyboard,
-                        ),
-                        switchToCalendarEntryModeIcon: const Icon(
-                          TmsIcons.calendar,
-                        ),
-                        context: context,
-                        initialDate: now,
-                        firstDate: now,
-                        lastDate: DateTime(now.year + 5),
-                      );
-                      if (context.mounted && day != null) {
-                        update(
-                          () => reminder = MaterialLocalizations.of(
-                            context,
-                          ).formatShortDate(day),
-                        );
-                      }
-                    },
+        builder: (context, update) => AnimatedContainer(
+          duration: DesignMotion.fast,
+          padding: EdgeInsets.fromLTRB(
+            20,
+            12,
+            20,
+            MediaQuery.viewInsetsOf(context).bottom +
+                MediaQuery.viewPaddingOf(context).bottom +
+                20,
+          ),
+          decoration: BoxDecoration(
+            color: Color.lerp(context.panel, colors[color], .65),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: 12,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: context.muted.withValues(alpha: .3),
+                    borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                Expanded(
-                  child: DesignButton(
-                    context.tr('journal.save_note'),
-                    onPressed: () => Navigator.pop(
-                      sheet,
-                      _Note(
-                        title.trim().isEmpty
-                            ? context.tr('journal.untitled')
-                            : title.trim(),
-                        body.trim(),
-                        color,
-                        reminder: reminder,
+              ),
+              TextField(
+                style: const TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.w700,
+                ),
+                decoration: InputDecoration(
+                  hintText: context.tr('common.title'),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) => title = value,
+              ),
+              TextField(
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: context.tr('journal.thought_hint'),
+                  border: InputBorder.none,
+                ),
+                onChanged: (value) => body = value,
+              ),
+              Wrap(
+                spacing: 3,
+                children: [
+                  for (var i = 0; i < colors.length; i++)
+                    IconButton(
+                      tooltip: context.tr(
+                        'journal.note_colour',
+                        namedArgs: {'number': (i + 1).toString()},
+                      ),
+                      icon: CircleAvatar(
+                        radius: 14,
+                        backgroundColor: colors[i],
+                        child: color == i
+                            ? const Icon(
+                                TmsIcons.check,
+                                size: 16,
+                                color: Colors.white,
+                              )
+                            : null,
+                      ),
+                      onPressed: () => update(() => color = i),
+                    ),
+                ],
+              ),
+              Row(
+                spacing: 8,
+                children: [
+                  Expanded(
+                    child: DesignButton(
+                      reminder ?? context.tr('journal.remind_me'),
+                      secondary: true,
+                      icon: TmsIcons.clock,
+                      onPressed: () async {
+                        final now = DateTime.now();
+                        final day = await showDatePicker(
+                          switchToInputEntryModeIcon: const Icon(
+                            TmsIcons.keyboard,
+                          ),
+                          switchToCalendarEntryModeIcon: const Icon(
+                            TmsIcons.calendar,
+                          ),
+                          context: context,
+                          initialDate: now,
+                          firstDate: now,
+                          lastDate: DateTime(now.year + 5),
+                        );
+                        if (context.mounted && day != null) {
+                          update(
+                            () => reminder = MaterialLocalizations.of(
+                              context,
+                            ).formatShortDate(day),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  Expanded(
+                    child: DesignButton(
+                      context.tr('journal.save_note'),
+                      color: context.foreground,
+                      onPressed: () => Navigator.pop(
+                        sheet,
+                        _Note(
+                          title.trim().isEmpty
+                              ? context.tr('journal.untitled')
+                              : title.trim(),
+                          body.trim(),
+                          color,
+                          reminder: reminder,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

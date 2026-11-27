@@ -1,10 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
+import '../../../shared/kit/qr_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
+
+part 'widgets/visitor_cards.dart';
 
 class VisitorsScreen extends StatefulWidget {
   const VisitorsScreen({super.key});
@@ -14,16 +17,16 @@ class VisitorsScreen extends StatefulWidget {
 
 class _VisitorsScreenState extends State<VisitorsScreen> {
   String? reception;
-  static const expectedGuests = [
-    ('Kemi Afolabi', 'visitors.tomorrow_10_30_vendor_meeting'),
-    ('Leo Martins', 'visitors.wednesday_2_00_integration_demo'),
-  ];
+  static const expectedGuests = [('Bayo Ogunleye', 'visitors.bayo_expected')];
   final invites = <(String, String)>[];
   Future<void> invite() async {
-    var name = '',
-        purpose = '',
-        day = context.tr('common.tomorrow'),
-        time = '10:30 AM';
+    var name = 'Kemi Lawal',
+        purpose = 'Vendor demo',
+        day = DateFormat(
+          'EEE, d MMM',
+          context.locale.toString(),
+        ).format(DateTime(2026, 11, 25)),
+        time = '11:00';
     final result = await designSheet<(String, String, String, String)>(
       context,
       title: context.tr('visitors.invite_a_guest'),
@@ -32,19 +35,20 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 12,
           children: [
-            DesignField(
+            _VisitorInput(
               label: context.tr('visitors.guests_name'),
+              initialValue: name,
               onChanged: (value) => update(() => name = value),
             ),
             Row(
               spacing: 8,
               children: [
                 Expanded(
-                  child: DesignButton(
-                    day,
-                    secondary: true,
-                    icon: TmsIcons.calendar,
-                    onPressed: () async {
+                  flex: 2,
+                  child: _VisitorDateField(
+                    label: context.tr('visitors.day'),
+                    value: day,
+                    onTap: () async {
                       final now = DateTime.now();
                       final value = await showDatePicker(
                         switchToInputEntryModeIcon: const Icon(
@@ -69,11 +73,10 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: DesignButton(
-                    time,
-                    secondary: true,
-                    icon: TmsIcons.clock,
-                    onPressed: () async {
+                  child: _VisitorDateField(
+                    label: context.tr('visitors.time'),
+                    value: time,
+                    onTap: () async {
                       final value = await showTimePicker(
                         switchToInputEntryModeIcon: const Icon(
                           TmsIcons.keyboard,
@@ -90,8 +93,9 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                 ),
               ],
             ),
-            DesignField(
+            _VisitorInput(
               label: context.tr('visitors.purpose'),
+              initialValue: purpose,
               onChanged: (value) => purpose = value,
             ),
             DesignButton(
@@ -117,7 +121,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
         '$date · $hour${why.isNotEmpty ? ' · $why' : ''}',
       )),
     );
-    final code = 'K7Q-${40 + expectedGuests.length + invites.length}M';
+    final code = 'K7Q-${41 + invites.length}M';
     await designSheet<void>(
       context,
       title: context.tr(
@@ -129,10 +133,28 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
         spacing: 12,
         children: [
           DesignLabel(context.tr('visitors.they_scan_or_show_it_at_reception')),
-          const Center(
-            child: Icon(TmsIcons.qrCode, size: 106, color: DesignColor.purple),
+          Center(
+            child: Container(
+              width: 150,
+              height: 150,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: CustomPaint(painter: QrPainter(code)),
+            ),
           ),
-          Center(child: DesignPill(code)),
+          Center(
+            child: Text(
+              code,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 4,
+              ),
+            ),
+          ),
           Row(
             spacing: 10,
             children: [
@@ -171,75 +193,133 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
   @override
   Widget build(BuildContext context) => DesignPage(
     title: context.tr('common.visitors'),
+    subtitleBelow: true,
     subtitle: context.tr('visitors.invite_guests_and_answer_when_they_arrive'),
+    footer: DesignButton(
+      context.tr('visitors.invite_a_guest'),
+      icon: TmsIcons.add,
+      onPressed: invite,
+    ),
     children: [
-      DesignTitle(context.tr('visitors.waiting_for_you')),
+      _VisitorHeading(context.tr('visitors.waiting_for_you')),
       AnimatedSwitcher(
         duration: DesignMotion.duration(context, DesignMotion.page),
         child: reception == null
-            ? DesignCard(
-                key: const ValueKey('request'),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  spacing: 12,
-                  children: [
-                    DesignTile(
-                      title: 'Folake Adebayo',
-                      subtitle: context.tr(
-                        'visitors.at_reception_arrived_2_min_ago',
-                      ),
-                      leading: DesignAvatar('FA', color: DesignColor.rose),
-                    ),
-                    DesignLabel(
-                      context.tr('visitors.interview_backend_engineer_role'),
-                    ),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        for (final decision in [
-                          'visitors.come_in',
-                          'visitors.wait_10_min',
-                          'visitors.not_today',
-                        ])
-                          DesignButton(
-                            context.tr(decision),
-                            secondary: decision != 'visitors.come_in',
-                            color: decision == 'visitors.come_in'
-                                ? DesignColor.green
-                                : null,
-                            onPressed: () =>
-                                setState(() => reception = decision),
-                          ),
-                      ],
-                    ),
-                  ],
-                ),
+            ? _WaitingVisitor(
+                onDecision: (decision) => setState(() => reception = decision),
               )
             : DesignCard(
                 key: ValueKey(reception),
-                child: DesignTile(
-                  title: context.tr('visitors.reception_has_been_told'),
-                  subtitle: context.tr(reception!),
-                  icon: TmsIcons.checkCircle,
-                  color: DesignColor.green,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: DesignColor.green.withValues(alpha: .15),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: DesignColor.green.withValues(alpha: .3),
+                        ),
+                      ),
+                      child: const Icon(
+                        TmsIcons.check,
+                        color: DesignColor.green,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr(
+                              reception == 'visitors.wait_10_min'
+                                  ? 'visitors.asked_to_wait'
+                                  : reception == 'visitors.not_today'
+                                  ? 'visitors.told_not_today'
+                                  : 'visitors.asked_to_come',
+                            ),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            context.tr('visitors.reception_has_been_told'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
       ),
-      DesignTitle(context.tr('visitors.expected')),
+      _VisitorHeading(context.tr('visitors.expected')),
       DesignSection(
         children: [
           for (final (guest, detail) in [
             ...invites,
             for (final (name, key) in expectedGuests) (name, context.tr(key)),
           ])
-            DesignTile(title: guest, subtitle: detail, icon: TmsIcons.person),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  DesignAvatar(
+                    guest.split(' ').map((v) => v[0]).take(2).join(),
+                    color: guest == 'Bayo Ogunleye'
+                        ? const Color(0xffbcd995)
+                        : const Color(0xffd8b4ec),
+                    size: 36,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          guest,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          detail,
+                          style: TextStyle(fontSize: 12, color: context.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.raised,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(
+                      guest == 'Bayo Ogunleye' ? 'B2X-81P' : 'K7Q-42M',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.muted,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
-      ),
-      DesignButton(
-        context.tr('visitors.invite_a_guest'),
-        icon: TmsIcons.addPerson,
-        onPressed: invite,
       ),
     ],
   );

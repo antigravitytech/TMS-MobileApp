@@ -1,215 +1,19 @@
+import 'dart:ui' as ui;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../router/tms_routes.dart';
-import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
+import '../../../shared/design/design_tokens.dart';
+import 'package:auto_route/auto_route.dart';
+
 import '../../workspace/application/workspace_preview.dart';
-import 'task_card.dart';
-import 'task_labels.dart';
+import 'widgets/task_labels.dart';
 import '../../../shared/design/tms_icons.dart';
 
-class TaskDetailScreen extends ConsumerStatefulWidget {
-  const TaskDetailScreen({super.key});
-  @override
-  ConsumerState<TaskDetailScreen> createState() => _TaskDetailScreenState();
-}
-
-class _TaskDetailScreenState extends ConsumerState<TaskDetailScreen> {
-  int tab = 0;
-  final input = TextEditingController();
-  @override
-  void dispose() {
-    input.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(workspacePreviewProvider);
-    final task = state.activeTask;
-    return DesignPage(
-      title: context.tr('tasks.task_detail'),
-      subtitle: '${taskProjectLabel(context, task.project)} · ${task.id}',
-      footer: !['Submitted', 'Completed'].contains(task.status)
-          ? DesignButton(
-              context.tr('tasks.submit_for_review'),
-              icon: TmsIcons.send,
-              onPressed: () async {
-                final confirmed = await designSheet<bool>(
-                  context,
-                  title: context.tr('tasks.submit_for_review'),
-                  builder: (sheet) => Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 11,
-                    children: [
-                      DesignField(label: context.tr('common.notes'), lines: 3),
-                      DesignButton(
-                        context.tr('tasks.submit'),
-                        onPressed: () => Navigator.pop(sheet, true),
-                      ),
-                    ],
-                  ),
-                );
-                if (mounted && confirmed == true) {
-                  state.updateTask(task, 'Submitted');
-                  designToast(
-                    this.context,
-                    this.context.tr('tasks.submitted_for_review'),
-                  );
-                }
-              },
-            )
-          : null,
-      children: [
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            DesignPill(
-              taskStatusLabel(context, task.status),
-              color: taskStatusColor(task.status),
-            ),
-            DesignPill(
-              taskPriorityLabel(context, task.priority),
-              color: DesignColor.amber,
-            ),
-            DesignPill(context.tr('tasks.public')),
-          ],
-        ),
-        Text(
-          task.title,
-          style: const TextStyle(
-            fontSize: 29,
-            fontWeight: FontWeight.w800,
-            height: 1.13,
-          ),
-        ),
-        if (task.note.isNotEmpty) DesignLabel(task.note),
-        DesignSection(
-          children: [
-            DesignTile(
-              title: 'Chioma Okafor',
-              subtitle: context.tr('tasks.assignee'),
-              leading: const DesignAvatar('CO'),
-            ),
-            DesignTile(
-              title: task.person,
-              subtitle: context.tr('tasks.assigner'),
-              leading: const DesignAvatar('IM', color: DesignColor.blue),
-            ),
-          ],
-        ),
-        DesignCard(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 10,
-            children: [
-              for (final (label, value) in [
-                (
-                  context.tr('tasks.original_target'),
-                  context.tr('tasks.original_target_date'),
-                ),
-                (
-                  context.tr('tasks.current_target'),
-                  taskDueLabel(context, task.due),
-                ),
-                (
-                  context.tr('common.completed'),
-                  task.status == 'Completed'
-                      ? context.tr('common.today')
-                      : context.tr('tasks.not_yet'),
-                ),
-              ])
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 6,
-                    children: [
-                      DesignLabel(label),
-                      Text(
-                        value,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        DesignChoices(
-          items: [
-            context.tr('tasks.activity'),
-            context.tr('tasks.comments'),
-            context.tr('common.files'),
-            context.tr('tasks.details'),
-          ],
-          selected: tab,
-          onChanged: (i) => setState(() => tab = i),
-        ),
-        switch (tab) {
-          1 => Column(
-            spacing: 12,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final comment in state.comments[task.id] ?? <String>[])
-                DesignCard(child: Text(comment)),
-              DesignField(
-                label: context.tr('tasks.write_a_comment'),
-                controller: input,
-                suffix: IconButton(
-                  tooltip: context.tr('tasks.send_comment'),
-                  icon: const Icon(TmsIcons.send),
-                  onPressed: () {
-                    if (input.text.trim().isEmpty) return;
-                    state.addComment(task.id, input.text.trim());
-                    input.clear();
-                  },
-                ),
-              ),
-            ],
-          ),
-          2 => DesignSection(
-            children: [
-              DesignTile(
-                title: context.tr('tasks.view_workspace_files'),
-                icon: TmsIcons.attachment,
-                onTap: () => TmsRoute.files.open(context),
-              ),
-            ],
-          ),
-          3 => DesignCard(
-            child: DesignLabel(
-              context.tr(
-                'tasks.details_summary',
-                namedArgs: {
-                  'project': taskProjectLabel(context, task.project),
-                  'id': task.id,
-                  'priority': taskPriorityLabel(context, task.priority),
-                },
-              ),
-            ),
-          ),
-          _ => DesignSection(
-            children: [
-              DesignTile(
-                title: taskStatusLabel(context, task.status),
-                subtitle: context.tr('tasks.activity_today'),
-                icon: TmsIcons.history,
-              ),
-              DesignTile(
-                title: context.tr('tasks.open_conversation'),
-                icon: TmsIcons.chat,
-                onTap: () => TmsRoute.conversation.open(context),
-              ),
-            ],
-          ),
-        },
-      ],
-    );
-  }
-}
+part 'widgets/new_task_options.dart';
+part 'widgets/new_task_confirmation.dart';
 
 class NewTaskScreen extends ConsumerStatefulWidget {
   const NewTaskScreen({super.key});
@@ -234,8 +38,33 @@ class _NewTaskScreenState extends ConsumerState<NewTaskScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => DesignPage(
+  Widget build(BuildContext context) => Stack(
+    children: [
+      _form(context),
+      if (created)
+        Positioned.fill(
+          child: _TaskConfirmation(
+            id: ref.watch(workspacePreviewProvider).activeTask.id,
+            person: assigneeLabel(context, people[person]),
+            due: taskDueLabel(context, due),
+            onAgain: () => setState(() {
+              title.clear();
+              description.clear();
+              created = false;
+            }),
+          ),
+        ),
+    ],
+  );
+
+  Widget _form(BuildContext context) => DesignPage(
     title: context.tr('common.new_task'),
+    headerTop: 12,
+    leading: DesignIcon(
+      icon: TmsIcons.close,
+      label: context.tr('common.back'),
+      onPressed: () => context.router.maybePop(),
+    ),
     footer: created
         ? null
         : DesignButton(
@@ -260,125 +89,208 @@ class _NewTaskScreenState extends ConsumerState<NewTaskScreen> {
                   },
           ),
     children: [
-      if (created) ...[
-        DesignEmpty(
-          context.tr('tasks.task_created'),
-          context.tr(
-            'tasks.assigned_notice',
-            namedArgs: {
-              'person': assigneeLabel(context, people[person]),
-              'due': taskDueLabel(context, due),
-            },
-          ),
+      TextField(
+        controller: title,
+        onChanged: (_) => setState(() {}),
+        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: context.tr('tasks.what_needs_doing'),
+          isDense: true,
         ),
-        DesignButton(
-          context.tr('tasks.view_task'),
-          onPressed: () => TmsRoute.task.open(context),
+      ),
+      TextField(
+        controller: description,
+        maxLines: 2,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: context.tr('tasks.description_hint'),
+          isDense: true,
         ),
-        DesignButton(
-          context.tr('tasks.create_another'),
-          secondary: true,
-          onPressed: () => setState(() {
-            title.clear();
-            description.clear();
-            created = false;
-          }),
+      ),
+      DesignLabel(context.tr('tasks.type')),
+      Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: context.panel,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: context.outline),
         ),
-        TextButton(
-          onPressed: () => TmsRoute.tasks.open(context),
-          child: Text(context.tr('common.done')),
-        ),
-      ] else ...[
-        DesignField(
-          label: context.tr('common.title'),
-          controller: title,
-          onChanged: (_) => setState(() {}),
-        ),
-        DesignField(
-          label: context.tr('tasks.description'),
-          controller: description,
-          lines: 3,
-        ),
-        DesignTitle(context.tr('tasks.type')),
-        DesignChoices(
-          items: types
-              .map((value) => taskProjectLabel(context, value))
-              .toList(),
-          selected: type,
-          onChanged: (i) => setState(() => type = i),
-        ),
-        if (type == 1) const DesignPill('Customer Portal Revamp'),
-        if (type == 3) DesignPill(context.tr('tasks.every_weekday_by_5_00_pm')),
-        DesignTitle(context.tr('tasks.assign_to')),
-        DesignChoices(
-          items: people.map((value) => assigneeLabel(context, value)).toList(),
-          selected: person,
-          onChanged: (i) => setState(() => person = i),
-        ),
-        DesignTitle(context.tr('tasks.due')),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        child: Row(
           children: [
-            for (final day in ['Today', 'Tomorrow', 'Fri, 27 Nov'])
-              DesignPill(
-                taskDueLabel(context, day),
-                selected: due == day,
-                onTap: () => setState(() => due = day),
+            for (var i = 0; i < types.length; i++)
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => type = i),
+                  child: AnimatedContainer(
+                    duration: DesignMotion.fast,
+                    height: 38,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: type == i ? context.raised : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: FittedBox(
+                      child: Text(
+                        taskProjectLabel(context, types[i]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: type == i ? context.foreground : context.muted,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            DesignPill(
-              context.tr('tasks.pick_a_date'),
-              icon: TmsIcons.calendar,
-              onTap: () async {
-                final now = DateTime.now();
-                final chosen = await showDatePicker(
-                  switchToInputEntryModeIcon: const Icon(TmsIcons.keyboard),
-                  switchToCalendarEntryModeIcon: const Icon(TmsIcons.calendar),
-                  context: context,
-                  initialDate: now,
-                  firstDate: now,
-                  lastDate: DateTime(now.year + 5),
-                );
-                if (mounted && chosen != null) {
-                  setState(
-                    () => due = MaterialLocalizations.of(
-                      this.context,
-                    ).formatShortDate(chosen),
-                  );
-                }
-              },
-            ),
           ],
         ),
-        DesignLabel(
-          context.tr('tasks.this_becomes_the_original_target_it_never'),
-        ),
-        DesignTitle(context.tr('common.priority')),
-        DesignChoices(
-          items: priorities
-              .map((value) => taskPriorityLabel(context, value))
-              .toList(),
-          selected: priority,
-          onChanged: (i) => setState(() => priority = i),
-        ),
+      ),
+      if (type == 1 || type == 3)
         DesignCard(
-          padding: EdgeInsets.zero,
-          child: SwitchListTile(
-            title: Text(context.tr('tasks.confidential')),
-            subtitle: DesignLabel(
-              context.tr('tasks.only_the_assignee_assigner_and_watchers'),
-            ),
-            value: confidential,
-            onChanged: (on) => setState(() => confidential = on),
+          child: Row(
+            children: [
+              Icon(
+                type == 1 ? TmsIcons.work : TmsIcons.history,
+                color: type == 1 ? context.lavender : DesignColor.teal,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  type == 1
+                      ? 'Customer Portal Revamp'
+                      : context.tr('tasks.every_weekday_by_5_00_pm'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(TmsIcons.chevronNext, size: 16, color: context.muted),
+            ],
           ),
         ),
-        DesignButton(
-          context.tr('tasks.attach_files'),
-          secondary: true,
-          icon: TmsIcons.attachment,
-          onPressed: () => TmsRoute.files.open(context),
+      DesignLabel(context.tr('tasks.assign_to')),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (var i = 0; i < people.length; i++)
+              SizedBox(
+                width: 68,
+                child: GestureDetector(
+                  onTap: () => setState(() => person = i),
+                  child: Column(
+                    children: [
+                      AnimatedContainer(
+                        duration: DesignMotion.fast,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: person == i
+                                ? DesignColor.purple
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 24,
+                          backgroundColor: [
+                            const Color(0xffc4b9f4),
+                            const Color(0xff86dbce),
+                            const Color(0xffefaab4),
+                            const Color(0xffefd087),
+                            const Color(0xffb9da98),
+                            const Color(0xffd8b7ec),
+                          ][i],
+                          child: Text(
+                            ['CO', 'TB', 'AE', 'SJ', 'DM', 'NA'][i],
+                            style: const TextStyle(
+                              color: DesignColor.ink,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        assigneeLabel(context, people[i]),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: person == i
+                              ? context.foreground
+                              : context.muted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
-      ],
+      ),
+      DesignLabel(context.tr('tasks.due')),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final day in ['Today', 'Tomorrow', 'Fri, 27 Nov'])
+            _TaskChip(
+              taskDueLabel(context, day),
+              selected: due == day,
+              onTap: () => setState(() => due = day),
+            ),
+          _TaskChip(
+            context.tr('tasks.pick_a_date'),
+            onTap: () async {
+              final now = DateTime.now();
+              final chosen = await showDatePicker(
+                switchToInputEntryModeIcon: const Icon(TmsIcons.keyboard),
+                switchToCalendarEntryModeIcon: const Icon(TmsIcons.calendar),
+                context: context,
+                initialDate: now,
+                firstDate: now,
+                lastDate: DateTime(now.year + 5),
+              );
+              if (mounted && chosen != null) {
+                setState(
+                  () => due = MaterialLocalizations.of(
+                    this.context,
+                  ).formatShortDate(chosen),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      DesignLabel(
+        context.tr('tasks.this_becomes_the_original_target_it_never'),
+      ),
+      DesignLabel(context.tr('common.priority')),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (var i = 0; i < priorities.length; i++)
+            _TaskChip(
+              taskPriorityLabel(context, priorities[i]),
+              selected: priority == i,
+              color: [
+                context.muted,
+                DesignColor.amber,
+                const Color(0xfff59562),
+                DesignColor.red,
+              ][i],
+              onTap: () => setState(() => priority = i),
+            ),
+        ],
+      ),
+      _TaskPrivacy(
+        value: confidential,
+        onChanged: (value) => setState(() => confidential = value),
+      ),
     ],
   );
 }

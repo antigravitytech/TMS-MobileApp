@@ -24,7 +24,6 @@ class DesignTabs extends StatelessWidget {
     color: context.dark ? const Color(0xff12131e) : Colors.white,
     child: SafeArea(
       top: false,
-      minimum: const EdgeInsets.only(bottom: 24),
       child: Center(
         heightFactor: 1,
         child: ConstrainedBox(

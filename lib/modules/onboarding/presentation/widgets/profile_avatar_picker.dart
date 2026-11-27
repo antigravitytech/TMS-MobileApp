@@ -19,6 +19,7 @@ class ProfileAvatarPicker extends StatelessWidget {
     required this.last,
     required this.color,
     required this.photo,
+    this.photoUrl,
     required this.onPhoto,
     required this.onColor,
   });
@@ -26,6 +27,7 @@ class ProfileAvatarPicker extends StatelessWidget {
   final String first, last;
   final int color;
   final Uint8List? photo;
+  final String? photoUrl;
   final VoidCallback onPhoto;
   final ValueChanged<int> onColor;
 
@@ -47,6 +49,12 @@ class ProfileAvatarPicker extends StatelessWidget {
         .join()
         .toUpperCase();
 
+    final remote = Uri.tryParse(photoUrl ?? '');
+    final ImageProvider? image = photo != null
+        ? MemoryImage(photo!)
+        : remote != null && remote.scheme == 'https' && remote.host.isNotEmpty
+        ? NetworkImage(remote.toString())
+        : null;
     return Row(
       spacing: 16,
       children: [
@@ -64,14 +72,11 @@ class ProfileAvatarPicker extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colors[color],
                   shape: BoxShape.circle,
-                  image: photo == null
+                  image: image == null
                       ? null
-                      : DecorationImage(
-                          image: MemoryImage(photo!),
-                          fit: BoxFit.cover,
-                        ),
+                      : DecorationImage(image: image, fit: BoxFit.cover),
                 ),
-                child: photo == null
+                child: image == null
                     ? Text(
                         initials.isEmpty ? '?' : initials,
                         style: const TextStyle(

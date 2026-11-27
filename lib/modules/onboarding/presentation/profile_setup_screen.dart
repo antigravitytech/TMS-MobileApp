@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/environment.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
@@ -15,8 +16,29 @@ import 'widgets/birthday_setup.dart';
 import 'widgets/profile_setup_form.dart';
 import 'widgets/profile_setup_steps.dart';
 
-class ProfileSetupScreen extends ConsumerWidget {
+class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({super.key});
+
+  @override
+  ConsumerState<ProfileSetupScreen> createState() => _ProfileSetupScreenState();
+}
+
+class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
+  late bool _loading;
+
+  @override
+  void initState() {
+    super.initState();
+    _loading = ref.read(environmentProvider).isLive;
+    if (_loading) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final notifier = ref.read(profileSetupProvider.notifier);
+        await _handleResult(context, ref, notifier.loadProfile());
+        if (mounted) setState(() => _loading = false);
+      });
+    }
+  }
 
   Future<void> _handleResult(
     BuildContext context,
@@ -28,7 +50,13 @@ class ProfileSetupScreen extends ConsumerWidget {
     switch (result) {
       case ProfileSetupResult.stay:
         break;
+      case ProfileSetupResult.expired:
+        TmsRoute.signIn.reset(context);
       case ProfileSetupResult.complete:
+        if (ref.read(environmentProvider).isLive) {
+          TmsRoute.account.reset(context);
+          return;
+        }
         final directory = await ref
             .read(localWorkspacesProvider.future)
             .then<WorkspaceDirectory?>(
@@ -51,9 +79,12 @@ class ProfileSetupScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final setup = ref.watch(profileSetupProvider);
     final notifier = ref.read(profileSetupProvider.notifier);
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final step = setup.step;
     final isProfile = step == ProfileSetupStep.profile;
     final canPop = isProfile && !setup.saving;
@@ -89,6 +120,7 @@ class ProfileSetupScreen extends ConsumerWidget {
         job: setup.job,
         color: setup.color,
         photo: setup.photo,
+        photoUrl: setup.photoUrl,
         roles: setup.roles,
         onFirst: notifier.setFirstName,
         onLast: notifier.setLastName,
@@ -107,6 +139,9 @@ class ProfileSetupScreen extends ConsumerWidget {
         onMonth: (month) => notifier.setBirthday(month: month),
         onYear: (year) => notifier.setBirthday(year: year),
         onVisible: notifier.setBirthdayVisibility,
+      ),
+      ProfileSetupStep.notifications when setup.notices.isEmpty => DesignLabel(
+        tr('authentication.preferences_pending'),
       ),
       ProfileSetupStep.notifications => NotificationSetup(
         values: setup.notices,
@@ -127,7 +162,6 @@ class ProfileSetupScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: context.background,
         body: SafeArea(
-          minimum: const EdgeInsets.only(top: 58, bottom: 36),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
@@ -135,7 +169,7 @@ class ProfileSetupScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                     child: Row(
                       spacing: 12,
                       children: [
@@ -232,7 +266,7 @@ class ProfileSetupScreen extends ConsumerWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       spacing: 6,

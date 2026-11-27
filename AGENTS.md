@@ -1,10 +1,18 @@
 # Sabi Pipu TMS mobile
 
-- Use [the mobile design](design/mobile/sabi-pipu-tms.html) for screen layout, animation, and design copy. Use [the workspace HTML](design/web/tms-app-6.html) for Individual, Family, and Specials workflows. Use the web sample for permissions and backend contracts. Look in `web_sample/web/src/` or `lib/web_sample/web/src/`. Keep sample code and configuration out of the Flutter app.
+- Use [the mobile prototype](design/mobile/sabi-pipu-tms-prototype.html) for layout, motion, and copy. Use the web workspace prototype at `design/web/tms-app-6.html` when supplied for Individual, Family, and Specials workflows. Use the [backend docs](design/backend/docs/) as the source for API contracts. Consult the local web sample in `web_sample/web/src/` or `lib/web_sample/web/src/` when workflow or permission details need clarification. Keep sample code and configuration out of the Flutter app.
 - Keep feature code in `lib/modules/<feature>/`. Use Riverpod for state, AutoRoute for navigation, and the existing Dio stack for networking. Add layers as the feature needs them.
 - Treat the design HTML and its assets as a visual reference. Implement mobile screens and interactions in Dart under their feature modules.
+- Treat the prototype’s status and navigation bar space as device chrome. Use Flutter safe-area insets for system bars and add only content spacing. Avoid fixed top or bottom padding that imitates the system bars.
 - Check the relevant route, role, request, and response before porting a feature. Use test fixtures for verification. Keep credentials, session tokens, and private data out of source and logs.
 - Keep changes focused. Format edited Dart files, run `./tool/check`, and report any checks that could not run. For UI or platform changes, also exercise the affected flow on the relevant device or simulator.
+
+## Configuration and data modes
+
+- Run the app with [`./tool/run`](tool/run) or the **Sabi Pipu (.env)** VS Code configuration. The launcher creates the ignored root `.env` from [`.env.example`](.env.example). Use `DATA_SOURCE=mock` for local previews and `DATA_SOURCE=live` with `API_BASE_URL` for the backend. Relaunch after editing `.env`. These values are compiled into the app, so keep credentials and tokens out of the file.
+- Select implementations through Riverpod using `environmentProvider`. Keep shared repository contracts and providers in the owning feature, with mock and live implementations in separate files. Reuse `networkCallsRepositoryProvider` for backend calls and `TokenUtils` for secure session storage.
+- Live routes cover authentication, account, workspace enrollment for Business, Individual, and Family, and profile setup. Keep the live route guard aligned with the backend coverage. The Company, Individual, Family, and Specials dashboards and tools run as local previews in mock mode. A backend failure should surface as a typed failure.
+- `workspaceRepositoryProvider` controls local workspace seeding. Mock mode fills eligible non-Business workspaces with reference records. The live implementation passes stored records through. Server workspace listing and creation currently belong to the authenticated account flow. Preserve workspace IDs, active selection, user-created records, and legacy fixture migration behavior when editing local storage.
 
 ## Presentation, notifiers and services
 
@@ -34,4 +42,4 @@ Read the relevant reference before changing that area:
 
 - [Architecture and web-to-mobile map](docs/mobile-architecture.md)
 - [Localization rules](docs/localization.md)
-- [Build commands, checks, and recommended skills](docs/development.md)
+- [Environment setup, build commands, and checks](docs/development.md)

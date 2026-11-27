@@ -1,5 +1,12 @@
 import '../domain/local_workspace.dart';
 import '../domain/workspace_kind.dart';
+import '../../individual/data/individual_reference.dart';
+import '../../alumni/data/alumni_reference.dart';
+import '../../church/data/church_reference.dart';
+import '../../estate/data/estate_reference.dart';
+import '../../club/data/club_reference.dart';
+import '../../committee/data/committee_reference.dart';
+import '../../event/data/event_reference.dart';
 
 /// Example records for the sign-in screen's explicit demo entry points.
 LocalWorkspace demoWorkspace(WorkspaceKind kind, DateTime today) {
@@ -46,56 +53,7 @@ LocalWorkspace demoWorkspace(WorkspaceKind kind, DateTime today) {
     invoiceLines: lines,
   );
   final records = switch (kind) {
-    WorkspaceKind.individual => [
-      item(
-        WorkspaceSection.gigs,
-        'Studio identity',
-        person: 'Juniper Studio',
-        date: at(3),
-        status: WorkspaceStatus.inProgress,
-      ),
-      item(
-        WorkspaceSection.clients,
-        'Juniper Studio',
-        group: 'Brand design',
-        status: WorkspaceStatus.confirmed,
-      ),
-      for (final (number, client, amount, paid, offset) in [
-        ('INV-204', 'Unique Engineering', 850000, 850000, -12),
-        ('INV-205', 'Nexora Properties', 400000, 0, 3),
-        ('INV-198', 'Mrs Ade', 120000, 60000, -5),
-        ('INV-206', 'Unique Engineering', 650000, 0, 14),
-      ])
-        item(
-          WorkspaceSection.invoices,
-          number,
-          person: client,
-          amount: amount * 100,
-          paid: paid * 100,
-          date: at(offset),
-          lines: [InvoiceLine(number, 1, amount * 100)],
-        ),
-      item(
-        WorkspaceSection.time,
-        'Creative direction',
-        person: 'Juniper Studio',
-        date: at(0),
-        duration: 150,
-        flagged: true,
-      ),
-      item(
-        WorkspaceSection.proposals,
-        'Launch campaign',
-        person: 'Fieldwork Co.',
-        date: at(2),
-        amount: 25000000,
-        status: WorkspaceStatus.inProgress,
-        fields: {
-          'documentBody':
-              'Scope of work\nCampaign identity, launch artwork and handover.',
-        },
-      ),
-    ],
+    WorkspaceKind.individual => individualReference(today),
     WorkspaceKind.family => [
       item(
         WorkspaceSection.household,
@@ -154,193 +112,31 @@ LocalWorkspace demoWorkspace(WorkspaceKind kind, DateTime today) {
       ),
       item(WorkspaceSection.rewards, 'Choose movie night', points: 10),
     ],
-    WorkspaceKind.event => [
-      item(
-        WorkspaceSection.guests,
-        'Ari & Jo',
-        duration: 2,
-        status: WorkspaceStatus.confirmed,
-        group: 'Garden',
-        fields: {'meal': 'Jollof rice'},
-      ),
-      item(
-        WorkspaceSection.guests,
-        'Taylor',
-        duration: 1,
-        status: WorkspaceStatus.pending,
-      ),
-      item(
-        WorkspaceSection.vendors,
-        'Garden Kitchen',
-        amount: 45000000,
-        paid: 15000000,
-        date: at(8),
-        fields: {'vendorCategory': 'Catering'},
-      ),
-      item(
-        WorkspaceSection.programme,
-        'Guest arrival',
-        date: at(21, 14),
-        duration: 30,
-        person: 'Welcome team',
-      ),
-      item(
-        WorkspaceSection.programme,
-        'Ceremony',
-        date: at(21, 15),
-        duration: 60,
-      ),
-      item(WorkspaceSection.prep, 'Confirm final menu', date: at(9)),
-      item(
-        WorkspaceSection.notices,
-        'Arrival and parking',
-        notes: 'Please use the garden entrance.',
-      ),
-    ],
-    WorkspaceKind.church => [
-      item(
-        WorkspaceSection.services,
-        'Sunday worship',
-        date: at(3, 9),
-        group: 'Main hall',
-        fields: {'theme': 'A thankful heart'},
-      ),
-      item(
-        WorkspaceSection.giving,
-        'Building fund',
-        amount: 100000000,
-        paid: 37500000,
-      ),
-      item(
-        WorkspaceSection.units,
-        'Welcome team',
-        person: 'Rae',
-        fields: {'members': 'Rae\nTobi'},
-        todos: {'Prepare welcome packs': false},
-      ),
-      item(WorkspaceSection.prayers, 'Safe travels for the youth team'),
-      item(
-        WorkspaceSection.firstTimers,
-        'Robin',
-        status: WorkspaceStatus.pending,
-        fields: {'followsUp': 'Rae'},
-      ),
-      item(
-        WorkspaceSection.notices,
-        'Choir rehearsal',
-        notes: 'Saturday at 4 pm in the main hall.',
-      ),
-    ],
-    WorkspaceKind.alumni => [
-      item(
-        WorkspaceSection.dues,
-        'Reunion pledge · Morgan',
-        amount: 4000000,
-        paid: 2000000,
-      ),
-      item(
-        WorkspaceSection.committees,
-        'Reunion planning',
-        person: 'Morgan',
-        fields: {'members': 'Morgan\nLee'},
-        todos: {'Confirm venue': false},
-      ),
-      item(
-        WorkspaceSection.poll,
-        'Which reunion day works?',
-        options: ['Saturday', 'Sunday'],
-      ),
-      item(
-        WorkspaceSection.directory,
-        'Morgan',
-        group: 'Class representative',
-        status: WorkspaceStatus.confirmed,
-      ),
-      item(
-        WorkspaceSection.notices,
-        'Reunion planning is open',
-        notes: 'Vote for the date that works for you.',
-      ),
-    ],
-    WorkspaceKind.estate => [
-      item(WorkspaceSection.levies, 'House 12', amount: 5000000, paid: 3500000),
-      item(
-        WorkspaceSection.passes,
-        'Delivery to House 12',
-        date: at(0, 15),
-        group: 'North gate',
-        fields: {'accessCode': 'DEMO-012'},
-      ),
-      item(
-        WorkspaceSection.issues,
-        'Streetlight near the gate',
-        person: 'Maintenance',
-      ),
-      item(
-        WorkspaceSection.notices,
-        'Water tank cleaning',
-        notes: 'The maintenance team will be on site on Saturday.',
-      ),
-      item(
-        WorkspaceSection.poll,
-        'Preferred meeting time',
-        options: ['Morning', 'Evening'],
-      ),
-    ],
-    WorkspaceKind.committee => [
-      item(
-        WorkspaceSection.meetings,
-        'Planning meeting',
-        date: at(2, 16),
-        group: 'Meeting room',
-      ),
-      item(
-        WorkspaceSection.actions,
-        'Circulate draft budget',
-        person: 'Alex',
-        date: at(1),
-      ),
-      item(
-        WorkspaceSection.minutes,
-        'Planning minutes',
-        notes: 'The team agreed to review the budget before the next meeting.',
-      ),
-      item(
-        WorkspaceSection.decisions,
-        'Approve the revised schedule?',
-        options: ['Approve', 'Request changes'],
-      ),
-    ],
-    WorkspaceKind.club => [
-      item(
-        WorkspaceSection.sessions,
-        'Saturday training',
-        date: at(2, 8),
-        group: 'Sports ground',
-      ),
-      item(WorkspaceSection.fees, 'Taylor', amount: 1500000, paid: 1000000),
-      item(
-        WorkspaceSection.attendance,
-        'Taylor',
-        status: WorkspaceStatus.confirmed,
-        fields: {'session': 'Saturday training'},
-      ),
-      item(
-        WorkspaceSection.notices,
-        'Training kit',
-        notes: 'Bring water and your club shirt.',
-      ),
-    ],
+    WorkspaceKind.event => eventReference(today),
+    WorkspaceKind.church => churchReference(today),
+    WorkspaceKind.alumni => alumniReference(today),
+    WorkspaceKind.estate => estateReference(today),
+    WorkspaceKind.committee => committeeReference(today),
+    WorkspaceKind.club => clubReference(today),
     WorkspaceKind.business => <WorkspaceRecord>[],
   };
   return LocalWorkspace(
     id: kind.name,
     kind: kind,
-    name: kind == WorkspaceKind.individual ? 'Studio Kemi' : '',
+    name: switch (kind) {
+      WorkspaceKind.individual => 'Studio Kemi',
+      WorkspaceKind.church => churchReferenceName,
+      WorkspaceKind.alumni => alumniReferenceName,
+      WorkspaceKind.estate => estateReferenceName,
+      WorkspaceKind.event => eventReferenceName,
+      WorkspaceKind.committee => committeeReferenceName,
+      WorkspaceKind.club => clubReferenceName,
+      _ => '',
+    },
     records: records,
-    eventDate: kind == WorkspaceKind.event ? at(21) : null,
-    eventVenue: kind == WorkspaceKind.event ? 'Garden Hall' : '',
-    eventCapacity: kind == WorkspaceKind.event ? 80 : 0,
-    eventBudget: kind == WorkspaceKind.event ? 100000000 : 0,
+    eventDate: kind == WorkspaceKind.event ? at(eventReferenceDays, 14) : null,
+    eventVenue: kind == WorkspaceKind.event ? eventReferenceVenue : '',
+    eventCapacity: kind == WorkspaceKind.event ? eventReferenceCapacity : 0,
+    eventBudget: kind == WorkspaceKind.event ? eventReferenceBudget : 0,
   );
 }

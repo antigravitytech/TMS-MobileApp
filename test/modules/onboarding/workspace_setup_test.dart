@@ -59,6 +59,10 @@ void main() {
   testWidgets(
     'workspace setup opens personal and special choices and returns',
     (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       SharedPreferences.setMockInitialValues({});
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -87,9 +91,53 @@ void main() {
       tester.testTextInput.hide();
       await tester.pumpAndSettle();
       await tap('Continue');
-      expect(find.text('Just you, or your home?'), findsOneWidget);
+      expect(find.text('Just you,\nor your home?'), findsOneWidget);
+      expect(find.text('2 of 5'), findsOneWidget);
+      expect(find.text('Time & billing'), findsOneWidget);
+      expect(find.text('Chores & points'), findsOneWidget);
+      expect(
+        tester.getSize(find.widgetWithText(FilledButton, 'Continue')),
+        const Size(350, 52),
+      );
+
+      await tap('Individual');
+      await tap('Continue');
+      expect(find.text('Your work'), findsOneWidget);
+      await tap('Trader');
+      await tap('No');
+      expect(find.textContaining('your own tasks and plans'), findsOneWidget);
+      await tester.ensureVisible(find.byType(TextFormField));
+      await tester.enterText(find.byType(TextFormField), 'Studio Ada');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('sabipipu.app/studio-ada'), findsOneWidget);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
+
       await tap('Family');
-      expect(find.byType(TextFormField), findsNothing);
+      await tap('Continue');
+      expect(find.text('Set up your family'), findsOneWidget);
+      expect(
+        tester.getSize(find.byTooltip('Change crest')),
+        const Size(84, 84),
+      );
+      await tester.tap(find.byTooltip('Change crest'));
+      await tester.pumpAndSettle();
+      await tap('Add member');
+      await tester.enterText(find.byType(TextFormField).last, 'Tobi');
+      await tester.pumpAndSettle();
+      await tap('Save');
+      expect(find.text('Tobi'), findsOneWidget);
+      expect(find.text('Family tablet · PIN'), findsOneWidget);
+      await tester.tap(find.widgetWithText(OutlinedButton, 'Child'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Relative'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(OutlinedButton, 'Relative'), findsOneWidget);
+      await tester.tap(find.byTooltip('Remove'));
+      await tester.pumpAndSettle();
+      expect(find.text('Tobi'), findsNothing);
+      await tester.tap(find.byTooltip('Back'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Back'));
       await tester.pumpAndSettle();
       await tap('Specials');
@@ -101,9 +149,45 @@ void main() {
       await tester.pumpAndSettle();
       await tap('Continue');
       expect(find.text('What kind?'), findsOneWidget);
-      expect(find.text('Estate or residents’ association'), findsOneWidget);
-      await tap('Church or ministry');
+      expect(find.text('2 of 5'), findsOneWidget);
+      expect(find.text('Estate or residents'), findsOneWidget);
       expect(find.byType(TextFormField), findsNothing);
+      for (final (kind, feature) in const [
+        ('Church or ministry', 'Giving & pledges'),
+        ('Alumni association', 'Dues tracker'),
+        ('Estate or residents', 'Gate passes'),
+        ('Event', 'Guest list & RSVP'),
+        ('Club or society', 'Attendance'),
+        ('Committee', 'Action items'),
+      ]) {
+        await tap(kind);
+        await tap('Continue');
+        expect(find.text('3 of 5'), findsOneWidget);
+        expect(find.text(feature), findsOneWidget);
+        expect(find.text('Unilag Class of 2015'), findsOneWidget);
+        if (kind != 'Committee') {
+          await tester.tap(find.byTooltip('Back'));
+          await tester.pumpAndSettle();
+        }
+      }
+      expect(find.text('Milestone · optional'), findsOneWidget);
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        'Committee term closes',
+      );
+      await tester.pumpAndSettle();
+      await tap('Choose a date');
+      expect(find.byType(DatePickerDialog), findsOneWidget);
+      await tap('OK');
+      expect(find.text('DAYS TO GO'), findsOneWidget);
+      expect(find.text('Committee term closes'), findsNWidgets(2));
+      await tester.tap(find.byTooltip('Clear date'));
+      await tester.pumpAndSettle();
+      expect(find.text('Countdown preview'), findsOneWidget);
+      expect(
+        tester.getSize(find.widgetWithText(FilledButton, 'Build my space')),
+        const Size(350, 52),
+      );
       expect(tester.takeException(), isNull);
     },
   );

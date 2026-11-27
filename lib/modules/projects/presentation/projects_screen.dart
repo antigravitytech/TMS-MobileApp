@@ -6,6 +6,8 @@ import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
 
+part 'widgets/project_widgets.dart';
+
 class ProjectsScreen extends StatefulWidget {
   const ProjectsScreen({super.key});
   @override
@@ -24,11 +26,18 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
       'Customer Portal Revamp',
       'projects.off_track',
       36,
-      71,
+      0,
       'projects.thu_26_nov',
     ),
-    ('Mobile App Launch', 'projects.at_risk', 25, 83, 'projects.fri_27_nov'),
-    ('Q4 hiring plan', 'projects.on_track', 62, 91, 'projects.mon_30_nov'),
+    (
+      'POS rollout — Lagos, Abuja, Kano',
+      'projects.off_track',
+      40,
+      40,
+      'projects.mon_30_nov',
+    ),
+    ('Mobile App Launch', 'projects.at_risk', 25, 0, 'projects.fri_27_nov'),
+    ('Q4 hiring plan', 'projects.at_risk', 62, 0, 'projects.mon_30_nov'),
   ];
   int filter = 0;
   final expanded = <String>{'Customer Portal Revamp'};
@@ -68,52 +77,171 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   Widget build(BuildContext context) => DesignPage(
     title: context.tr('common.projects'),
     actions: [
-      DesignIcon(
-        icon: TmsIcons.add,
-        label: context.tr('projects.new_project'),
-        onPressed: addProject,
+      SizedBox(
+        width: 48,
+        height: 48,
+        child: IconButton.filled(
+          style: IconButton.styleFrom(
+            backgroundColor: DesignColor.purple,
+            foregroundColor: DesignColor.ink,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          tooltip: context.tr('projects.new_project'),
+          icon: const Icon(TmsIcons.add, size: 24),
+          onPressed: addProject,
+        ),
       ),
     ],
     children: [
-      DesignChoices(
-        items: filters.map(context.tr).toList(),
-        selected: filter,
-        onChanged: (i) => setState(() => filter = i),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          spacing: 8,
+          children: [
+            for (var i = 0; i < 3; i++)
+              _ProjectFilter(
+                label: i == 0
+                    ? context.tr('common.all')
+                    : context.tr(filters[i]),
+                count: projects
+                    .where((p) => i == 0 || p.$2 == filters[i])
+                    .length,
+                color: [
+                  const Color(0xffc4bdf6),
+                  DesignColor.red,
+                  DesignColor.amber,
+                ][i],
+                selected: filter == i,
+                onTap: () => setState(() => filter = i),
+              ),
+          ],
+        ),
       ),
-      for (final (name, status, done, accepted, due) in projects.where(
+      for (final (name, status, done, accepted, _) in projects.where(
         (p) => filter == 0 || p.$2 == filters[filter],
       ))
         DesignCard(
           key: ValueKey(name),
+          padding: const EdgeInsets.all(18),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: 9,
             children: [
-              DesignTile(
-                title: name,
-                subtitle: context.tr(
-                  'projects.next_promise_due',
-                  namedArgs: {'due': context.tr(due)},
-                ),
-                icon: TmsIcons.work,
-                trailing: AnimatedRotation(
-                  turns: expanded.contains(name) ? .5 : 0,
-                  duration: DesignMotion.duration(context, DesignMotion.fast),
-                  child: const Icon(TmsIcons.chevronDown),
-                ),
+              InkWell(
                 onTap: () => setState(() {
-                  if (!expanded.add(name)) expanded.remove(name);
+                  final wasOpen = expanded.contains(name);
+                  expanded.clear();
+                  if (!wasOpen) expanded.add(name);
                 }),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: DesignPill(
-                  context.tr(status),
-                  color: status == 'projects.on_track'
-                      ? DesignColor.green
-                      : status == 'projects.at_risk'
-                      ? DesignColor.amber
-                      : DesignColor.rose,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                (status == 'projects.off_track'
+                                        ? DesignColor.red
+                                        : DesignColor.amber)
+                                    .withValues(alpha: .15),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: status == 'projects.off_track'
+                                      ? DesignColor.red
+                                      : DesignColor.amber,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                context.tr(status),
+                                style: TextStyle(
+                                  color: status == 'projects.off_track'
+                                      ? DesignColor.red
+                                      : DesignColor.amber,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.raised,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Text(
+                            context.tr(
+                              name.startsWith('POS')
+                                  ? 'projects.advanced'
+                                  : 'projects.simple',
+                            ),
+                            style: TextStyle(
+                              color: context.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        DesignAvatar(
+                          name.startsWith('POS') ? 'IM' : 'CO',
+                          size: 28,
+                          color: name.startsWith('POS')
+                              ? DesignColor.blue
+                              : const Color(0xffc4bdf6),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      context.tr(
+                        'projects.promise_summary',
+                        namedArgs: {
+                          'milestone': context.tr(
+                            name.startsWith('POS')
+                                ? 'projects.abuja_live'
+                                : name == 'Mobile App Launch'
+                                ? 'projects.beta'
+                                : 'projects.discovery',
+                          ),
+                          'days': name.startsWith('POS')
+                              ? '11'
+                              : name == 'Mobile App Launch'
+                              ? '2'
+                              : '19',
+                        },
+                      ),
+                      style: TextStyle(color: context.muted, fontSize: 12),
+                    ),
+                  ],
                 ),
               ),
               Row(
@@ -130,7 +258,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     child: _Metric(
                       context.tr('projects.accepted'),
                       accepted,
-                      DesignColor.green,
+                      DesignColor.teal,
                     ),
                   ),
                 ],
@@ -143,11 +271,61 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         spacing: 10,
                         children: [
-                          DesignLabel(
-                            context.tr(
-                              'projects.milestone_promised_due',
-                              namedArgs: {'due': context.tr(due)},
-                            ),
+                          Divider(height: 18, color: context.outline),
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: DesignColor.blue.withValues(
+                                    alpha: .13,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: DesignColor.blue.withValues(
+                                      alpha: .3,
+                                    ),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  TmsIcons.flag,
+                                  size: 20,
+                                  color: DesignColor.blue,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      context.tr(
+                                        name.startsWith('POS')
+                                            ? 'projects.abuja_milestone'
+                                            : 'projects.discovery_milestone',
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      context.tr(
+                                        name.startsWith('POS')
+                                            ? 'projects.abuja_forecast'
+                                            : 'projects.discovery_forecast',
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: context.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           Row(
                             spacing: 6,
@@ -161,10 +339,25 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 ),
                               ])
                                 Expanded(
-                                  child: DesignButton(
-                                    label,
-                                    secondary: true,
+                                  child: OutlinedButton(
                                     onPressed: () => route.open(context),
+                                    style: OutlinedButton.styleFrom(
+                                      backgroundColor: context.raised,
+                                      foregroundColor: context.foreground,
+                                      minimumSize: const Size(0, 48),
+                                      padding: EdgeInsets.zero,
+                                      side: BorderSide(color: context.outline),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      label,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
                             ],
@@ -176,32 +369,6 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             ],
           ),
         ),
-    ],
-  );
-}
-
-class _Metric extends StatelessWidget {
-  const _Metric(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    spacing: 6,
-    children: [
-      DesignLabel(label),
-      Text(
-        '$value%',
-        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 22),
-      ),
-      LinearProgressIndicator(
-        value: value / 100,
-        minHeight: 6,
-        color: color,
-        backgroundColor: context.raised,
-        borderRadius: BorderRadius.circular(8),
-      ),
     ],
   );
 }

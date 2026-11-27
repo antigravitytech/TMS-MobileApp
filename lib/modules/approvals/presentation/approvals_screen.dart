@@ -10,6 +10,9 @@ import '../../../shared/design/design_widgets.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
 
+part 'widgets/review_card.dart';
+part 'widgets/review_actions.dart';
+
 class ApprovalsScreen extends ConsumerStatefulWidget {
   const ApprovalsScreen({super.key});
   @override
@@ -31,75 +34,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
   bool newest = false, dragging = false, outgoing = false;
   int person = 0, project = 0;
   double dx = 0;
-
-  Future<void> _decide(PreviewTask task, bool approve) async {
-    if (outgoing) return;
-    if (!approve) {
-      setState(() {
-        dx = 0;
-        dragging = false;
-      });
-      var reason = -1;
-      const reasons = [
-        'approvals.missing_files',
-        'approvals.doesnt_match_the_brief',
-        'approvals.needs_tests',
-        'approvals.fix_formatting',
-      ];
-      final confirm = await designSheet<bool>(
-        context,
-        title: context.tr(
-          'approvals.return_to',
-          namedArgs: {'name': task.person.split(' ').first},
-        ),
-        builder: (sheet) => StatefulBuilder(
-          builder: (context, update) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 12,
-            children: [
-              DesignLabel(
-                context.tr('approvals.say_what_needs_to_change_it_starts'),
-              ),
-              DesignChoices(
-                items: reasons.map(context.tr).toList(),
-                selected: reason,
-                onChanged: (i) => update(() => reason = i),
-                scroll: false,
-              ),
-              DesignField(label: context.tr('common.notes'), lines: 3),
-              DesignButton(
-                context.tr('approvals.return_with_notes'),
-                color: DesignColor.rose,
-                onPressed: () => Navigator.pop(sheet, true),
-              ),
-            ],
-          ),
-        ),
-      );
-      if (!mounted || confirm != true) return;
-    }
-    setState(() {
-      outgoing = true;
-      dragging = false;
-      dx = approve ? 465 : -465;
-    });
-    await Future<void>.delayed(
-      DesignMotion.duration(context, DesignMotion.object),
-    );
-    if (!mounted) return;
-    ref.read(workspacePreviewProvider).review(task, approve: approve);
-    setState(() {
-      outgoing = false;
-      dx = 0;
-    });
-    designToast(
-      context,
-      context.tr(
-        approve ? 'approvals.approved_notice' : 'approvals.returned_notice',
-        namedArgs: {'task': task.title},
-      ),
-    );
-  }
+  void _update(VoidCallback action) => setState(action);
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +112,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                 (
                   context.tr('common.returned'),
                   '${5 + state.returned.length}',
-                  DesignColor.rose,
+                  const Color(0xfff59562),
                 ),
               ])
                 Expanded(
@@ -208,20 +143,20 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
           child: Row(
             spacing: 8,
             children: [
-              DesignPill(
+              _ReviewChip(
                 newest
                     ? context.tr('approvals.newest_first')
                     : context.tr('approvals.oldest_first'),
                 selected: true,
                 onTap: () => setState(() => newest = !newest),
               ),
-              DesignPill(
+              _ReviewChip(
                 person == 0 ? context.tr(people.first) : people[person],
                 selected: person > 0,
                 onTap: () =>
                     setState(() => person = (person + 1) % people.length),
               ),
-              DesignPill(
+              _ReviewChip(
                 project == 0 ? context.tr(projects.first) : projects[project],
                 selected: project > 0,
                 onTap: () =>
@@ -342,7 +277,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                 child: DesignButton(
                   context.tr('common.return'),
                   icon: TmsIcons.undo,
-                  color: DesignColor.rose,
+                  color: const Color(0xfff59562),
                   onPressed: outgoing ? null : () => _decide(task, false),
                 ),
               ),
@@ -360,119 +295,4 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
       ],
     );
   }
-}
-
-class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({
-    required this.task,
-    required this.dx,
-    required this.onOpen,
-  });
-  final PreviewTask task;
-  final double dx;
-  final VoidCallback onOpen;
-  @override
-  Widget build(BuildContext context) => Stack(
-    children: [
-      DesignCard(
-        padding: const EdgeInsets.all(19),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
-          children: [
-            Row(
-              spacing: 10,
-              children: [
-                DesignAvatar(
-                  task.person.split(' ').map((name) => name[0]).take(2).join(),
-                  color: DesignColor.teal,
-                  size: 46,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DesignTitle(task.person),
-                      DesignLabel('${task.project} · ${task.id}'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                height: 1.18,
-              ),
-            ),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                DesignPill(
-                  context.tr('common.submitted'),
-                  color: DesignColor.amber,
-                ),
-                DesignPill(context.tr('approvals.round_1')),
-                DesignPill(
-                  context.tr('approvals.just_now'),
-                  icon: TmsIcons.clock,
-                ),
-              ],
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: context.raised,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text('“${task.note}”'),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
-                children: [
-                  DesignPill(
-                    context.tr('approvals.2_files'),
-                    icon: TmsIcons.attachment,
-                  ),
-                  TextButton(
-                    onPressed: onOpen,
-                    child: Text(context.tr('approvals.open_task_link')),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      if (dx.abs() > 10)
-        Positioned(
-          top: 20,
-          left: dx > 0 ? 18 : null,
-          right: dx < 0 ? 18 : null,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: (dx.abs() / 95).clamp(0, 1),
-              child: Transform.rotate(
-                angle: dx > 0 ? -.18 : .18,
-                child: DesignPill(
-                  dx > 0
-                      ? context.tr('approvals.approve_swipe')
-                      : context.tr('approvals.return_swipe'),
-                  color: dx > 0 ? DesignColor.green : DesignColor.rose,
-                ),
-              ),
-            ),
-          ),
-        ),
-    ],
-  );
 }

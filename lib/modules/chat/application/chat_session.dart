@@ -19,6 +19,7 @@ class ChatSession {
   final bool requestHandled;
   ChatSession copyWith({
     ChatRow? selected,
+    bool clearSelection = false,
     List<ChatRow>? contacts,
     List<ChatRow>? groups,
     Map<String, List<String>>? messages,
@@ -26,7 +27,7 @@ class ChatSession {
     Set<String>? replied,
     bool? requestHandled,
   }) => ChatSession(
-    selected: selected ?? this.selected,
+    selected: clearSelection ? null : selected ?? this.selected,
     contacts: contacts ?? this.contacts,
     groups: groups ?? this.groups,
     messages: messages ?? this.messages,
@@ -55,6 +56,7 @@ class ChatSessionController extends Notifier<ChatSession> {
     return const ChatSession();
   }
 
+  void openDefault() => state = state.copyWith(clearSelection: true);
   void open(ChatRow row) => state = state.copyWith(selected: row);
   void resolveRequest(ChatRow? accepted) => state = state.copyWith(
     requestHandled: true,

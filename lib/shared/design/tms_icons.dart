@@ -1,8 +1,26 @@
+import 'package:flutter/material.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 /// App icon choices, with Iconsax preferred for each visual role.
 abstract final class TmsIcons {
+  // Iconsax and Lucide have no clean filled play/pause; Material fallback.
+  static const playFilled = Icons.play_arrow_rounded;
+  static const pauseFilled = Icons.pause_rounded;
+  static const map = LucideIcons.map;
+  static const christmas = LucideIcons.treePine;
+  static const minus = LucideIcons.minus;
+  static const download = LucideIcons.download;
+  static const faceScan = Iconsax.scan_copy;
+  static const flag = Iconsax.flag_copy;
+  static const monitor = Iconsax.monitor_copy;
+  static const wedding = Iconsax.lovely_copy;
+  static const sportsBall = Iconsax.dribbble_copy;
+  static const shoppingBag = Iconsax.bag_2_copy;
+  static const code = Iconsax.code_copy;
+  static const tablet = Iconsax.mobile_copy;
+  static const shield = LucideIcons.shield;
+  static const car = Iconsax.car_copy;
   static const phone = Iconsax.call_copy;
   static const link = Iconsax.link_copy;
   static const email = Iconsax.sms_copy;
@@ -17,6 +35,8 @@ abstract final class TmsIcons {
   static const building = Iconsax.building_4_copy;
   static const calendar = Iconsax.calendar_1_copy;
   static const camera = Iconsax.camera_copy;
+  static const card = Iconsax.card_copy;
+  static const book = Iconsax.book_copy;
   static const chat = Iconsax.message_copy;
   static const checkCircle = Iconsax.tick_circle_copy;
   static const checkCircleFilled = Iconsax.tick_circle;
@@ -57,6 +77,7 @@ abstract final class TmsIcons {
   static const lock = Iconsax.lock_1_copy;
   static const login = Iconsax.login_copy;
   static const logout = Iconsax.logout_copy;
+  static const mention = LucideIcons.atSign;
   static const microphone = Iconsax.microphone_2_copy;
   static const more = Iconsax.more_copy;
   static const note = Iconsax.stickynote_copy;
@@ -72,8 +93,15 @@ abstract final class TmsIcons {
   static const search = Iconsax.search_normal_1_copy;
   static const send = Iconsax.send_2_copy;
   static const star = Iconsax.star_1_copy;
+  static const like = Iconsax.like_1_copy;
+  static const starFilled = Iconsax.star_1;
+  static const crown = LucideIcons.crown;
+  static const power = Iconsax.flash_1_copy;
+  static const movie = Iconsax.video_play_copy;
+  static const iceCream = LucideIcons.iceCreamCone;
   static const settings = Iconsax.setting_2_copy;
   static const shoppingCart = Iconsax.shopping_cart_copy;
+  static const share = LucideIcons.share;
   static const smile = Iconsax.emoji_happy_copy;
   static const switchWorkspace = Iconsax.arrow_swap_horizontal_copy;
   static const timer = Iconsax.timer_1_copy;

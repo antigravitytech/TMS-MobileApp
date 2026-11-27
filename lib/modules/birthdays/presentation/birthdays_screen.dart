@@ -7,6 +7,8 @@ import '../../../shared/design/design_widgets.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
 
+part 'widgets/birthday_overview.dart';
+
 class BirthdaysScreen extends ConsumerStatefulWidget {
   const BirthdaysScreen({super.key});
   @override
@@ -29,6 +31,8 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
     ('birthdays.confetti', Color(0xff6940c8), TmsIcons.celebration),
     ('birthdays.cake', Color(0xffa63990), TmsIcons.birthday),
     ('birthdays.warm_wishes', Color(0xff217b78), TmsIcons.heart),
+    ('birthdays.confetti', Color(0xff4933aa), TmsIcons.celebration),
+    ('birthdays.warm_wishes', Color(0xff238664), TmsIcons.heart),
   ];
   Future<void> compose(String person) async {
     var style = 0;
@@ -48,32 +52,33 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
               duration: DesignMotion.duration(context, DesignMotion.object),
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
-                color: styles[style].$2,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    styles[style].$2,
+                    [
+                      const Color(0xffb744a5),
+                      const Color(0xff1b9f9d),
+                      const Color(0xffd34e54),
+                      const Color(0xff713bc3),
+                      const Color(0xff50a044),
+                    ][style],
+                  ],
+                ),
                 borderRadius: BorderRadius.circular(23),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
                 children: [
-                  AnimatedSwitcher(
-                    duration: DesignMotion.duration(
-                      context,
-                      DesignMotion.object,
-                    ),
-                    transitionBuilder: (child, motion) =>
-                        ScaleTransition(scale: motion, child: child),
-                    child: Icon(
-                      styles[style].$3,
-                      key: ValueKey(style),
-                      size: 45,
-                      color: Colors.white,
-                    ),
-                  ),
+                  const SizedBox(height: 46),
                   Text(
                     context.tr(
                       'birthdays.card_greeting',
                       namedArgs: {'name': person.split(' ').first},
                     ),
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.left,
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       fontSize: 23,
@@ -88,10 +93,45 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
               ),
             ),
             DesignTitle(context.tr('birthdays.pick_a_style')),
-            DesignChoices(
-              items: styles.map((s) => context.tr(s.$1)).toList(),
-              selected: style,
-              onChanged: (i) => update(() => style = i),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 10,
+                children: [
+                  for (var i = 0; i < styles.length; i++)
+                    GestureDetector(
+                      onTap: () => update(() => style = i),
+                      child: AnimatedContainer(
+                        duration: DesignMotion.fast,
+                        width: 62,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(17),
+                          border: Border.all(
+                            color: style == i
+                                ? context.foreground
+                                : styles[i].$2,
+                            width: 2,
+                          ),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              styles[i].$2,
+                              [
+                                const Color(0xffb744a5),
+                                const Color(0xff1b9f9d),
+                                const Color(0xffd34e54),
+                                const Color(0xff713bc3),
+                                const Color(0xff50a044),
+                              ][i],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
             DesignField(
               label: context.tr('birthdays.message'),
@@ -101,7 +141,6 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
             ),
             DesignButton(
               context.tr('birthdays.send_card'),
-              icon: TmsIcons.send,
               onPressed: message.trim().isEmpty
                   ? null
                   : () => Navigator.pop(sheet, true),
@@ -146,10 +185,48 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
       title: context.tr('common.birthdays'),
       subtitle: context.tr('birthdays.15_to_celebrate_this_year'),
       children: [
-        DesignChoices(
-          items: months.map(context.tr).toList(),
-          selected: month,
-          onChanged: (i) => setState(() => month = i),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              for (var i = 0; i < months.length; i++)
+                GestureDetector(
+                  onTap: () => setState(() => month = i),
+                  child: Container(
+                    width: 52,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: month == i ? DesignColor.purple : context.panel,
+                      border: Border.all(color: context.outline),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          context.tr(months[i]).split('·').first.trim(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: month == i ? DesignColor.ink : context.muted,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          context.tr(months[i]).split('·').last.trim(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
+                            color: month == i
+                                ? DesignColor.ink
+                                : context.foreground,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
         if (people.isEmpty)
           DesignEmpty(
@@ -157,32 +234,21 @@ class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
             context.tr('birthdays.choose_another_month'),
             icon: TmsIcons.birthday,
           ),
-        if (people.isNotEmpty) ...[
-          DesignTitle(
-            month == 2
-                ? context.tr('birthdays.today_3')
-                : context.tr('birthdays.coming_up'),
-          ),
-          DesignSection(
-            children: [
-              for (final (initials, name, date) in people)
-                DesignTile(
-                  title: name,
-                  subtitle: date,
-                  leading: DesignAvatar(initials, color: DesignColor.rose),
-                  trailing: TextButton(
-                    onPressed: state.birthdayCards.contains(name)
-                        ? null
-                        : () => compose(name),
-                    child: Text(
-                      state.birthdayCards.contains(name)
-                          ? context.tr('birthdays.sent')
-                          : context.tr('common.send_a_card'),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+        if (month == 2)
+          _BirthdayOverview(
+            sent: state.birthdayCards,
+            onSend: compose,
+            onWish: () =>
+                ref.read(workspacePreviewProvider).sendCard('Mama Bisi'),
+          )
+        else if (people.isNotEmpty) ...[
+          DesignTitle(context.tr('birthdays.coming_up')),
+          for (final (initials, name, date) in people)
+            DesignTile(
+              title: name,
+              subtitle: date,
+              leading: DesignAvatar(initials),
+            ),
         ],
       ],
     );

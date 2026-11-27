@@ -13,20 +13,20 @@ class NotificationSetup extends StatelessWidget {
   });
   final Map<String, bool> values;
   final void Function(String, bool) onChanged;
-  static const icons = [
-    TmsIcons.checkCircle,
-    TmsIcons.chat,
-    TmsIcons.edit,
-    TmsIcons.clock,
-    TmsIcons.birthday,
-  ];
-  static const colors = [
-    DesignColor.amber,
-    DesignColor.purple,
-    DesignColor.teal,
-    DesignColor.blue,
-    DesignColor.rose,
-  ];
+  static const icons = {
+    'reviews': TmsIcons.checkCircle,
+    'chat': TmsIcons.chat,
+    'report': TmsIcons.edit,
+    'clock': TmsIcons.clock,
+    'birthdays': TmsIcons.birthday,
+  };
+  static const colors = {
+    'reviews': DesignColor.amber,
+    'chat': DesignColor.purple,
+    'report': DesignColor.teal,
+    'clock': DesignColor.blue,
+    'birthdays': DesignColor.rose,
+  };
 
   @override
   Widget build(BuildContext context) => Column(
@@ -36,16 +36,20 @@ class NotificationSetup extends StatelessWidget {
       const SizedBox(height: 20),
       DesignSection(
         children: [
-          for (final (index, entry) in values.entries.indexed)
+          for (final entry in values.entries)
             SwitchListTile(
               secondary: Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: colors[index].withValues(alpha: .14),
+                  color: colors[entry.key]!.withValues(alpha: .14),
                   borderRadius: BorderRadius.circular(13),
                 ),
-                child: Icon(icons[index], color: colors[index], size: 20),
+                child: Icon(
+                  icons[entry.key],
+                  color: colors[entry.key]!,
+                  size: 20,
+                ),
               ),
               title: Text(
                 context.tr('onboarding.nudges.${entry.key}.title'),

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +6,13 @@ import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../../workspace/domain/workspace_kind.dart';
-import '../../workspace/domain/workspace_setup.dart';
-import '../../workspace/presentation/workspace_ui.dart';
+import '../../workspace/presentation/widgets/workspace_ui.dart';
+import 'widgets/special_setup_options.dart';
+import 'widgets/special_personalization.dart';
 import '../application/workspace_personalization_draft.dart';
 import 'widgets/personalization_family.dart';
+import 'widgets/personalization_work.dart';
+import 'widgets/personal_setup_controls.dart';
 
 class WorkspacePersonalization extends ConsumerWidget {
   const WorkspacePersonalization({super.key});
@@ -23,10 +25,7 @@ class WorkspacePersonalization extends ConsumerWidget {
         work = kind == WorkspaceKind.individual,
         family = kind == WorkspaceKind.family;
     final d = ref.watch(personalizationDraftProvider(input));
-    final slug = d.name
-        .toLowerCase()
-        .replaceAll(RegExp('[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-|-$'), '');
+    final personal = work || family;
     return Scaffold(
       backgroundColor: context.background,
       body: SafeArea(
@@ -36,12 +35,7 @@ class WorkspacePersonalization extends ConsumerWidget {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    math.max(10, 58 - MediaQuery.viewPaddingOf(context).top),
-                    20,
-                    0,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
                   child: Row(
                     spacing: 12,
                     children: [
@@ -50,11 +44,15 @@ class WorkspacePersonalization extends ConsumerWidget {
                         label: context.tr('common.back'),
                         onPressed: () => context.router.maybePop(),
                       ),
-                      const Expanded(
+                      Expanded(
                         child: LinearProgressIndicator(
-                          value: .6,
+                          backgroundColor: context.raised,
+                          color: DesignColor.purple,
+                          value: work || family ? .6 : .7,
                           minHeight: 6,
-                          borderRadius: BorderRadius.all(Radius.circular(4)),
+                          borderRadius: const BorderRadius.all(
+                            Radius.circular(4),
+                          ),
                         ),
                       ),
                       DesignLabel(context.tr('setup_details.step')),
@@ -63,13 +61,16 @@ class WorkspacePersonalization extends ConsumerWidget {
                 ),
                 Expanded(
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 26, 20, 20),
+                    padding: EdgeInsets.fromLTRB(20, family ? 24 : 28, 20, 20),
                     children: [
                       Text(
-                        kind.label(context).toUpperCase(),
+                        (work || family
+                                ? kind.label(context)
+                                : specialSetupTitle(context, kind))
+                            .toUpperCase(),
                         style: TextStyle(
-                          color: context.lavender,
-                          fontSize: 12,
+                          color: context.muted,
+                          fontSize: 11.5,
                           letterSpacing: 1.1,
                           fontWeight: FontWeight.w700,
                         ),
@@ -86,223 +87,42 @@ class WorkspacePersonalization extends ConsumerWidget {
                               : 'setup_details.community',
                         ),
                         style: const TextStyle(
-                          fontSize: 30,
+                          fontSize: 28,
                           height: 1.12,
-                          fontWeight: FontWeight.w800,
+                          letterSpacing: -.7,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (work || family) ...[
+                      if (personal) ...[
                         const SizedBox(height: 8),
-                        DesignLabel(
+                        Text(
                           context.tr(
                             work
                                 ? 'setup_details.work_sub'
                                 : 'setup_details.family_sub',
                           ),
+                          style: TextStyle(
+                            color: context.muted,
+                            fontSize: 15,
+                            height: 1.45,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 22),
-                      if (work) ...[
-                        DesignTitle(context.tr('workspaces.setup.job')),
-                        const SizedBox(height: 10),
-                        LayoutBuilder(
-                          builder: (context, bounds) => Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              for (final (i, j)
-                                  in IndividualOccupation.values.indexed)
-                                SizedBox(
-                                  width: (bounds.maxWidth - 16) / 3,
-                                  child: DesignCard(
-                                    color: d.job == j
-                                        ? context.raised
-                                        : context.panel,
-                                    onTap: () => d.setJob(j),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 12,
-                                    ),
-                                    child: Column(
-                                      spacing: 8,
-                                      children: [
-                                        Container(
-                                          width: 36,
-                                          height: 36,
-                                          decoration: BoxDecoration(
-                                            color: [
-                                              DesignColor.purple,
-                                              DesignColor.teal,
-                                              DesignColor.blue,
-                                              DesignColor.amber,
-                                              DesignColor.green,
-                                              DesignColor.rose,
-                                            ][i].withValues(alpha: .2),
-                                            borderRadius: BorderRadius.circular(
-                                              12,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            [
-                                              TmsIcons.edit,
-                                              TmsIcons.barChart,
-                                              TmsIcons.school,
-                                              TmsIcons.shoppingCart,
-                                              TmsIcons.laptop,
-                                              TmsIcons.more,
-                                            ][i],
-                                            size: 20,
-                                          ),
-                                        ),
-                                        Text(
-                                          context.tr(
-                                            'workspaces.jobs.${j.name}',
-                                          ),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        DesignTitle(context.tr('workspaces.setup.clients')),
-                        const SizedBox(height: 8),
-                        Row(
-                          spacing: 8,
-                          children: [
-                            for (final yes in [true, false])
-                              Expanded(
-                                child: DesignButton(
-                                  context.tr(
-                                    yes
-                                        ? 'setup_details.yes'
-                                        : 'setup_details.no',
-                                  ),
-                                  secondary: yes != d.clients,
-                                  onPressed: () => d.setClients(yes),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        DesignCard(
-                          child: DesignLabel(
-                            context.tr(
-                              d.clients
-                                  ? 'setup_details.clients_info'
-                                  : 'setup_details.solo_info',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                      if (family)
+                      if (work)
+                        WorkPersonalization(draft: d)
+                      else if (family)
                         FamilyPersonalization(draft: d)
-                      else ...[
-                        DesignField(
-                          label: context.tr(
-                            work
-                                ? 'setup_details.name_space'
-                                : kind == WorkspaceKind.alumni
-                                ? 'setup_details.set_name'
-                                : 'workspaces.name',
-                          ),
-                          initialValue: input.name,
-                          onChanged: d.setName,
-                        ),
-                        if (work)
-                          DesignLabel(
-                            context.tr(
-                              'onboarding.workspace_link',
-                              namedArgs: {
-                                'url':
-                                    'sabipipu.app/${slug.isEmpty ? "my-space" : slug}',
-                              },
-                            ),
-                          )
-                        else ...[
-                          const SizedBox(height: 12),
-                          DesignField(
-                            label: context.tr('workspaces.setup.occasion'),
-                            onChanged: d.setOccasion,
-                          ),
-                          const SizedBox(height: 12),
-                          DesignButton(
-                            d.date == null
-                                ? context.tr('workspaces.pick_date')
-                                : DateFormat.yMMMd(
-                                    context.locale.toString(),
-                                  ).format(d.date!),
-                            secondary: true,
-                            icon: TmsIcons.calendar,
-                            onPressed: () async {
-                              final date = await pickWorkspaceDate(
-                                context,
-                                d.date,
-                              );
-                              if (context.mounted && date != null) {
-                                d.setDate(date);
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 18),
-                          DesignCard(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 8,
-                              children: [
-                                if (d.date != null)
-                                  DesignTitle(
-                                    context.plural(
-                                      'workspaces.days_to_event',
-                                      math.max(
-                                        0,
-                                        DateUtils.dateOnly(d.date!)
-                                            .difference(
-                                              DateUtils.dateOnly(
-                                                DateTime.now(),
-                                              ),
-                                            )
-                                            .inDays,
-                                      ),
-                                      name: 'count',
-                                    ),
-                                  ),
-                                DesignLabel(
-                                  context.tr('setup_details.countdown'),
-                                ),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: [
-                                    for (final s in kind.sections)
-                                      DesignPill(s.label(context)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
+                      else
+                        SpecialPersonalization(kind: kind, draft: d),
                     ],
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                  child: DesignButton(
-                    context.tr(
-                      work || family
-                          ? 'common.continue'
-                          : 'setup_details.build',
-                    ),
-                    onPressed: () => context.router.maybePop(d.finish(kind)),
-                  ),
+                PersonalSetupFooter(
+                  labelKey: personal
+                      ? 'common.continue'
+                      : 'setup_details.build',
+                  onPressed: () => context.router.maybePop(d.finish(kind)),
                 ),
               ],
             ),

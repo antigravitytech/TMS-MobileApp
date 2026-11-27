@@ -16,7 +16,9 @@ class AppDimensions {
   static const double _kScaffoldPadding = 14;
 
   /// The default padding for the scaffold body.
-  static EdgeInsets kScaffoldBodyPadding = const EdgeInsets.all(_kScaffoldPadding);
+  static EdgeInsets kScaffoldBodyPadding = const EdgeInsets.all(
+    _kScaffoldPadding,
+  );
   static EdgeInsets kCardPadding = const EdgeInsets.all(_k12);
 
   static BorderRadius kDefaultBorderRadius = BorderRadius.circular(_k12);

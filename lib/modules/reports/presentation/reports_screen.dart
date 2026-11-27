@@ -8,6 +8,10 @@ import '../../../shared/design/design_widgets.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
 
+export 'performance_screen.dart';
+part 'widgets/report_widgets.dart';
+part 'widgets/team_summaries.dart';
+
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
   @override
@@ -26,77 +30,219 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     return DesignPage(
       title: context.tr('common.reports'),
       actions: [
-        DesignIcon(
-          icon: TmsIcons.insights,
-          label: context.tr('common.performance'),
+        TextButton(
           onPressed: () => TmsRoute.performance.open(context),
+          child: Text(
+            context.tr('common.performance'),
+            style: TextStyle(
+              color: context.lavender,
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
       children: [
-        DesignChoices(
-          items: [
-            context.tr('reports.log_today'),
-            context.tr('reports.team_summaries'),
-          ],
-          selected: tab,
-          onChanged: (i) => setState(() => tab = i),
-        ),
+        _ReportTabs(tab: tab, onChanged: (i) => setState(() => tab = i)),
         if (tab == 0 && state.reportSent) ...[
-          DesignEmpty(
+          const SizedBox(height: 60),
+          const _ReportSuccessMark(),
+          const SizedBox(height: 16),
+          Text(
             context.tr('reports.report_sent'),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+          ),
+          Text(
             context.tr('reports.ibrahim_has_it_thats_4_of_6'),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: context.muted),
           ),
-          Center(
-            child: DesignPill(
-              context.tr('reports.10_points_on_time'),
-              color: DesignColor.green,
-            ),
-          ),
-          DesignButton(
-            context.tr('common.done'),
-            onPressed: () => TmsRoute.home.open(context),
-          ),
-        ] else if (tab == 0) ...[
+          const SizedBox(height: 16),
           DesignCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 6,
+            child: Row(
               children: [
-                DesignTitle(context.tr('common.daily_status_update')),
-                DesignLabel(context.tr('reports.for_ibrahim_musa')),
-                DesignPill(
-                  context.tr('reports.due_5_00_pm'),
-                  color: DesignColor.amber,
+                const Icon(TmsIcons.flame, color: Color(0xfff59562)),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('reports.points'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        context.tr('reports.on_time_before'),
+                        style: TextStyle(color: context.muted, fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          DesignField(
-            label: context.tr('reports.what_did_you_get_done_today'),
-            initialValue: report,
-            lines: 4,
-            onChanged: (value) => setState(() => report = value),
+          OutlinedButton(
+            onPressed: () => TmsRoute.home.open(context),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: context.raised,
+              foregroundColor: context.foreground,
+              minimumSize: const Size(double.infinity, 52),
+              side: BorderSide(color: context.outline),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+            child: Text(context.tr('common.done')),
           ),
-          DesignField(label: context.tr('reports.whats_next'), lines: 3),
-          DesignTitle(context.tr('reports.link_to_a_project')),
-          DesignChoices(
-            items: [
-              context.tr('reports.none'),
-              'Tech Team',
-              'Customer Portal Revamp',
+        ] else if (tab == 0) ...[
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: DesignColor.teal.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: DesignColor.teal.withValues(alpha: .25),
+                  ),
+                ),
+                child: const Icon(
+                  TmsIcons.edit,
+                  color: DesignColor.teal,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      context.tr('common.daily_status_update'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      context.tr('reports.for_ibrahim_musa'),
+                      style: TextStyle(color: context.muted, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: DesignColor.amber.withValues(alpha: .15),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Text(
+                  '•  ${context.tr('reports.due_5_00_pm')}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: DesignColor.amber,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
-            selected: project,
-            onChanged: (i) => setState(() => project = i),
+          ),
+          DesignLabel(context.tr('reports.what_did_you_get_done_today')),
+          _ReportInput(
+            initialValue: report,
+            lines: 3,
+            onChanged: (v) => setState(() => report = v),
+          ),
+          DesignLabel(context.tr('reports.whats_next')),
+          _ReportInput(hint: context.tr('reports.tomorrows_focus'), lines: 2),
+          DesignLabel(context.tr('reports.link_to_a_project')),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var i = 0; i < 3; i++)
+                _ReportChip(
+                  i == 0
+                      ? context.tr('common.standalone')
+                      : ['', 'Customer Portal Revamp', 'Mobile App Launch'][i],
+                  selected: project == i,
+                  onTap: () => setState(() => project = i),
+                ),
+            ],
           ),
           DesignCard(
-            padding: EdgeInsets.zero,
-            child: SwitchListTile(
-              title: Text(context.tr('reports.im_blocked')),
-              subtitle: DesignLabel(
-                context.tr('reports.flags_it_to_ibrahim_straight_away'),
-              ),
-              value: blocked,
-              onChanged: (value) => setState(() => blocked = value),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: DesignColor.red.withValues(alpha: .13),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: DesignColor.red.withValues(alpha: .3),
+                    ),
+                  ),
+                  child: const Icon(
+                    TmsIcons.warning,
+                    color: DesignColor.red,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('reports.im_blocked'),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        context.tr('reports.flags_it_to_ibrahim_straight_away'),
+                        style: TextStyle(color: context.muted, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => blocked = !blocked),
+                  child: AnimatedContainer(
+                    duration: DesignMotion.fast,
+                    width: 52,
+                    height: 32,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: blocked
+                          ? DesignColor.purple
+                          : context.foreground.withValues(alpha: .16),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: AnimatedAlign(
+                      duration: DesignMotion.fast,
+                      alignment: blocked
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: context.foreground,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           if (blocked)
@@ -106,257 +252,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
           DesignButton(
             context.tr('reports.send_report'),
-            icon: TmsIcons.send,
             onPressed: report.trim().isEmpty ? null : state.sendReport,
           ),
         ] else ...[
-          DesignTitle(context.tr('reports.today_tech_team')),
-          DesignLabel(context.tr('common.2_of_5_sent_1_blocker')),
-          DesignSection(
-            children: [
-              for (final (initials, name, received) in [
-                ('TB', 'Tunde Bakare', true),
-                ('AE', 'Amaka Eze', true),
-                ('DM', 'David Martins', false),
-                ('SJ', 'Sarah Johnson', false),
-              ])
-                DesignTile(
-                  title: name,
-                  subtitle: received
-                      ? context.tr('common.submitted')
-                      : context.tr('reports.waiting_for_report'),
-                  leading: DesignAvatar(initials),
-                  trailing: received
-                      ? const Icon(
-                          TmsIcons.checkCircleFilled,
-                          color: DesignColor.green,
-                        )
-                      : TextButton(
-                          onPressed: nudged.contains(name)
-                              ? null
-                              : () {
-                                  setState(() => nudged.add(name));
-                                  designToast(
-                                    context,
-                                    context.tr(
-                                      'reports.reminder_sent_to_name',
-                                      namedArgs: {'name': name},
-                                    ),
-                                  );
-                                },
-                          child: Text(
-                            nudged.contains(name)
-                                ? context.tr('reports.sent')
-                                : context.tr('reports.nudge'),
-                          ),
-                        ),
+          _TeamSummaries(
+            nudged: nudged,
+            onNudge: (name) {
+              setState(() => nudged.add(name));
+              designToast(
+                context,
+                context.tr(
+                  'reports.reminder_sent_to_name',
+                  namedArgs: {'name': name},
                 ),
-            ],
+              );
+            },
           ),
         ],
       ],
     );
   }
-}
-
-class PerformanceScreen extends StatefulWidget {
-  const PerformanceScreen({super.key});
-  @override
-  State<PerformanceScreen> createState() => _PerformanceScreenState();
-}
-
-class _PerformanceScreenState extends State<PerformanceScreen> {
-  int tab = 0, period = 1;
-  @override
-  Widget build(BuildContext context) => DesignPage(
-    title: context.tr('common.performance'),
-    children: [
-      DesignChoices(
-        items: [context.tr('common.me'), context.tr('reports.my_team')],
-        selected: tab,
-        onChanged: (i) => setState(() => tab = i),
-      ),
-      DesignChoices(
-        items: [
-          context.tr('reports.this_week'),
-          context.tr('reports.this_month'),
-          context.tr('reports.last_month'),
-          context.tr('reports.this_quarter'),
-        ],
-        selected: period,
-        onChanged: (i) => setState(() => period = i),
-      ),
-      DesignLabel(
-        context.tr(
-          'reports.compared_with_previous',
-          namedArgs: {
-            'period': context.tr(
-              const [
-                'reports.range_week',
-                'reports.range_month',
-                'reports.range_last_month',
-                'reports.range_quarter',
-              ][period],
-            ),
-          },
-        ),
-      ),
-      DesignCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 14,
-          children: [
-            DesignTitle(context.tr('reports.performance_thermometer')),
-            DesignLabel(context.tr('reports.vs_original_targets')),
-            Text(
-              tab == 0
-                  ? context.tr('reports.1_5_days')
-                  : context.tr('reports.2_2_days'),
-              style: TextStyle(
-                color: tab == 0 ? DesignColor.rose : DesignColor.green,
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            DesignLabel(
-              tab == 0
-                  ? context.tr(
-                      'reports.time_lost_against_original_targets_this_month',
-                    )
-                  : context.tr(
-                      'reports.time_saved_against_original_targets_this_month',
-                    ),
-            ),
-            const _Thermometer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                DesignLabel(context.tr('reports.lost')),
-                DesignLabel(context.tr('reports.on_target')),
-                DesignLabel(context.tr('reports.saved')),
-              ],
-            ),
-          ],
-        ),
-      ),
-      DesignCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
-          children: [
-            DesignTitle(context.tr('reports.completed_vs_returned')),
-            DesignLabel(context.tr('reports.per_week')),
-            SizedBox(
-              height: 130,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (var i = 0; i < 8; i++)
-                    Flexible(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        spacing: 2,
-                        children: [
-                          _Bar(
-                            height: 36 + (i * 13 + period * 7 + tab * 9) % 79,
-                            color: DesignColor.green,
-                          ),
-                          _Bar(
-                            height: 12 + i * 8 % 32,
-                            color: DesignColor.rose,
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Row(
-              children: [
-                Expanded(child: DesignLabel(context.tr('reports.5_oct'))),
-                Expanded(
-                  child: Center(
-                    child: DesignLabel(context.tr('reports.19_oct')),
-                  ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: DesignLabel(context.tr('reports.2_nov')),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: DesignLabel(context.tr('reports.16_nov')),
-                  ),
-                ),
-              ],
-            ),
-            Wrap(
-              spacing: 8,
-              children: [
-                DesignPill(
-                  context.tr('common.completed'),
-                  color: DesignColor.green,
-                ),
-                DesignPill(
-                  context.tr('common.returned'),
-                  color: DesignColor.rose,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      DesignTitle(context.tr('reports.needs_attention')),
-      DesignSection(
-        children: [
-          DesignTile(
-            title: 'Regression test plan for portal',
-            subtitle: context.tr('reports.2_days_late_david'),
-            icon: TmsIcons.warning,
-            onTap: () => TmsRoute.task.open(context),
-          ),
-          DesignTile(
-            title: 'Refactor auth middleware',
-            subtitle: context.tr('reports.1_day_late_tunde'),
-            icon: TmsIcons.clock,
-            onTap: () => TmsRoute.task.open(context),
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
-class _Thermometer extends StatelessWidget {
-  const _Thermometer();
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 12,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(20),
-      gradient: const LinearGradient(
-        colors: [DesignColor.red, DesignColor.amber, DesignColor.green],
-      ),
-    ),
-  );
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({required this.height, required this.color});
-  final int height;
-  final Color color;
-  @override
-  Widget build(BuildContext context) => AnimatedContainer(
-    duration: DesignMotion.duration(context, DesignMotion.object),
-    height: height.toDouble(),
-    width: 8,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(5),
-    ),
-  );
 }

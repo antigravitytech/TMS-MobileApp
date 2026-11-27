@@ -12,7 +12,10 @@ class SecureStorageService {
   }
 
   // Set methods
-  static Future<void> setString({required String key, required String value}) async {
+  static Future<void> setString({
+    required String key,
+    required String value,
+  }) async {
     await _instance.write(key: key, value: value);
   }
 

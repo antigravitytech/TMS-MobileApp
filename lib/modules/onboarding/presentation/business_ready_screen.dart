@@ -9,9 +9,9 @@ import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../../workspace/application/workspace_preview.dart';
 import 'widgets/profile_avatar_picker.dart';
-import 'widgets/splash_artwork.dart';
+import '../../../shared/design/brand_check_painter.dart';
 
-part 'business_ready_confetti.dart';
+part 'widgets/business_ready_confetti.dart';
 
 class BusinessReadyScreen extends ConsumerStatefulWidget {
   const BusinessReadyScreen({super.key});
@@ -93,7 +93,6 @@ class _BusinessReadyScreenState extends ConsumerState<BusinessReadyScreen>
     return Scaffold(
       backgroundColor: context.background,
       body: SafeArea(
-        minimum: const EdgeInsets.only(bottom: 36),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 430),
@@ -102,12 +101,7 @@ class _BusinessReadyScreenState extends ConsumerState<BusinessReadyScreen>
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      math.max(20, 116 - MediaQuery.viewPaddingOf(context).top),
-                      20,
-                      20,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 48, 20, 20),
                     child: Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -233,7 +227,7 @@ class _BusinessReadyScreenState extends ConsumerState<BusinessReadyScreen>
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
                   child: _pop(
                     300,
                     FilledButton(

@@ -5,10 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/quick_create.dart';
+import '../../../shared/design/design_tokens.dart';
+
 import '../../workspace/application/workspace_preview.dart';
-import 'task_card.dart';
-import 'task_labels.dart';
+import 'widgets/task_card.dart';
+import 'widgets/task_labels.dart';
 import '../../../shared/design/tms_icons.dart';
+
+part 'widgets/tasks_list_widgets.dart';
+part 'widgets/tasks_filter_sheet.dart';
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -41,7 +46,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
     'Customer Portal Revamp',
     'Mobile App Launch',
   ];
-  static const sorts = ['tasks.due_date', 'common.priority', 'common.title'];
+  static const sorts = ['tasks.due_date', 'common.priority', 'common.project'];
   int group = 0, filter = 0, priority = 0, project = 0, sort = 0;
   void reset() => setState(() {
     filter = 0;
@@ -52,58 +57,22 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
 
   Future<void> openFilters() async {
     var p = priority, j = project, s = sort;
-    final result = await designSheet<(int, int, int)>(
-      context,
-      title: context.tr('tasks.sort_filter'),
-      builder: (sheet) => StatefulBuilder(
-        builder: (context, update) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 12,
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => update(() {
-                  p = 0;
-                  j = 0;
-                  s = 0;
-                }),
-                child: Text(context.tr('tasks.reset')),
-              ),
-            ),
-            DesignTitle(context.tr('tasks.sort_by')),
-            DesignChoices(
-              items: sorts.map(context.tr).toList(),
-              selected: s,
-              onChanged: (i) => update(() => s = i),
-            ),
-            DesignTitle(context.tr('common.priority')),
-            DesignChoices(
-              items: [
-                context.tr(priorities.first),
-                for (final value in priorities.skip(1))
-                  taskPriorityLabel(context, value),
-              ],
-              selected: p,
-              onChanged: (i) => update(() => p = i),
-            ),
-            DesignTitle(context.tr('common.project')),
-            DesignChoices(
-              items: [
-                context.tr(projects.first),
-                for (final value in projects.skip(1))
-                  taskProjectLabel(context, value),
-              ],
-              selected: j,
-              onChanged: (i) => update(() => j = i),
-              scroll: false,
-            ),
-            DesignButton(
-              context.tr('tasks.show_tasks'),
-              onPressed: () => Navigator.pop(sheet, (p, j, s)),
-            ),
-          ],
-        ),
+    final result = await showModalBottomSheet<(int, int, int)>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.panel,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheet) => _TaskFilterSheet(
+        priority: p,
+        project: j,
+        sort: s,
+        tasks: ref
+            .read(workspacePreviewProvider)
+            .tasks
+            .where((t) => group == 3 || t.group == groups[group])
+            .toList(),
       ),
     );
     if (mounted && result != null) {
@@ -115,6 +84,14 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
       });
     }
   }
+
+  String _bucket(PreviewTask t) => t.status == 'Completed'
+      ? 'done'
+      : t.due.contains('overdue')
+      ? 'overdue'
+      : t.due == 'Today'
+      ? 'today'
+      : 'week';
 
   @override
   Widget build(BuildContext context) {
@@ -141,7 +118,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             .compareTo(priorities.indexOf(b.priority)),
       );
     }
-    if (sort == 2) items.sort((a, b) => a.title.compareTo(b.title));
+    if (sort == 2) items.sort((a, b) => a.project.compareTo(b.project));
     return DesignPage(
       title: context.tr('common.tasks'),
       tab: TmsRoute.tasks,
@@ -160,21 +137,45 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         ),
       ],
       children: [
-        DesignChoices(
-          items: groups.map((value) => taskGroupLabel(context, value)).toList(),
+        _TaskGroupTabs(
+          labels: [
+            context.tr('tasks.my_tasks'),
+            context.tr('tasks.my_requests'),
+            context.tr('common.team'),
+            context.tr('common.all'),
+          ],
+          counts: [
+            for (final g in groups)
+              ref
+                  .watch(workspacePreviewProvider)
+                  .tasks
+                  .where((t) => g == 'All' || t.group == g)
+                  .length,
+          ],
           selected: group,
           onChanged: (i) => setState(() => group = i),
         ),
-        DesignChoices(
-          items: [
-            context.tr('common.all'),
-            context.tr('common.today'),
-            context.tr('common.overdue'),
-            for (final status in filters.skip(3))
-              taskStatusLabel(context, status),
-          ],
-          selected: filter,
-          onChanged: (i) => setState(() => filter = i),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
+            children: [
+              for (final status in [
+                'All',
+                'In progress',
+                'Submitted',
+                'Returned',
+                'Completed',
+              ])
+                _TaskFilterChip(
+                  status == 'All'
+                      ? context.tr('common.all')
+                      : taskStatusLabel(context, status),
+                  selected: filters[filter] == status,
+                  onTap: () => setState(() => filter = filters.indexOf(status)),
+                ),
+            ],
+          ),
         ),
         if (priority > 0 || project > 0)
           Align(
@@ -192,16 +193,30 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
           ),
           DesignButton(context.tr('tasks.clear_filters'), onPressed: reset),
         ] else ...[
-          DesignTitle(
-            context.tr(
-              'tasks.group_count',
-              namedArgs: {
-                'group': taskGroupLabel(context, groups[group]),
-                'count': items.length.toString(),
-              },
-            ),
-          ),
-          for (final task in items) TaskCard(task, key: ValueKey(task.id)),
+          for (final bucket in ['overdue', 'today', 'week', 'done']) ...[
+            if (items.any((t) => _bucket(t) == bucket)) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.tr(
+                  'tasks.bucket_$bucket',
+                  namedArgs: {
+                    'count': items
+                        .where((t) => _bucket(t) == bucket)
+                        .length
+                        .toString(),
+                  },
+                ),
+                style: TextStyle(
+                  color: context.muted,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1,
+                ),
+              ),
+              for (final task in items.where((t) => _bucket(t) == bucket))
+                _CompactTaskCard(task),
+            ],
+          ],
         ],
       ],
     );

@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/local_workspace_store.dart';
+import '../data/workspace_repository.dart';
 import '../data/workspace_demo.dart';
+import '../data/reference_refresh.dart';
 import '../domain/local_workspace.dart';
 import '../domain/event_seating.dart';
 import '../domain/workspace_kind.dart';
@@ -23,8 +25,21 @@ class LocalWorkspaces extends AsyncNotifier<WorkspaceDirectory> {
   @override
   Future<WorkspaceDirectory> build() async {
     _store = LocalWorkspaceStore(await SharedPreferences.getInstance());
-    return _store.load();
+    var directory = _store.load();
+    final preferences = await SharedPreferences.getInstance();
+    for (final (flag, refresh) in referenceRefreshes) {
+      if (!_store.hasSavedDirectory || preferences.containsKey(flag)) continue;
+      directory = refresh(directory, DateTime.now());
+      await _store.save(directory);
+      await preferences.setBool(flag, true);
+      break;
+    }
+    final prepared = _repository.prepare(directory, DateTime.now());
+    if (!identical(prepared, directory)) await _store.save(prepared);
+    return prepared;
   }
+
+  WorkspaceRepository get _repository => ref.read(workspaceRepositoryProvider);
 
   Future<void> select(String id) => _update((directory) {
     if (id != WorkspaceDirectory.companyId &&
@@ -80,45 +95,23 @@ class LocalWorkspaces extends AsyncNotifier<WorkspaceDirectory> {
       nextId: nextId,
       workspaces: [
         ...directory.workspaces,
-        LocalWorkspace(
-          id: id,
-          kind: kind,
-          name: name,
-          crest: setup.crest,
-          occupation: setup.occupation?.name ?? '',
-          withClients: setup.withClients,
-          occasion: setup.occasion,
-          eventDate: setup.date,
-          records: members,
+        _repository.fill(
+          LocalWorkspace(
+            id: id,
+            kind: kind,
+            name: name,
+            crest: setup.crest,
+            occupation: setup.occupation?.name ?? '',
+            withClients: setup.withClients,
+            occasion: setup.occasion,
+            eventDate: setup.date,
+            records: members,
+          ),
+          DateTime.now(),
         ),
       ],
     );
   });
-
-  Future<void> setHourlyRate(String id, int rate) => _updateWorkspace(id, (w) {
-    if (w.kind != WorkspaceKind.individual || rate < 0) {
-      throw StateError('Invalid hourly rate');
-    }
-    return w.copyWith(hourlyRate: rate);
-  });
-
-  Future<void> setEventDetails(
-    String workspaceId, {
-    required String name,
-    required DateTime? date,
-    required String venue,
-    required int capacity,
-    required int budget,
-  }) => _updateWorkspace(
-    workspaceId,
-    (workspace) => workspace.copyWith(
-      name: name,
-      eventDate: date,
-      eventVenue: venue,
-      eventCapacity: capacity,
-      eventBudget: budget,
-    ),
-  );
 
   Future<void> saveRecord(
     String workspaceId,

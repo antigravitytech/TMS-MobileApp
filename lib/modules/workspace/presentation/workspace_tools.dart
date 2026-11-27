@@ -7,9 +7,9 @@ import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../application/local_workspaces.dart';
 import '../domain/workspace_kind.dart';
-import 'workspace_ui.dart';
+import 'widgets/workspace_ui.dart';
 
-part 'workspace_tool_groups.dart';
+part 'widgets/workspace_tool_groups.dart';
 
 typedef _Tool = (String, IconData, Color, Object);
 

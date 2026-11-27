@@ -10,26 +10,26 @@ import '../application/local_workspaces.dart';
 import '../application/workspace_preview.dart';
 import '../domain/local_workspace.dart';
 import '../domain/workspace_kind.dart';
-import 'workspace_picker.dart';
-import 'workspace_dashboard_header.dart';
-import 'workspace_focus_timer.dart';
-import 'workspace_gigs.dart';
-import 'workspace_invoice_list.dart';
-import 'workspace_section_rail.dart';
-import 'workspace_guest_import.dart';
-import 'workspace_seating.dart';
-import 'workspace_record_form.dart';
-import 'workspace_record_widgets.dart';
-import 'workspace_ui.dart';
+import 'section_screens.dart';
+import 'widgets/workspace_picker.dart';
+import 'widgets/workspace_dashboard_header.dart';
+import '../../individual/presentation/widgets/new_invoice_sheet.dart';
+import 'widgets/workspace_invoice_list.dart';
+import 'widgets/workspace_section_rail.dart';
+import 'widgets/workspace_record_form.dart';
+import 'widgets/workspace_record_widgets.dart';
+import 'widgets/workspace_ui.dart';
 import '../../../shared/design/tms_icons.dart';
 
-part 'workspace_plan_actions.dart';
+part 'widgets/workspace_plan_actions.dart';
 
 class WorkspacePlanScreen extends ConsumerWidget {
   const WorkspacePlanScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Tab switches replace this route with a new query; rebuild for them.
+    context.watchRouter;
     final directory = ref.watch(localWorkspacesProvider);
     final workspace = directory.asData?.value.active;
     if (workspace == null) {
@@ -56,6 +56,8 @@ class WorkspacePlanScreen extends ConsumerWidget {
       (section) => section.name == query,
       orElse: () => workspace.kind.sections.first,
     );
+    final dedicated = sectionScreen(workspace, initial);
+    if (dedicated != null) return dedicated;
     final initialFilter =
         initial.view == WorkspaceView.review &&
             context.routeData.queryParams.getString('status', '') ==
@@ -104,7 +106,6 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
         .where(
           (r) =>
               (filter == null || r.status == filter) &&
-              (!checkIn || r.status == WorkspaceStatus.confirmed) &&
               (term.isEmpty ||
                   [
                     r.title,
@@ -142,7 +143,9 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
           section: section,
           onSection: selectSection,
         ),
-        create: () => edit(section),
+        create: () => workspace.kind == WorkspaceKind.individual
+            ? showNewInvoiceSheet(context, workspace.id)
+            : edit(section),
         open: showRecord,
         payment: recordPayment,
       );
@@ -163,7 +166,7 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
         onSection: selectSection,
       ),
       actions: [
-        if (items.isNotEmpty && section.view != WorkspaceView.seating)
+        if (items.isNotEmpty)
           IconButton(
             tooltip: context.tr('common.search'),
             icon: Icon(searching ? TmsIcons.close : TmsIcons.search),
@@ -172,7 +175,7 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
               search.clear();
             }),
           ),
-        if (section.view != WorkspaceView.seating && items.isNotEmpty)
+        if (items.isNotEmpty)
           DesignIcon(
             icon: TmsIcons.add,
             label: section.addLabel(context),
@@ -192,10 +195,6 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
             selected: section,
             onChanged: selectSection,
           ),
-        if (section == WorkspaceSection.gigs)
-          GigTemplates(workspace: workspace),
-        if (section == WorkspaceSection.time)
-          WorkspaceFocusTimer(workspace: workspace),
         if (searching)
           DesignField(
             label: context.tr('common.search'),
@@ -203,129 +202,47 @@ class _WorkspaceSectionsState extends _WorkspacePlanActions {
             autofocus: true,
             onChanged: (_) => setState(() {}),
           ),
-        if (section == WorkspaceSection.guests ||
-            section == WorkspaceSection.programme && items.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: [
-              if (section == WorkspaceSection.guests) ...[
-                DesignPill(
-                  context.tr('workspaces.import_guests'),
-                  icon: TmsIcons.upload,
-                  onTap: importGuests,
-                ),
-                if (items.isNotEmpty)
-                  DesignPill(
-                    context.tr('workspaces.check_in_mode'),
-                    selected: checkIn,
-                    icon: TmsIcons.badge,
-                    onTap: () => setState(() {
-                      checkIn = !checkIn;
-                      filter = null;
-                    }),
-                  ),
-              ] else
-                DesignPill(
-                  context.tr('workspaces.line_up'),
-                  icon: TmsIcons.clock,
-                  onTap: () => alignProgramme(items),
-                ),
+        if (items.isNotEmpty && filters.isNotEmpty)
+          DesignChoices(
+            items: [
+              context.tr('common.all'),
+              for (final value in filters) section.statusLabel(context, value),
             ],
+            selected: filter == null ? 0 : filters.indexOf(filter!) + 1,
+            onChanged: (index) =>
+                setState(() => filter = index == 0 ? null : filters[index - 1]),
           ),
-        if (section.view == WorkspaceView.seating)
-          WorkspaceSeatingList(
-            workspace: workspace,
-            editGuest: showRecord,
-            openGuests: () => selectSection(WorkspaceSection.guests),
-          )
-        else ...[
-          if (!checkIn && items.isNotEmpty && filters.isNotEmpty)
-            DesignChoices(
-              items: [
-                context.tr('common.all'),
-                for (final value in filters)
-                  section.statusLabel(context, value),
+        if (visible.isEmpty)
+          DesignEmpty(
+            context.tr('workspaces.no_records'),
+            filter == null && term.isEmpty
+                ? context.tr('workspaces.sections.${section.name}.empty')
+                : context.tr('workspaces.no_matching_records'),
+            icon: section.icon,
+          ),
+        if (items.isEmpty)
+          DesignButton(
+            section.addLabel(context),
+            icon: TmsIcons.add,
+            onPressed: () => edit(section),
+          ),
+        if (visible.isNotEmpty)
+          WorkspaceContentTransition(
+            identity: (workspace.id, section, filter),
+            child: DesignSection(
+              children: [
+                for (final item in visible)
+                  DesignTile(
+                    key: ValueKey(item.id),
+                    title: item.title,
+                    icon: section.icon,
+                    color: workspace.kind.ink(context),
+                    subtitle: workspaceRecordSubtitle(context, item),
+                    onTap: () => showRecord(item),
+                  ),
               ],
-              selected: filter == null ? 0 : filters.indexOf(filter!) + 1,
-              onChanged: (index) => setState(
-                () => filter = index == 0 ? null : filters[index - 1],
-              ),
             ),
-          if (items.isNotEmpty && section.view == WorkspaceView.money)
-            WorkspacePaymentSummary(items: items),
-          if (items.isNotEmpty && section.view == WorkspaceView.time)
-            WorkspaceTimeSummary(
-              hourlyRate: workspace.hourlyRate,
-              editRate: changeRate,
-              items: workspace.weeklyTime(DateTime.now()).toList(),
-            ),
-          if (visible.isEmpty)
-            DesignEmpty(
-              context.tr('workspaces.no_records'),
-              filter == null && !checkIn && term.isEmpty
-                  ? context.tr('workspaces.sections.${section.name}.empty')
-                  : context.tr('workspaces.no_matching_records'),
-              icon: section.icon,
-            ),
-          if (items.isEmpty)
-            DesignButton(
-              section.addLabel(context),
-              icon: TmsIcons.add,
-              onPressed: () => edit(section),
-            ),
-          if (section.view == WorkspaceView.poll)
-            for (final item in visible)
-              WorkspacePollCard(
-                key: ValueKey(item.id),
-                item: item,
-                showRecord: () => showRecord(item),
-                onVote: (vote) => update(
-                  item,
-                  (current) =>
-                      current.vote == null && vote < current.options.length
-                      ? current.copyWith(vote: vote)
-                      : current,
-                ),
-              )
-          else if (visible.isNotEmpty)
-            WorkspaceContentTransition(
-              identity: (workspace.id, section, filter, checkIn),
-              child: DesignSection(
-                children: [
-                  for (final item in visible)
-                    DesignTile(
-                      key: ValueKey(item.id),
-                      title: item.title,
-                      icon: section.icon,
-                      color: workspace.kind.ink(context),
-                      subtitle: workspaceRecordSubtitle(context, item),
-                      onTap: () => showRecord(item),
-                      trailing: checkIn
-                          ? IconButton(
-                              tooltip: context.tr(
-                                item.flagged
-                                    ? 'workspaces.undo_check_in'
-                                    : 'workspaces.check_in_guest',
-                              ),
-                              icon: WorkspaceSelectionIcon(
-                                key: ValueKey(item.flagged),
-                                icon: item.flagged
-                                    ? TmsIcons.checkCircleFilled
-                                    : TmsIcons.circle,
-                                color: workspace.kind.ink(context),
-                              ),
-                              onPressed: () => update(
-                                item,
-                                (r) => r.copyWith(flagged: !r.flagged),
-                              ),
-                            )
-                          : null,
-                    ),
-                ],
-              ),
-            ),
-        ],
+          ),
       ],
     );
   }

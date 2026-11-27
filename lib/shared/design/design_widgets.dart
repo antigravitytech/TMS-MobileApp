@@ -20,6 +20,7 @@ class DesignPage extends StatelessWidget {
     this.leading,
     this.navigation,
     this.subtitle,
+    this.subtitleBelow = false,
     this.actions = const [],
     this.tab,
     this.tabs = DesignTabs.companyTabs,
@@ -30,6 +31,7 @@ class DesignPage extends StatelessWidget {
   });
   final String title;
   final String? subtitle;
+  final bool subtitleBelow;
   final List<Widget> children;
   final Widget? leading, navigation;
   final List<Widget> actions;
@@ -78,7 +80,7 @@ class DesignPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (subtitle != null)
+                          if (subtitle != null && !subtitleBelow)
                             Text(
                               subtitle!,
                               style: TextStyle(
@@ -94,6 +96,14 @@ class DesignPage extends StatelessWidget {
                               letterSpacing: -.65,
                             ),
                           ),
+                          if (subtitle != null && subtitleBelow)
+                            Text(
+                              subtitle!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.muted,
+                              ),
+                            ),
                         ],
                       ),
                     ),

@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sabi_pipu_tms/app/tms_app.dart';
-import 'package:sabi_pipu_tms/modules/onboarding/presentation/welcome_screen.dart';
+import 'package:sabi_pipu_tms/modules/authentication/presentation/welcome_screen.dart';
 import 'package:sabi_pipu_tms/modules/workspace/application/local_workspaces.dart';
 import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_kind.dart';
 import 'package:sabi_pipu_tms/router/router_config.dart';

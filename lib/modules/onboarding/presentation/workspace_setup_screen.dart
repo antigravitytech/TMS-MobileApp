@@ -3,7 +3,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/environment.dart';
 import '../../../router/tms_routes.dart';
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../../authentication/presentation/widgets/account_action_form.dart';
+import '../application/workspace_enrollment.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
@@ -12,10 +17,14 @@ import '../../workspace/application/workspace_preview.dart';
 import '../../workspace/domain/local_workspace.dart';
 import '../../workspace/domain/workspace_kind.dart';
 import '../../workspace/domain/workspace_setup.dart';
-import '../../workspace/presentation/workspace_ui.dart';
+import '../../workspace/presentation/widgets/workspace_ui.dart';
 import 'widgets/workspace_setup_choice.dart';
 import 'widgets/workspace_kind_choices.dart';
+import 'widgets/personal_kind_choices.dart';
+import 'widgets/personal_setup_controls.dart';
 import '../application/workspace_personalization_draft.dart';
+
+part 'widgets/workspace_setup_doors.dart';
 
 enum _WorkspaceDoor { business, personal, specials }
 
@@ -48,6 +57,8 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
     }
   }
 
+  void _setName(String value) => setState(() => name = value);
+
   void selectDoor(_WorkspaceDoor value) {
     setState(() {
       door = value;
@@ -58,8 +69,17 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
 
   Future<void> proceed() async {
     if (saving) return;
+    if (door == _WorkspaceDoor.specials &&
+        ref.read(environmentProvider).isLive) {
+      return;
+    }
     if (!choosingKind && door != _WorkspaceDoor.business) {
-      setState(() => choosingKind = true);
+      setState(() {
+        choosingKind = true;
+        kind ??= door == _WorkspaceDoor.personal
+            ? WorkspaceKind.family
+            : WorkspaceKind.alumni;
+      });
       return;
     }
     final selected = kind;
@@ -81,6 +101,10 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
       }
       setup = details.settings;
       if (details.name.isNotEmpty) workspaceName = details.name;
+    }
+    if (ref.read(environmentProvider).isLive) {
+      await _enroll(WorkspaceSignup(workspaceName, selected, setup));
+      return;
     }
     final saved = await saveWorkspaceChange(
       context,
@@ -109,18 +133,43 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
     }
   }
 
+  Future<void> _enroll(WorkspaceSignup signup) async {
+    try {
+      if (ref.read(accountSessionProvider) != null) {
+        await ref.read(workspaceEnrollmentProvider).create(signup);
+        if (mounted) {
+          ref.invalidate(accountWorkspacesProvider);
+          TmsRoute.account.reset(context);
+        }
+      } else {
+        final registered = await showAccountAction(
+          context,
+          AccountAction.register,
+          signup: signup.fields,
+        );
+        if (mounted && registered == true) TmsRoute.profileSetup.reset(context);
+      }
+    } on AccountFailure catch (error) {
+      if (mounted) designToast(context, accountErrorMessage(context, error));
+    } catch (_) {
+      if (mounted) designToast(context, context.tr('network.errors.unknown'));
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tr = context.tr;
     final selected = kind;
+    final personalKind = choosingKind && door == _WorkspaceDoor.personal;
     final canContinue =
         !saving &&
+        !(door == _WorkspaceDoor.specials &&
+            ref.watch(environmentProvider).isLive) &&
         (choosingKind
             ? selected != null
             : name.trim().isNotEmpty && slug.isNotEmpty);
-    final choices = door == _WorkspaceDoor.personal
-        ? const [WorkspaceKind.individual, WorkspaceKind.family]
-        : WorkspaceKind.specials;
     return PopScope(
       canPop: !choosingKind,
       onPopInvokedWithResult: (didPop, _) {
@@ -135,7 +184,12 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      8,
+                      20,
+                      choosingKind ? 0 : 12,
+                    ),
                     child: Row(
                       children: [
                         DesignIcon(
@@ -146,8 +200,8 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: LinearProgressIndicator(
-                            value: choosingKind ? .5 : .25,
-                            minHeight: 5,
+                            value: choosingKind ? .4 : .25,
+                            minHeight: choosingKind ? 6 : 5,
                             borderRadius: BorderRadius.circular(5),
                             color: DesignColor.purple,
                             backgroundColor: context.raised,
@@ -155,7 +209,11 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
                         ),
                         const SizedBox(width: 12),
                         Text(
-                          tr('onboarding.1_of_4'),
+                          tr(
+                            choosingKind
+                                ? 'setup_details.kind_step'
+                                : 'onboarding.1_of_4',
+                          ),
                           style: TextStyle(color: context.muted, fontSize: 12),
                         ),
                       ],
@@ -163,7 +221,16 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
                   ),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        personalKind
+                            ? 28
+                            : choosingKind
+                            ? 26
+                            : 8,
+                        20,
+                        20,
+                      ),
                       keyboardDismissBehavior:
                           ScrollViewKeyboardDismissBehavior.onDrag,
                       child: AnimatedSwitcher(
@@ -182,133 +249,68 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
                             child: child,
                           ),
                         ),
-                        child: choosingKind
+                        child: personalKind
+                            ? PersonalKindChoices(
+                                key: const ValueKey('personal'),
+                                selected: selected,
+                                onSelected: (choice) =>
+                                    setState(() => kind = choice),
+                              )
+                            : choosingKind
                             ? WorkspaceKindChoices(
                                 key: const ValueKey('kind'),
-                                personal: door == _WorkspaceDoor.personal,
-                                choices: choices,
                                 selected: selected,
                                 onSelected: (choice) => setState(() {
                                   kind = choice;
                                 }),
                               )
-                            : Column(
-                                key: const ValueKey('door'),
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    tr(
-                                      'onboarding.new_workspace',
-                                    ).toUpperCase(),
-                                    style: TextStyle(
-                                      color: context.muted,
-                                      fontSize: 11,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 9),
-                                  Text(
-                                    tr('onboarding.what_are_you_setting_up'),
-                                    style: const TextStyle(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w700,
-                                      height: 1.12,
-                                      letterSpacing: -.7,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  DesignLabel(
-                                    tr(
-                                      'onboarding.well_shape_tasks_roles_and_reminders_around',
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  WorkspaceSetupChoice(
-                                    title: tr('onboarding.setup_business'),
-                                    subtitle: tr(
-                                      'onboarding.setup_business_description',
-                                    ),
-                                    icon: TmsIcons.building,
-                                    selected: door == _WorkspaceDoor.business,
-                                    onTap: () =>
-                                        selectDoor(_WorkspaceDoor.business),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  WorkspaceSetupChoice(
-                                    title: tr('onboarding.setup_personal'),
-                                    subtitle: tr(
-                                      'onboarding.setup_personal_short',
-                                    ),
-                                    icon: TmsIcons.home,
-                                    color: DesignColor.teal,
-                                    selected: door == _WorkspaceDoor.personal,
-                                    onTap: () =>
-                                        selectDoor(_WorkspaceDoor.personal),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  WorkspaceSetupChoice(
-                                    title: tr('workspaces.specials'),
-                                    subtitle: tr(
-                                      'onboarding.setup_specials_short',
-                                    ),
-                                    icon: TmsIcons.star,
-                                    color: DesignColor.amber,
-                                    selected: door == _WorkspaceDoor.specials,
-                                    onTap: () =>
-                                        selectDoor(_WorkspaceDoor.specials),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  WorkspaceNameField(
-                                    fieldType: door.name,
-                                    name: name,
-                                    slug: slug,
-                                    onChanged: (value) =>
-                                        setState(() => name = value),
-                                  ),
-                                ],
-                              ),
+                            : _doorChoices(context),
                       ),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(
-                          color: context.outline.withValues(alpha: .5),
+                  if (choosingKind)
+                    PersonalSetupFooter(onPressed: canContinue ? proceed : null)
+                  else
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: context.outline.withValues(alpha: .5),
+                          ),
                         ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        DesignButton(
-                          tr('common.continue'),
-                          onPressed: canContinue ? proceed : null,
-                        ),
-                        if (!choosingKind)
-                          TextButton(
-                            onPressed: () => TmsRoute.signIn.open(context),
-                            child: Text.rich(
-                              TextSpan(
-                                text: tr('onboarding.setup_invite_prefix'),
-                                style: TextStyle(color: context.muted),
-                                children: [
-                                  TextSpan(
-                                    text: tr('onboarding.setup_invite_action'),
-                                    style: TextStyle(
-                                      color: context.lavender,
-                                      fontWeight: FontWeight.w700,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          DesignButton(
+                            tr('common.continue'),
+                            onPressed: canContinue ? proceed : null,
+                          ),
+                          if (!choosingKind)
+                            TextButton(
+                              onPressed: () => TmsRoute.signIn.open(context),
+                              child: Text.rich(
+                                TextSpan(
+                                  text: tr('onboarding.setup_invite_prefix'),
+                                  style: TextStyle(color: context.muted),
+                                  children: [
+                                    TextSpan(
+                                      text: tr(
+                                        'onboarding.setup_invite_action',
+                                      ),
+                                      style: TextStyle(
+                                        color: context.lavender,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../../../shared/kit/kit.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +12,14 @@ import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../workspace/domain/workspace_kind.dart';
-import '../../workspace/presentation/workspace_ui.dart';
+import '../../../shared/kit/kit_visuals.dart';
+import '../../workspace/presentation/widgets/workspace_ui.dart';
 import '../application/chat_session.dart';
 import '../data/chat_directory.dart';
-import 'chat_widgets.dart';
+import 'widgets/chat_widgets.dart';
 
-part 'conversation_motion.dart';
+part 'widgets/conversation_motion.dart';
+part 'widgets/conversation_composer.dart';
 
 class ConversationScreen extends ConsumerWidget {
   const ConversationScreen({super.key});
@@ -139,25 +142,20 @@ class _ThreadState extends ConsumerState<_Thread> {
           children: [
             Container(
               color: context.background,
-              padding: EdgeInsets.fromLTRB(
-                12,
-                (54 - MediaQuery.viewPaddingOf(context).top).clamp(8, 54),
-                20,
-                10,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
               child: Row(
                 spacing: 10,
                 children: [
-                  DesignIcon(
-                    icon: TmsIcons.chevronBack,
-                    label: context.tr('common.back'),
+                  IconButton(
+                    icon: const Icon(TmsIcons.chevronBack, size: 18),
+                    tooltip: context.tr('common.back'),
                     onPressed: () async {
                       if (!await context.router.maybePop() && context.mounted) {
                         TmsRoute.chat.reset(context);
                       }
                     },
                   ),
-                  ChatAvatar(peer, size: 40),
+                  ChatAvatar(peer, size: 36),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,6 +178,13 @@ class _ThreadState extends ConsumerState<_Thread> {
                       ],
                     ),
                   ),
+                  Tooltip(
+                    message: context.tr('chat.voice_call'),
+                    child: const SizedBox.square(
+                      dimension: 44,
+                      child: Icon(TmsIcons.phone, size: 19),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -195,19 +200,21 @@ class _ThreadState extends ConsumerState<_Thread> {
                     bubble(
                       DesignCard(
                         onTap: cardAction,
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(11),
+                        color: context.background,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           spacing: 6,
                           children: [
                             Wrap(
-                              spacing: 6,
+                              spacing: 8,
+                              runSpacing: 6,
                               children: [
-                                DesignLabel(
+                                KitStatus(
                                   context.tr(example.card[0]),
-                                  color: DesignColor.amber,
+                                  DesignColor.amber,
                                 ),
-                                DesignLabel(example.card[1]),
+                                KitTag(example.card[1]),
                               ],
                             ),
                             Text(
@@ -227,7 +234,7 @@ class _ThreadState extends ConsumerState<_Thread> {
                       alignment: Alignment.centerLeft,
                       child: DesignPill(
                         '${voiceReaction ? 2 : 1}',
-                        icon: TmsIcons.heart,
+                        icon: TmsIcons.like,
                         selected: voiceReaction,
                         onTap: () =>
                             setState(() => voiceReaction = !voiceReaction),
@@ -245,41 +252,10 @@ class _ThreadState extends ConsumerState<_Thread> {
                 ],
               ),
             ),
-            Container(
-              color: context.background,
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-              child: Row(
-                spacing: 8,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: input,
-                      onSubmitted: (_) => send(),
-                      textInputAction: TextInputAction.send,
-                      decoration: InputDecoration(
-                        hintText: context.tr(
-                          'chat.message_person',
-                          namedArgs: {'name': peer.name.split(' ').first},
-                        ),
-                        isDense: true,
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(23),
-                          borderSide: BorderSide(color: context.outline),
-                        ),
-                      ),
-                    ),
-                  ),
-                  ValueListenableBuilder(
-                    valueListenable: input,
-                    builder: (_, value, _) => IconButton.filled(
-                      tooltip: context.tr('chat.send'),
-                      onPressed: value.text.trim().isEmpty ? null : send,
-                      icon: const Icon(TmsIcons.send),
-                    ),
-                  ),
-                ],
-              ),
+            _ConversationComposer(
+              input: input,
+              firstName: peer.name.split(' ').first,
+              send: send,
             ),
           ],
         ),

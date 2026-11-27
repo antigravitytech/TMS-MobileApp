@@ -1,9 +1,9 @@
 import 'dart:math' as math;
+import '../../../shared/kit/qr_painter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:pdf/widgets.dart' show Barcode, BarcodeBar;
 
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
@@ -11,9 +11,9 @@ import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../../workspace/application/local_workspaces.dart';
 import '../../workspace/domain/workspace_kind.dart';
-import '../../workspace/presentation/workspace_ui.dart';
+import '../../workspace/presentation/widgets/workspace_ui.dart';
 
-part 'workspace_invite.dart';
+part 'widgets/workspace_invite.dart';
 
 class BuildingScreen extends ConsumerStatefulWidget {
   const BuildingScreen({super.key});
@@ -75,12 +75,7 @@ class _BuildingScreenState extends ConsumerState<BuildingScreen>
                     ? .5 + .58 * phase(0, 300)
                     : 1.08 - .08 * phase(300, 200);
                 return ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    math.max(20, 110 - MediaQuery.paddingOf(context).top),
-                    20,
-                    24,
-                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 48, 20, 16),
                   children: [
                     Center(
                       child: Opacity(

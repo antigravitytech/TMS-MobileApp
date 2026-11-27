@@ -7,17 +7,20 @@ class DesignButton extends StatelessWidget {
     this.onPressed,
     this.icon,
     this.secondary = false,
+    this.disabledColor,
     this.color,
   });
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool secondary;
-  final Color? color;
+  final Color? color, disabledColor;
   @override
   Widget build(BuildContext context) => FilledButton(
     onPressed: onPressed,
     style: FilledButton.styleFrom(
+      disabledBackgroundColor: disabledColor,
+      disabledForegroundColor: disabledColor == null ? null : DesignColor.ink,
       backgroundColor:
           color ?? (secondary ? context.raised : DesignColor.purple),
       foregroundColor: secondary ? context.foreground : DesignColor.ink,
@@ -119,7 +122,10 @@ Future<T?> designSheet<T>(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 14,
-          children: [DesignTitle(title), builder(context)],
+          children: [
+            if (title.trim().isNotEmpty) DesignTitle(title),
+            builder(context),
+          ],
         ),
       ),
     ),

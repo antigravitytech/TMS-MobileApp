@@ -8,6 +8,12 @@ enum TmsRoute {
   personalize('/setup/details'),
   building('/setup/building'),
   signIn('/sign-in'),
+  account('/account'),
+  resetPassword('/reset-password'),
+  verifyEmail('/verify-email'),
+  confirmEmailChange('/confirm-email-change'),
+  unsubscribe('/unsubscribe'),
+  oauthCallback('/auth/callback'),
   profileSetup('/profile/setup'),
   businessReady('/profile/setup/ready'),
   home('/home'),
@@ -32,6 +38,7 @@ enum TmsRoute {
   profile('/profile'),
   settings('/settings'),
   familyTask('/family/task/new'),
+  household('/family/household'),
   kidHome('/family/kid'),
   workspacePlan('/workspace/plan');
 

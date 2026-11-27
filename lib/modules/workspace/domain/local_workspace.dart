@@ -111,6 +111,7 @@ class WorkspaceRecord {
 
   WorkspaceRecord copyWith({
     String? id,
+    String? notes,
     int? paid,
     List<WorkspaceEntry>? entries,
     Map<String, String>? fields,
@@ -125,7 +126,7 @@ class WorkspaceRecord {
     id: id ?? this.id,
     section: section,
     title: title,
-    notes: notes,
+    notes: notes ?? this.notes,
     person: person ?? this.person,
     group: group ?? this.group,
     date: date ?? this.date,
@@ -227,21 +228,6 @@ class LocalWorkspace {
 
   Iterable<WorkspaceRecord> items(WorkspaceSection section) =>
       records.where((record) => record.section == section);
-
-  Iterable<WorkspaceRecord> weeklyTime(DateTime today) {
-    final monday = DateTime(
-      today.year,
-      today.month,
-      today.day - today.weekday + 1,
-    );
-    final end = DateTime(monday.year, monday.month, monday.day + 7);
-    return items(WorkspaceSection.time).where(
-      (item) =>
-          item.date != null &&
-          !item.date!.isBefore(monday) &&
-          item.date!.isBefore(end),
-    );
-  }
 
   int availablePoints(String person) {
     final earned = records
