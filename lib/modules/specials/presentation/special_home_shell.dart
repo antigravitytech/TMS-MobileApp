@@ -22,9 +22,13 @@ class SpecialHomeShell<T> extends StatelessWidget {
     required this.onTab,
     required this.body,
     this.logo,
+    this.openAccount,
+    this.notificationBell,
   });
   final LocalWorkspace workspace;
   final Color logoColor;
+  final VoidCallback? openAccount;
+  final Widget? notificationBell;
 
   /// Logo text; defaults to the workspace's initials.
   final String? logo;
@@ -39,11 +43,12 @@ class SpecialHomeShell<T> extends StatelessWidget {
     final name = workspaceName(c, workspace);
     return Scaffold(
       backgroundColor: c.background,
-      floatingActionButton: WorkspaceQuickAdd(kind: workspace.kind),
-      bottomNavigationBar: WorkspaceNavigation(
-        kind: workspace.kind,
-        active: TmsRoute.home,
-      ),
+      floatingActionButton: openAccount == null
+          ? WorkspaceQuickAdd(kind: workspace.kind)
+          : null,
+      bottomNavigationBar: openAccount == null
+          ? WorkspaceNavigation(kind: workspace.kind, active: TmsRoute.home)
+          : null,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -91,24 +96,32 @@ class SpecialHomeShell<T> extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      KitIconButton(
-                        icon: TmsIcons.notifications,
-                        tooltip: c.tr('common.notifications'),
-                        onPressed: () => TmsRoute.notifications.open(c),
-                      ),
-                      const Positioned(
-                        right: 10,
-                        top: 10,
-                        child: CircleAvatar(
-                          radius: 4,
-                          backgroundColor: DesignColor.red,
+                  ?notificationBell,
+                  if (openAccount != null)
+                    KitIconButton(
+                      icon: TmsIcons.person,
+                      tooltip: c.tr('authentication.account'),
+                      onPressed: openAccount!,
+                    )
+                  else
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        KitIconButton(
+                          icon: TmsIcons.notifications,
+                          tooltip: c.tr('common.notifications'),
+                          onPressed: () => TmsRoute.notifications.open(c),
                         ),
-                      ),
-                    ],
-                  ),
+                        const Positioned(
+                          right: 10,
+                          top: 10,
+                          child: CircleAvatar(
+                            radius: 4,
+                            backgroundColor: DesignColor.red,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),

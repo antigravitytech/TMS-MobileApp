@@ -65,3 +65,18 @@ class AccountSession extends Notifier<Account?> {
     return true;
   }
 }
+
+/// Runs a request for the signed-in user and signs out when the server says
+/// the session has expired.
+Future<T> guardSession<T>(Ref ref, Future<T> Function() operation) async {
+  final session = ref.read(accountSessionProvider.notifier);
+  final accountId = ref.read(accountSessionProvider)?.id;
+  try {
+    return await operation();
+  } on AccountFailure catch (error) {
+    if (ref.mounted && accountId != null) {
+      await session.expire(error, accountId: accountId);
+    }
+    rethrow;
+  }
+}

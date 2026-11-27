@@ -100,75 +100,94 @@ class _PeriodChip extends StatelessWidget {
   );
 }
 
+/// The design's label for an overview metric.
+const _metricLabels = {
+  'completed': 'tasks_completed',
+  'on_time_rate': 'on_time_rate',
+  'first_time_right_rate': 'first_time_right',
+  'average_rounds': 'rework_rounds',
+  'recurring_compliance': 'daily_reports',
+  'on_time_streak': 'on_time_streak',
+  'punctuality': 'punctuality',
+};
+
+String _number(BuildContext context, num value) =>
+    NumberFormat.decimalPattern(context.locale.toString()).format(
+      value is int || value == value.roundToDouble()
+          ? value.round()
+          : double.parse(value.toStringAsFixed(1)),
+    );
+
+String _metricValue(BuildContext context, PerfMetric m) => switch (m.unit) {
+  '%' => '${m.value.round()}%',
+  'days' => context.plural('reports.days_count', m.value.round()),
+  _ => _number(context, m.value),
+};
+
+/// "▲ 3", "▼ 2 pts" or "No change", unless the metric has its own note.
+String _metricCaption(BuildContext context, PerfMetric m) {
+  if (m.note case final note?) return note;
+  if (m.delta == 0) return context.tr('reports.no_change');
+  final arrow = m.delta > 0 ? '▲' : '▼';
+  final size = _number(context, m.delta.abs());
+  return m.unit == '%' ? '$arrow $size pts' : '$arrow $size';
+}
+
 class _PerformanceMetrics extends StatelessWidget {
-  const _PerformanceMetrics({required this.team});
+  const _PerformanceMetrics({required this.team, required this.metrics});
   final bool team;
+  final List<PerfMetric> metrics;
   @override
-  Widget build(BuildContext context) {
-    final labels = team
-        ? [
-            'tasks_completed',
-            'on_time_rate',
-            'first_time_right',
-            'rework_rounds',
-          ]
-        : ['tasks_completed', 'on_time_streak', 'daily_reports', 'punctuality'];
-    return Column(
-      children: [
-        for (var row = 0; row < 2; row++)
-          Padding(
-            padding: EdgeInsets.only(bottom: row == 0 ? 12 : 0),
-            child: Row(
-              spacing: 12,
-              children: [
-                for (var col = 0; col < 2; col++)
-                  Expanded(
-                    child: DesignCard(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr(
-                              'reports.metric_${labels[row * 2 + col]}',
-                            ),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: context.muted,
-                            ),
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (var row = 0; row * 2 < metrics.length; row++)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            spacing: 12,
+            children: [
+              for (final m in metrics.skip(row * 2).take(2))
+                Expanded(
+                  child: DesignCard(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr(
+                            'reports.metric_${_metricLabels[m.key] ?? m.key}',
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            context.tr(
-                              'reports.metric_value_${team ? 'team' : 'me'}_${row * 2 + col}',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          style: TextStyle(fontSize: 12, color: context.muted),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _metricValue(context, m),
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            context.tr(
-                              'reports.metric_caption_${team ? 'team' : 'me'}_${row * 2 + col}',
-                            ),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: team
-                                  ? (row == 1 && col == 1
-                                        ? DesignColor.red
-                                        : DesignColor.green)
-                                  : context.muted,
-                            ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          _metricCaption(context, m),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: m.note != null || m.delta == 0
+                                ? context.muted
+                                // Fewer rework rounds is better.
+                                : (m.delta > 0) != (m.key == 'average_rounds')
+                                ? DesignColor.green
+                                : DesignColor.red,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-              ],
-            ),
+                ),
+              if (metrics.skip(row * 2).length == 1) const Spacer(),
+            ],
           ),
-      ],
-    );
-  }
+        ),
+    ],
+  );
 }

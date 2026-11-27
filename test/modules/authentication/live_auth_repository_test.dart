@@ -131,7 +131,7 @@ void main() {
   );
 
   test(
-    'workspace pagination stays within the first page count and excludes specials',
+    'workspace pagination stays within the first page count and keeps Specials',
     () async {
       network.pages.addAll([
         {
@@ -142,14 +142,19 @@ void main() {
           'total_pages': 3,
           'items': [
             _workspace('two', 'business'),
-            _workspace('three', 'specials'),
+            {..._workspace('three', 'specials'), 'subtype': 'church'},
           ],
         },
       ]);
 
       final workspaces = await repository.workspaces();
 
-      expect(workspaces.map((workspace) => workspace.id), ['one', 'two']);
+      expect(workspaces.map((workspace) => workspace.id), [
+        'one',
+        'two',
+        'three',
+      ]);
+      expect(workspaces.last.subtype, 'church');
       expect(network.requestedPages, [1, 2]);
     },
   );

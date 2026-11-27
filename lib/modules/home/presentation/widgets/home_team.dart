@@ -1,8 +1,16 @@
 part of '../home_screen.dart';
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.state});
-  final WorkspacePreview state;
+  const _HomeHeader({
+    required this.state,
+    this.account,
+    this.workspace,
+    this.workspaceId,
+  });
+  final WorkspacePreview? state;
+  final Account? account;
+  final String? workspace;
+  final String? workspaceId;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -14,9 +22,15 @@ class _HomeHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _HomeCaption(context.tr('common.monday_23_november')),
+              _HomeCaption(
+                state != null
+                    ? context.tr('common.monday_23_november')
+                    : DateFormat.MMMMEEEEd(
+                        context.locale.toString(),
+                      ).format(DateTime.now()),
+              ),
               Text(
-                state.workspace,
+                workspace ?? state!.workspace,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -27,26 +41,32 @@ class _HomeHeader extends StatelessWidget {
             ],
           ),
         ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            DesignIcon(
-              icon: TmsIcons.notifications,
-              label: context.tr('common.notifications'),
-              onPressed: () => TmsRoute.notifications.open(context),
-            ),
-            if (state.readNotifications.length < 6)
-              const Positioned(
-                top: 10,
-                right: 11,
-                child: IgnorePointer(child: _Dot(DesignColor.red, size: 6)),
+        if (workspaceId case final id?)
+          LiveNotificationBell(workspaceId: id)
+        else
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              DesignIcon(
+                icon: TmsIcons.notifications,
+                label: context.tr('common.notifications'),
+                onPressed: () => TmsRoute.notifications.open(context),
               ),
-          ],
-        ),
+              if (state!.readNotifications.length < 6)
+                const Positioned(
+                  top: 10,
+                  right: 11,
+                  child: IgnorePointer(child: _Dot(DesignColor.red, size: 6)),
+                ),
+            ],
+          ),
         Tooltip(
-          message: context.tr('home.my_profile'),
+          message: context.tr(
+            state == null ? 'authentication.account' : 'home.my_profile',
+          ),
           child: InkWell(
-            onTap: () => TmsRoute.profile.open(context),
+            onTap: () => (state == null ? TmsRoute.account : TmsRoute.profile)
+                .open(context),
             borderRadius: BorderRadius.circular(22),
             child: SizedBox.square(
               dimension: 44,
@@ -55,29 +75,33 @@ class _HomeHeader extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     DesignAvatar(
-                      [state.firstName, state.lastName]
+                      [
+                            account?.firstName ?? state?.firstName ?? '',
+                            account?.lastName ?? state?.lastName ?? '',
+                          ]
                           .where((name) => name.isNotEmpty)
                           .map((name) => name.characters.first.toUpperCase())
                           .join(),
                       size: 40,
                       color: const Color(0xffc4bdf6),
                     ),
-                    Positioned(
-                      right: -2,
-                      bottom: -1,
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: DesignColor.green,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: context.background,
-                            width: 3,
+                    if (state != null)
+                      Positioned(
+                        right: -2,
+                        bottom: -1,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color: DesignColor.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: context.background,
+                              width: 3,
+                            ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -149,12 +173,13 @@ class _TeamSummary extends StatelessWidget {
 }
 
 class _ComingUp extends StatelessWidget {
-  const _ComingUp({required this.task, required this.open});
+  const _ComingUp({required this.task, required this.open, this.dueDate});
   final PreviewTask task;
-  final VoidCallback open;
+  final VoidCallback? open;
+  final DateTime? dueDate;
   @override
   Widget build(BuildContext context) {
-    final date = DateTime(2026, 11, 25);
+    final date = dueDate ?? DateTime(2026, 11, 25);
     final locale = context.locale.toString();
     return DesignCard(
       padding: const EdgeInsets.all(16),

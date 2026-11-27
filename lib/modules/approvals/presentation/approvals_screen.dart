@@ -7,8 +7,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
-import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
+import '../../tasks/application/tasks_controller.dart';
+import '../../tasks/domain/task.dart';
+import '../../tasks/presentation/tasks_screen.dart' show taskErrorMessage;
+import '../../tasks/presentation/widgets/task_labels.dart';
+import '../application/approvals_controller.dart';
 
 part 'widgets/review_card.dart';
 part 'widgets/review_actions.dart';
@@ -20,17 +25,6 @@ class ApprovalsScreen extends ConsumerStatefulWidget {
 }
 
 class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
-  static const people = [
-    'approvals.everyone',
-    'Sarah Johnson',
-    'Amaka Eze',
-    'Tunde Bakare',
-  ];
-  static const projects = [
-    'common.all_projects',
-    'Customer Portal Revamp',
-    'Mobile App Launch',
-  ];
   bool newest = false, dragging = false, outgoing = false;
   int person = 0, project = 0;
   double dx = 0;
@@ -38,12 +32,47 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(workspacePreviewProvider);
-    var queue = state.reviewQueue
+    final async = ref.watch(approvalsProvider);
+    final review = async.value;
+    if (review == null) {
+      return DesignPage(
+        title: context.tr('approvals.review'),
+        tab: TmsRoute.approvals,
+        children: [
+          if (async.hasError) ...[
+            DesignEmpty(
+              context.tr('approvals.load_failed'),
+              taskErrorMessage(context, async.error),
+            ),
+            DesignButton(
+              context.tr('workspaces.try_again'),
+              secondary: true,
+              onPressed: () => ref.invalidate(approvalsProvider),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.all(40),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      );
+    }
+    // Filter choices come from who and what is waiting.
+    final people = [
+      context.tr('approvals.everyone'),
+      ...{for (final t in review.tasks) t.assignee?.name ?? ''},
+    ];
+    final projects = [
+      context.tr('common.all_projects'),
+      ...{for (final t in review.tasks) taskPlaceText(context, t)},
+    ];
+    person = person.clamp(0, people.length - 1);
+    project = project.clamp(0, projects.length - 1);
+    var queue = review.tasks
         .where(
           (t) =>
-              (person == 0 || t.person == people[person]) &&
-              (project == 0 || t.project == projects[project]),
+              (person == 0 || t.assignee?.name == people[person]) &&
+              (project == 0 || taskPlaceText(context, t) == projects[project]),
         )
         .toList();
     if (newest) queue = queue.reversed.toList();
@@ -64,7 +93,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                   spacing: 9,
                   children: [
                     DesignChoices(
-                      items: [context.tr(people.first), ...people.skip(1)],
+                      items: people,
                       selected: person,
                       onChanged: (i) {
                         setState(() => person = i);
@@ -73,7 +102,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                       scroll: false,
                     ),
                     DesignChoices(
-                      items: [context.tr(projects.first), ...projects.skip(1)],
+                      items: projects,
                       selected: project,
                       onChanged: (i) {
                         setState(() => project = i);
@@ -96,22 +125,32 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
               for (final (label, value, color) in [
                 (
                   context.tr('approvals.waiting'),
-                  '${state.reviewQueue.length}',
+                  '${review.tasks.length}',
                   context.foreground,
                 ),
                 (
                   context.tr('approvals.avg_review'),
-                  context.tr('approvals.5_3h'),
+                  context.tr(
+                    'approvals.hours',
+                    namedArgs: {
+                      'n':
+                          NumberFormat.decimalPattern(
+                            context.locale.toString(),
+                          ).format(
+                            double.parse(review.avgHours.toStringAsFixed(1)),
+                          ),
+                    },
+                  ),
                   context.foreground,
                 ),
                 (
                   context.tr('approvals.approved'),
-                  '${2 + state.approved.length}',
+                  '${review.approved}',
                   DesignColor.green,
                 ),
                 (
                   context.tr('common.returned'),
-                  '${5 + state.returned.length}',
+                  '${review.returned}',
                   const Color(0xfff59562),
                 ),
               ])
@@ -151,13 +190,13 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                 onTap: () => setState(() => newest = !newest),
               ),
               _ReviewChip(
-                person == 0 ? context.tr(people.first) : people[person],
+                people[person],
                 selected: person > 0,
                 onTap: () =>
                     setState(() => person = (person + 1) % people.length),
               ),
               _ReviewChip(
-                project == 0 ? context.tr(projects.first) : projects[project],
+                projects[project],
                 selected: project > 0,
                 onTap: () =>
                     setState(() => project = (project + 1) % projects.length),
@@ -167,15 +206,15 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
         ),
         if (task == null) ...[
           DesignEmpty(
-            state.reviewQueue.isEmpty
+            review.tasks.isEmpty
                 ? context.tr('approvals.all_caught_up')
                 : context.tr('common.nothing_here'),
-            state.reviewQueue.isEmpty
+            review.tasks.isEmpty
                 ? context.tr(
                     'approvals.queue_empty_summary',
                     namedArgs: {
-                      'approved': state.approved.length.toString(),
-                      'returned': state.returned.length.toString(),
+                      'approved': '${review.approved}',
+                      'returned': '${review.returned}',
                     },
                   )
                 : context.tr('approvals.no_reviews_match_this_filter'),
@@ -258,7 +297,7 @@ class _ApprovalsScreenState extends ConsumerState<ApprovalsScreen> {
                             task: task,
                             dx: dx,
                             onOpen: () {
-                              state.selectTask(task);
+                              ref.read(openedTaskProvider.notifier).open(task);
                               TmsRoute.task.open(context);
                             },
                           ),

@@ -21,7 +21,9 @@ extension on _SignInScreenState {
               label: tr('onboarding.email'),
               controller: _email,
               keyboardType: TextInputType.emailAddress,
-              autofillHints: const [AutofillHints.email],
+              autofillHints: environment.isLive
+                  ? const [AutofillHints.username, AutofillHints.email]
+                  : null,
             ),
           ),
           DesignEntrance(
@@ -30,7 +32,9 @@ extension on _SignInScreenState {
               label: tr('onboarding.password'),
               controller: _password,
               obscure: !_shown,
-              autofillHints: const [AutofillHints.password],
+              autofillHints: environment.isLive
+                  ? const [AutofillHints.password]
+                  : null,
               onSubmitted: (_) => _continue(),
               suffix: IconButton(
                 tooltip: tr(

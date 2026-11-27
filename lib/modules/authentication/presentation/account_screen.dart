@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_widgets.dart';
+import '../../home/application/live_home.dart';
 import '../application/account_session.dart';
 import '../domain/account.dart';
 import 'widgets/account_action_form.dart';
@@ -92,6 +93,14 @@ class AccountScreen extends ConsumerWidget {
                   for (final item in items)
                     ListTile(
                       title: Text(item.name),
+                      onTap: item.approval == 'approved'
+                          ? () {
+                              ref
+                                  .read(liveWorkspaceSelectionProvider.notifier)
+                                  .select(item);
+                              TmsRoute.home.reset(context);
+                            }
+                          : null,
                       subtitle: Text(switch (item.approval) {
                         'approved' => context.tr(
                           'authentication.approval_approved',

@@ -1,7 +1,7 @@
 part of '../chat_screens.dart';
 
 extension _InboxRequest on _InboxState {
-  Widget _requestCard(List<String> request) => DesignCard(
+  Widget _requestCard(ChatRequest request) => DesignCard(
     color: context.background,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -11,16 +11,19 @@ extension _InboxRequest on _InboxState {
         Row(
           spacing: 12,
           children: [
-            DesignAvatar(request[0], color: chatColor(request[1])),
+            DesignAvatar(
+              request.row.initials,
+              color: chatColor(request.row.color),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${request[2]} · ${context.tr(request[3])}',
+                    '${request.row.name} · ${context.tr(request.role)}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  DesignLabel(request[4]),
+                  DesignLabel(request.detail),
                 ],
               ),
             ),
@@ -34,28 +37,12 @@ extension _InboxRequest on _InboxState {
                 child: DesignButton(
                   context.tr(accept ? 'chat.accept' : 'chat.decline'),
                   secondary: !accept,
-                  onPressed: () {
-                    controller.resolveRequest(
-                      accept
-                          ? ChatRow(
-                              initials: request[0],
-                              color: request[1],
-                              name: request[2],
-                            )
-                          : null,
-                    );
-                    designToast(
-                      context,
-                      context.tr(
-                        accept ? request[6] : 'chat.chat_request_declined',
-                      ),
-                    );
-                  },
+                  onPressed: () => respond(request, accept: accept),
                 ),
               ),
           ],
         ),
-        DesignLabel(context.tr(request[5])),
+        DesignLabel(context.tr(request.note)),
       ],
     ),
   );

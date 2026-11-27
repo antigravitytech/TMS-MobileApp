@@ -60,7 +60,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           ? TmsRoute.welcome
           : resume
           ? TmsRoute.profileSetup
-          : TmsRoute.account;
+          : TmsRoute.home;
       if (mounted) destination.reset(context);
     } catch (_) {
       if (!mounted) return;

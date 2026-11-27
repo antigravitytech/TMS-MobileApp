@@ -33,7 +33,7 @@ class _OAuthCallbackScreenState extends ConsumerState<OAuthCallbackScreen> {
       await ref
           .read(oauthControllerProvider)
           .finish(params.getString('code', ''), params.getString('state', ''));
-      if (mounted) TmsRoute.account.reset(context);
+      if (mounted) TmsRoute.home.reset(context);
     } on AccountFailure catch (error) {
       if (mounted) setState(() => _error = accountErrorMessage(context, error));
     } catch (_) {

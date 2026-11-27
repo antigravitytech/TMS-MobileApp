@@ -53,39 +53,87 @@ class _TaskTabs extends StatelessWidget {
   }
 }
 
-class _ActivityPanel extends StatelessWidget {
-  const _ActivityPanel({required this.submitted});
-  final bool submitted;
-  @override
-  Widget build(BuildContext context) => Column(
+/// Loading, error and empty states shared by the task tabs.
+Widget _tabState<T>(
+  BuildContext context,
+  WidgetRef ref,
+  AsyncValue<List<T>> value,
+  ProviderOrFamily provider,
+  Widget Function(List<T>) data,
+) => switch (value) {
+  AsyncValue(value: final rows?) =>
+    rows.isEmpty
+        ? Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: DesignLabel(context.tr('common.nothing_here')),
+            ),
+          )
+        : data(rows),
+  AsyncValue(:final error?) => Column(
+    spacing: 10,
     children: [
-      if (submitted)
-        _ActivityRow(
-          'CO',
-          DesignColor.purple,
-          context.tr('tasks.you_submitted_for_review'),
-          context.tr('tasks.just_now'),
-        ),
-      _ActivityRow(
-        'CO',
-        DesignColor.purple,
-        context.tr('tasks.chioma_started_work'),
-        context.tr('tasks.started_at'),
-      ),
-      _ActivityRow(
-        'IM',
-        DesignColor.blue,
-        context.tr('tasks.ibrahim_created_task'),
-        context.tr('tasks.created_at'),
+      DesignLabel(taskErrorMessage(context, error)),
+      DesignButton(
+        context.tr('workspaces.try_again'),
+        secondary: true,
+        onPressed: () => ref.invalidate(provider),
       ),
     ],
+  ),
+  _ => const Padding(
+    padding: EdgeInsets.all(20),
+    child: Center(child: CircularProgressIndicator()),
+  ),
+};
+
+/// Activity kinds with their own wording; others read as an update.
+const _activityKinds = {
+  'created',
+  'started',
+  'submitted',
+  'returned',
+  'approved',
+  'completed',
+  'reopened',
+  'due_date_changed',
+  'reassigned',
+  'commented',
+  'attachment_added',
+};
+
+/// "17 Nov · 09:00".
+String _when(BuildContext context, DateTime at) =>
+    DateFormat('d MMM · HH:mm', context.locale.toString()).format(at);
+
+class _ActivityPanel extends ConsumerWidget {
+  const _ActivityPanel(this.task);
+  final TaskItem task;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _tabState(
+    context,
+    ref,
+    ref.watch(taskActivityProvider(task)),
+    taskActivityProvider(task),
+    (rows) => Column(
+      children: [
+        for (final a in rows)
+          _ActivityRow(
+            a.actor?.name ?? '',
+            context.tr(
+              'tasks.activity_kinds.${_activityKinds.contains(a.kind) ? a.kind : 'updated'}',
+              namedArgs: {'name': a.actor?.firstName ?? ''},
+            ),
+            _when(context, a.at),
+          ),
+      ],
+    ),
   );
 }
 
 class _ActivityRow extends StatelessWidget {
-  const _ActivityRow(this.initials, this.color, this.title, this.time);
-  final String initials, title, time;
-  final Color color;
+  const _ActivityRow(this.name, this.title, this.time);
+  final String name, title, time;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 18),
@@ -94,9 +142,9 @@ class _ActivityRow extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 18,
-          backgroundColor: color,
+          backgroundColor: kitPerson(name).$2,
           child: Text(
-            initials,
+            kitPerson(name).$1,
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,

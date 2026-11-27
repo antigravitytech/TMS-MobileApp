@@ -47,17 +47,15 @@ extension on _WorkspaceSetupScreenState {
           selected: door == _WorkspaceDoor.personal,
           onTap: () => selectDoor(_WorkspaceDoor.personal),
         ),
-        if (!ref.watch(environmentProvider).isLive) ...[
-          const SizedBox(height: 12),
-          WorkspaceSetupChoice(
-            title: tr('workspaces.specials'),
-            subtitle: tr('onboarding.setup_specials_short'),
-            icon: TmsIcons.star,
-            color: DesignColor.amber,
-            selected: door == _WorkspaceDoor.specials,
-            onTap: () => selectDoor(_WorkspaceDoor.specials),
-          ),
-        ],
+        const SizedBox(height: 12),
+        WorkspaceSetupChoice(
+          title: tr('workspaces.specials'),
+          subtitle: tr('onboarding.setup_specials_short'),
+          icon: TmsIcons.star,
+          color: DesignColor.amber,
+          selected: door == _WorkspaceDoor.specials,
+          onTap: () => selectDoor(_WorkspaceDoor.specials),
+        ),
         const SizedBox(height: 24),
         WorkspaceNameField(
           fieldType: door.name,

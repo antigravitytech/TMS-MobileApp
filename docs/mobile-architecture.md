@@ -25,13 +25,38 @@ Widgets render state and send user events to controllers. Controllers call repos
 | Area | Mock mode | Live mode |
 | --- | --- | --- |
 | Authentication | Preview sign-in, demo entry, and local navigation | Signup, sign-in, session restoration, email verification and recovery, password and email changes, and optional Google or Microsoft OAuth |
-| Account and enrollment | Local onboarding and workspace selection | Authenticated Account screen, workspace approval status, and API-backed enrollment for Business, Individual, and Family |
+| Account and enrollment | Local onboarding and workspace selection | Authenticated Account screen, workspace approval status, and API-backed enrollment for Business, Individual, Family, and all six Specials subtypes |
 | Profile setup | Local profile, birthday, and notification preferences | Profile retrieval and edits, photo upload, birthday visibility, and supported notification preferences for an approved workspace |
-| Dashboards and daily tools | Company, Individual, Family, and Specials preview workflows | The router exposes the account and setup flows. Workspace dashboards and daily tools are pending backend integration. |
+| Dashboards and daily tools | Company, Individual, Family, and Specials preview workflows | Approved workspaces open API-backed Home. Business uses the company dashboard cards with its task, review, birthday, report, team and unread data. Personal and community dashboards use their workspace APIs and native cards. The standalone daily tools follow their own integration scope. |
 
 `authentication` owns Splash, Welcome, Sign In, Account, public account links, and session state. Its shared repository contract and Riverpod provider sit next to separate mock and live implementation files. `onboarding` owns workspace selection during signup, personalization, and profile setup. Live onboarding progress is saved locally per account, so Splash can resume an unfinished setup.
 
-Live auth uses `networkCallsRepositoryProvider` for API requests and `TokenUtils` for secure bearer token storage. Public auth requests omit bearer authorization. Splash checks the saved session and clears its token on an unauthorized response for the current session. Sign-out clears the local token, and renewal requires signing in again. The account flow lists server workspaces and polls pending approvals. Workspace-scoped preferences require an approved workspace. Public workspace invite acceptance and public workspace signup links are pending integration.
+Live auth uses `networkCallsRepositoryProvider` for API requests and `TokenUtils` for secure bearer token storage. Public auth requests omit bearer authorization. Splash checks the saved session and clears its token on an unauthorized response for the current session. Sign-out clears the local token, and renewal requires signing in again. The account flow lists server workspaces and polls pending approvals. Home opens the first approved workspace or the one picked in Account. Accounts with no approved workspace stay on the status screen. Workspace-scoped preferences require an approved workspace. Public workspace invite acceptance and public workspace signup links are pending integration.
+
+## Live dashboards
+
+Home keeps mock data in the preview providers. The live Home repository loads
+workspace context and dashboard sections in parallel through the shared Dio
+stack. Sections that fail can be retried with pull-to-refresh. The current Home
+also refreshes once a minute while the route is visible and the app is active.
+
+- Business Home uses the task, review, birthday, routine, team summary, chat
+  endpoints and the shared notification badge. Dashboard actions submit reports, approve or
+  return tasks, and send birthday wishes through the API. The Home tab bar
+  links to the dashboard lists, conversation summaries, and Account.
+- Individual and Family use the space hub plus their scoped project, task,
+  school, poll, and family endpoints. Church and Event use dedicated dashboard
+  feeds. Alumni, Estate, Committee, and Club use the space hub.
+- The live space snapshot supplies role-specific Home cards and section lists
+  in memory. Those lists are read-only. The local workspace store continues
+  to own preview records.
+
+## Live notifications
+
+The bell opens the approved workspace’s inbox. The inbox loads paginated
+notifications and supports an unread filter and individual and bulk read
+actions. Home and the inbox share a workspace-scoped unread count that
+refreshes after a read action.
 
 ## Local workspace previews
 

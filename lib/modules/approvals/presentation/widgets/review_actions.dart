@@ -1,14 +1,16 @@
 part of '../approvals_screen.dart';
 
 extension _ReviewActions on _ApprovalsScreenState {
-  Future<void> _decide(PreviewTask task, bool approve) async {
+  Future<void> _decide(TaskItem task, bool approve) async {
     if (outgoing) return;
+    var note = '';
     if (!approve) {
       _update(() {
         dx = 0;
         dragging = false;
       });
       var reason = -1;
+      var typed = '';
       const reasons = [
         'approvals.missing_files',
         'approvals.doesnt_match_the_brief',
@@ -19,7 +21,7 @@ extension _ReviewActions on _ApprovalsScreenState {
         context,
         title: context.tr(
           'approvals.return_to',
-          namedArgs: {'name': task.person.split(' ').first},
+          namedArgs: {'name': task.assignee?.firstName ?? ''},
         ),
         builder: (sheet) => StatefulBuilder(
           builder: (context, update) => Column(
@@ -43,6 +45,7 @@ extension _ReviewActions on _ApprovalsScreenState {
               ),
               TextField(
                 maxLines: 3,
+                onChanged: (value) => update(() => typed = value),
                 decoration: InputDecoration(
                   hintText: context.tr('approvals.notes_hint'),
                   filled: true,
@@ -55,13 +58,20 @@ extension _ReviewActions on _ApprovalsScreenState {
               DesignButton(
                 context.tr('approvals.return_with_notes'),
                 color: const Color(0xfff59562),
-                onPressed: () => Navigator.pop(sheet, true),
+                // The server needs a note; a reason chip counts as one.
+                onPressed: reason < 0 && typed.trim().isEmpty
+                    ? null
+                    : () => Navigator.pop(sheet, true),
               ),
             ],
           ),
         ),
       );
       if (!mounted || confirm != true) return;
+      note = [
+        if (reason >= 0) context.tr(reasons[reason]),
+        if (typed.trim().isNotEmpty) typed.trim(),
+      ].join('. ');
     }
     _update(() {
       outgoing = true;
@@ -72,7 +82,22 @@ extension _ReviewActions on _ApprovalsScreenState {
       DesignMotion.duration(context, DesignMotion.object),
     );
     if (!mounted) return;
-    ref.read(workspacePreviewProvider).review(task, approve: approve);
+    final controller = ref.read(approvalsProvider.notifier);
+    try {
+      await (approve
+          ? controller.approve(task)
+          : controller.returnTask(task, note));
+    } catch (error) {
+      if (!mounted) return;
+      // The card comes back so the decision can be tried again.
+      _update(() {
+        outgoing = false;
+        dx = 0;
+      });
+      designToast(context, taskErrorMessage(context, error));
+      return;
+    }
+    if (!mounted) return;
     _update(() {
       outgoing = false;
       dx = 0;

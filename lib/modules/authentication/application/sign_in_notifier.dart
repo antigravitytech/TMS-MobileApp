@@ -14,7 +14,7 @@ final signInProvider =
 
 enum SignInStatus { idle, busy, signedIn }
 
-enum SignInResult { ignored, invalidCredentials, signedIn }
+enum SignInResult { ignored, invalidCredentials, preview, authenticated }
 
 class SignInNotifier extends Notifier<SignInStatus> {
   @override
@@ -32,8 +32,9 @@ class SignInNotifier extends Notifier<SignInStatus> {
     }
     state = SignInStatus.busy;
     final session = ref.read(accountSessionProvider.notifier);
+    final Account? account;
     try {
-      final account = await ref
+      account = await ref
           .read(authRepositoryProvider)
           .signIn(email.trim(), password, remember, delay);
       if (account != null) session.update(account);
@@ -45,8 +46,7 @@ class SignInNotifier extends Notifier<SignInStatus> {
       throw const AccountFailure(NetworkFailureType.unknown);
     }
     if (!ref.mounted) return SignInResult.ignored;
-    showSignedIn();
-    return SignInResult.signedIn;
+    return account == null ? SignInResult.preview : SignInResult.authenticated;
   }
 
   void showSignedIn() => state = SignInStatus.signedIn;

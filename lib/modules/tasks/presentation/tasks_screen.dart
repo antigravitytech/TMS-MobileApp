@@ -3,17 +3,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../router/tms_routes.dart';
+import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/quick_create.dart';
-import '../../../shared/design/design_tokens.dart';
-
-import '../../workspace/application/workspace_preview.dart';
+import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
+import '../../authentication/domain/account.dart';
+import '../../authentication/presentation/widgets/account_action_form.dart';
+import '../application/tasks_controller.dart';
+import '../domain/task.dart';
 import 'widgets/task_card.dart';
 import 'widgets/task_labels.dart';
-import '../../../shared/design/tms_icons.dart';
 
 part 'widgets/tasks_list_widgets.dart';
 part 'widgets/tasks_filter_sheet.dart';
+
+/// A failed task request, in words.
+String taskErrorMessage(BuildContext context, Object? error) =>
+    error is AccountFailure
+    ? accountErrorMessage(context, error)
+    : context.tr('network.errors.unknown');
+
+/// How the list is narrowed and ordered; null means any.
+typedef TaskFilters = ({TaskPriority? priority, String? place, int sort});
 
 class TasksScreen extends ConsumerStatefulWidget {
   const TasksScreen({super.key});
@@ -22,103 +34,83 @@ class TasksScreen extends ConsumerStatefulWidget {
 }
 
 class _TasksScreenState extends ConsumerState<TasksScreen> {
-  static const groups = ['Mine', 'Requested', 'Team', 'All'];
-  static const filters = [
-    'All',
-    'Today',
-    'Overdue',
-    'In progress',
-    'Submitted',
-    'Returned',
-    'Completed',
-  ];
-  static const priorities = [
-    'tasks.any_priority',
-    'Urgent',
-    'High',
-    'Medium',
-    'Low',
-  ];
-  static const projects = [
-    'common.all_projects',
-    'Standalone',
-    'Tech Team',
-    'Customer Portal Revamp',
-    'Mobile App Launch',
-  ];
   static const sorts = ['tasks.due_date', 'common.priority', 'common.project'];
-  int group = 0, filter = 0, priority = 0, project = 0, sort = 0;
+
+  /// The status chips; null is "All".
+  static const statuses = [
+    null,
+    TaskStatus.inProgress,
+    TaskStatus.submitted,
+    TaskStatus.returned,
+    TaskStatus.completed,
+  ];
+
+  TaskScope scope = TaskScope.mine;
+  TaskStatus? status;
+  TaskFilters filters = (priority: null, place: null, sort: 0);
+
   void reset() => setState(() {
-    filter = 0;
-    priority = 0;
-    project = 0;
-    sort = 0;
+    status = null;
+    filters = (priority: null, place: null, sort: 0);
   });
 
-  Future<void> openFilters() async {
-    var p = priority, j = project, s = sort;
-    final result = await showModalBottomSheet<(int, int, int)>(
+  List<TaskItem> _narrow(List<TaskItem> tasks, TaskFilters f) => [
+    for (final t in tasks)
+      if ((f.priority == null || t.priority == f.priority) &&
+          (f.place == null || _place(t) == f.place))
+        t,
+  ];
+
+  String _place(TaskItem t) => t.project.isEmpty ? t.type.code : t.project;
+
+  Future<void> openFilters(List<TaskItem> tasks) async {
+    final result = await showModalBottomSheet<TaskFilters>(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.panel,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (sheet) => _TaskFilterSheet(
-        priority: p,
-        project: j,
-        sort: s,
-        tasks: ref
-            .read(workspacePreviewProvider)
-            .tasks
-            .where((t) => group == 3 || t.group == groups[group])
-            .toList(),
+      builder: (_) => _TaskFilterSheet(
+        filters: filters,
+        tasks: tasks,
+        place: _place,
+        narrow: _narrow,
       ),
     );
-    if (mounted && result != null) {
-      setState(() {
-        final (chosenPriority, chosenProject, chosenSort) = result;
-        priority = chosenPriority;
-        project = chosenProject;
-        sort = chosenSort;
-      });
-    }
+    if (mounted && result != null) setState(() => filters = result);
   }
 
-  String _bucket(PreviewTask t) => t.status == 'Completed'
-      ? 'done'
-      : t.due.contains('overdue')
-      ? 'overdue'
-      : t.due == 'Today'
-      ? 'today'
-      : 'week';
+  /// Which heading a task sits under.
+  String _bucket(TaskItem t, DateTime today) {
+    if (t.done) return 'done';
+    if (t.overdueDays(today) > 0) return 'overdue';
+    final due = t.due;
+    if (due != null && DateUtils.isSameDay(due, today)) return 'today';
+    return 'week';
+  }
 
   @override
   Widget build(BuildContext context) {
-    final items = ref
-        .watch(workspacePreviewProvider)
-        .tasks
-        .where(
-          (t) =>
-              (group == 3 || t.group == groups[group]) &&
-              (priority == 0 || t.priority == priorities[priority]) &&
-              (project == 0 || t.project == projects[project]) &&
-              (filter == 0 ||
-                  switch (filter) {
-                    1 => t.due == 'Today',
-                    2 => t.due.contains('overdue'),
-                    _ => t.status == filters[filter],
-                  }),
-        )
-        .toList();
-    if (sort == 1) {
-      items.sort(
-        (a, b) => priorities
-            .indexOf(a.priority)
-            .compareTo(priorities.indexOf(b.priority)),
-      );
+    final list = ref.watch(tasksListProvider(scope));
+    final loaded = list.value;
+    final today = DateTime.now();
+    final items = _narrow([
+      for (final t in loaded?.tasks ?? const <TaskItem>[])
+        if (status == null || t.status == status) t,
+    ], filters);
+    switch (filters.sort) {
+      case 1:
+        items.sort((a, b) => b.priority.index.compareTo(a.priority.index));
+      case 2:
+        items.sort((a, b) => _place(a).compareTo(_place(b)));
+      default:
+        items.sort(
+          (a, b) =>
+              (a.due ?? DateTime(9999)).compareTo(b.due ?? DateTime(9999)),
+        );
     }
-    if (sort == 2) items.sort((a, b) => a.project.compareTo(b.project));
+    final filtered = filters.priority != null || filters.place != null;
     return DesignPage(
       title: context.tr('common.tasks'),
       tab: TmsRoute.tasks,
@@ -133,7 +125,7 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
         DesignIcon(
           icon: TmsIcons.filter,
           label: context.tr('common.sort_and_filter'),
-          onPressed: openFilters,
+          onPressed: () => openFilters(loaded?.tasks ?? const []),
         ),
       ],
       children: [
@@ -144,40 +136,27 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
             context.tr('common.team'),
             context.tr('common.all'),
           ],
-          counts: [
-            for (final g in groups)
-              ref
-                  .watch(workspacePreviewProvider)
-                  .tasks
-                  .where((t) => g == 'All' || t.group == g)
-                  .length,
-          ],
-          selected: group,
-          onChanged: (i) => setState(() => group = i),
+          counts: [for (final s in TaskScope.values) loaded?.counts[s] ?? 0],
+          selected: scope.index,
+          onChanged: (i) => setState(() => scope = TaskScope.values[i]),
         ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             spacing: 8,
             children: [
-              for (final status in [
-                'All',
-                'In progress',
-                'Submitted',
-                'Returned',
-                'Completed',
-              ])
+              for (final s in statuses)
                 _TaskFilterChip(
-                  status == 'All'
+                  s == null
                       ? context.tr('common.all')
-                      : taskStatusLabel(context, status),
-                  selected: filters[filter] == status,
-                  onTap: () => setState(() => filter = filters.indexOf(status)),
+                      : taskStatusText(context, s),
+                  selected: status == s,
+                  onTap: () => setState(() => status = s),
                 ),
             ],
           ),
         ),
-        if (priority > 0 || project > 0)
+        if (filtered)
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton(
@@ -185,25 +164,40 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
               child: Text(context.tr('tasks.clear_filters')),
             ),
           ),
-        if (items.isEmpty) ...[
+        if (loaded == null && !list.hasError)
+          const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (loaded == null) ...[
+          DesignEmpty(
+            context.tr('tasks.load_failed'),
+            taskErrorMessage(context, list.error),
+            icon: TmsIcons.emptyList,
+          ),
+          DesignButton(
+            context.tr('workspaces.try_again'),
+            secondary: true,
+            onPressed: () => ref.invalidate(tasksListProvider(scope)),
+          ),
+        ] else if (items.isEmpty) ...[
           DesignEmpty(
             context.tr('common.nothing_here'),
             context.tr('tasks.no_tasks_match_this_filter'),
             icon: TmsIcons.emptyList,
           ),
-          DesignButton(context.tr('tasks.clear_filters'), onPressed: reset),
-        ] else ...[
-          for (final bucket in ['overdue', 'today', 'week', 'done']) ...[
-            if (items.any((t) => _bucket(t) == bucket)) ...[
+          if (filtered || status != null)
+            DesignButton(context.tr('tasks.clear_filters'), onPressed: reset),
+        ] else
+          for (final bucket in ['overdue', 'today', 'week', 'done'])
+            if (items.any((t) => _bucket(t, today) == bucket)) ...[
               const SizedBox(height: 8),
               Text(
                 context.tr(
                   'tasks.bucket_$bucket',
                   namedArgs: {
-                    'count': items
-                        .where((t) => _bucket(t) == bucket)
-                        .length
-                        .toString(),
+                    'count':
+                        '${items.where((t) => _bucket(t, today) == bucket).length}',
                   },
                 ),
                 style: TextStyle(
@@ -213,11 +207,11 @@ class _TasksScreenState extends ConsumerState<TasksScreen> {
                   letterSpacing: 1,
                 ),
               ),
-              for (final task in items.where((t) => _bucket(t) == bucket))
+              for (final task in items.where(
+                (t) => _bucket(t, today) == bucket,
+              ))
                 _CompactTaskCard(task),
             ],
-          ],
-        ],
       ],
     );
   }

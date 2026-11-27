@@ -1,172 +1,200 @@
 part of '../attendance_screen.dart';
 
+/// Clock-ins newest first, with this month's absent days among them.
 class _AttendanceHistory extends StatelessWidget {
-  const _AttendanceHistory();
+  const _AttendanceHistory({required this.records, required this.absent});
+  final List<AttendanceRecord> records;
+  final List<DateTime> absent;
+
   @override
-  Widget build(BuildContext context) => DesignCard(
-    padding: EdgeInsets.zero,
-    child: Column(
+  Widget build(BuildContext context) {
+    final rows = <(DateTime, AttendanceRecord?)>[
+      for (final r in records) (r.date, r),
+      for (final day in absent)
+        if (!records.any((r) => DateUtils.isSameDay(r.date, day))) (day, null),
+    ]..sort((a, b) => b.$1.compareTo(a.$1));
+    if (rows.isEmpty) {
+      return DesignEmpty(
+        context.tr('common.nothing_here'),
+        context.tr('attendance.no_history'),
+      );
+    }
+    final locale = context.locale.toString();
+    return DesignCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          for (final (i, (date, record)) in rows.indexed) ...[
+            if (i > 0) Divider(height: 1, color: context.outline),
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 40,
+                    child: Column(
+                      children: [
+                        Text(
+                          DateFormat.E(locale).format(date),
+                          style: TextStyle(color: context.muted, fontSize: 12),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${date.day}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          record == null
+                              ? '—'
+                              : [
+                                  _hm(context, record.clockIn),
+                                  if (record.clockOut case final out?)
+                                    _hm(context, out),
+                                ].join(' – '),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          record == null
+                              ? context.tr('attendance.no_clock_in')
+                              : record.minutesWorked == null
+                              ? context.tr('attendance.still_in')
+                              : _duration(context, record.minutesWorked!),
+                          style: TextStyle(fontSize: 12, color: context.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Builder(
+                    builder: (context) {
+                      final (label, color) = _statusLook(
+                        context,
+                        record?.status ?? DayStatus.absent,
+                      );
+                      return _AttendanceTag(label, color);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Who is in today.
+class _AttendanceTeam extends StatelessWidget {
+  const _AttendanceTeam(this.board);
+  final List<BoardEntry> board;
+  @override
+  Widget build(BuildContext context) {
+    final inCount = board.where((e) => e.status.present).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (date, time, duration, status, color) in [
-          (20, '8:47 – 17:31', '8h 44m', 'attendance.early', DesignColor.green),
-          (19, '—', 'No clock-in', 'attendance.absent', DesignColor.red),
-          (18, '9:04 – 17:22', '8h 18m', 'common.on_time', DesignColor.green),
-          (17, '9:10 – 17:40', '8h 30m', 'common.on_time', DesignColor.green),
-          (16, '9:41 – 17:35', '7h 54m', 'attendance.late', DesignColor.amber),
-          (13, '9:02 – 17:20', '8h 18m', 'common.on_time', DesignColor.green),
-        ]) ...[
-          if (date != 20) Divider(height: 1, color: context.outline),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
+        Text(
+          context
+              .tr(
+                'attendance.team_in',
+                namedArgs: {'n': '$inCount', 'total': '${board.length}'},
+              )
+              .toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            color: context.muted,
+            fontWeight: FontWeight.w700,
+            letterSpacing: .8,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (board.isEmpty)
+          DesignEmpty(
+            context.tr('common.nothing_here'),
+            context.tr('attendance.no_team'),
+          )
+        else
+          DesignCard(
+            padding: EdgeInsets.zero,
+            child: Column(
               children: [
-                SizedBox(
-                  width: 40,
-                  child: Column(
-                    children: [
-                      Text(
-                        DateFormat.E(
-                          context.locale.toString(),
-                        ).format(DateTime(2026, 11, date)),
-                        style: TextStyle(color: context.muted, fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$date',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                for (final (i, entry) in board.indexed) ...[
+                  if (i > 0) Divider(height: 1, color: context.outline),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        DesignAvatar(
+                          kitPerson(entry.name).$1,
+                          color: kitPerson(entry.name).$2,
+                          size: 36,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        time,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.name,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                switch (entry.record) {
+                                  final r? => [
+                                    context.tr(
+                                      'attendance.in_at',
+                                      namedArgs: {
+                                        'time': _hm(context, r.clockIn),
+                                      },
+                                    ),
+                                    if (r.place.isNotEmpty) r.place,
+                                  ].join(' · '),
+                                  null => context.tr('attendance.not_in_yet'),
+                                },
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: context.muted,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        date == 19
-                            ? context.tr('attendance.no_clock_in')
-                            : duration,
-                        style: TextStyle(fontSize: 12, color: context.muted),
-                      ),
-                    ],
+                        Builder(
+                          builder: (context) {
+                            final (label, color) = _statusLook(
+                              context,
+                              entry.status,
+                            );
+                            return _AttendanceTag(label, color);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                _AttendanceTag(context.tr(status), color),
+                ],
               ],
             ),
           ),
-        ],
       ],
-    ),
-  );
-}
-
-class _AttendanceTeam extends StatelessWidget {
-  const _AttendanceTeam();
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      Text(
-        context.tr('attendance.team_in_count'),
-        style: TextStyle(
-          fontSize: 11,
-          color: context.muted,
-          fontWeight: FontWeight.w700,
-          letterSpacing: .8,
-        ),
-      ),
-      const SizedBox(height: 12),
-      DesignCard(
-        padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-            for (final (initials, name, color, key, status) in [
-              (
-                'TB',
-                'Tunde Bakare',
-                DesignColor.teal,
-                'attendance.tunde_arrival',
-                'attendance.early',
-              ),
-              (
-                'DM',
-                'David Mensah',
-                const Color(0xffbcd995),
-                'attendance.david_arrival',
-                'common.on_time',
-              ),
-              (
-                'AE',
-                'Amaka Eze',
-                const Color(0xffeeabb0),
-                'attendance.amaka_arrival',
-                'attendance.late',
-              ),
-              (
-                'SJ',
-                'Sarah Johnson',
-                DesignColor.amber,
-                'attendance.not_in_yet',
-                'attendance.expected',
-              ),
-            ]) ...[
-              if (initials != 'TB') Divider(height: 1, color: context.outline),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    DesignAvatar(initials, color: color, size: 36),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.tr(key),
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: context.muted,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    _AttendanceTag(
-                      context.tr(status),
-                      initials == 'AE'
-                          ? DesignColor.amber
-                          : initials == 'SJ'
-                          ? context.muted
-                          : DesignColor.green,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    ],
-  );
+    );
+  }
 }

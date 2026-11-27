@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/environment.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
@@ -15,6 +17,24 @@ import '../../workspace/application/local_workspaces.dart';
 import '../../workspace/application/workspace_preview.dart';
 import '../../workspace/presentation/workspace_home.dart';
 
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../../authentication/presentation/account_screen.dart';
+import '../../authentication/presentation/widgets/account_action_form.dart';
+import '../../notifications/application/live_notifications.dart';
+import '../../notifications/presentation/widgets/live_notification_bell.dart';
+import '../../birthdays/domain/birthday.dart';
+import '../../tasks/application/tasks_controller.dart';
+import '../../tasks/data/tasks_repository.dart' show taskItemFromJson;
+import '../application/live_home.dart';
+import '../data/live_home_repository.dart';
+import 'live_space_dashboard.dart';
+
+part 'live_home_screen.dart';
+part 'widgets/live_business_home.dart';
+part 'widgets/live_home_navigation.dart';
+part 'widgets/live_dashboard_task.dart';
+part 'widgets/live_report_form.dart';
 part 'widgets/home_overview.dart';
 part 'widgets/home_cards.dart';
 part 'widgets/home_report.dart';
@@ -25,6 +45,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(environmentProvider).isLive) return const LiveHomeScreen();
     final state = ref.watch(workspacePreviewProvider);
     final workspace = ref.watch(localWorkspacesProvider).asData?.value.active;
     if (workspace != null) {
@@ -77,7 +98,10 @@ class HomeScreen extends ConsumerWidget {
                     children: [
                       DesignEntrance(
                         child: _HomeOverview(
-                          state: state,
+                          firstName: state.firstName,
+                          birthday: state.birthdayDismissed
+                              ? null
+                              : _BirthdayBanner(onClose: state.dismissBirthday),
                           due: due.length,
                           reviews: reviews.length,
                         ),

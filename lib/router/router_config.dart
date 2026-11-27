@@ -79,6 +79,27 @@ class AppRouter extends RootStackRouter {
             (destination == TmsRoute.account &&
                 {
                   TmsRoute.account.name,
+                  TmsRoute.home.name,
+                  TmsRoute.notifications.name,
+                  TmsRoute.birthdays.name,
+                  TmsRoute.chat.name,
+                  TmsRoute.conversation.name,
+                  TmsRoute.tasks.name,
+                  TmsRoute.task.name,
+                  TmsRoute.newTask.name,
+                  TmsRoute.approvals.name,
+                  TmsRoute.projects.name,
+                  TmsRoute.teams.name,
+                  TmsRoute.attendance.name,
+                  TmsRoute.reports.name,
+                  TmsRoute.performance.name,
+                  TmsRoute.files.name,
+                  TmsRoute.journal.name,
+                  TmsRoute.visitors.name,
+                  TmsRoute.profile.name,
+                  TmsRoute.settings.name,
+                  TmsRoute.search.name,
+                  TmsRoute.more.name,
                   TmsRoute.profileSetup.name,
                 }.contains(resolver.routeName));
         return allowed ? null : NamedRoute(destination.name);

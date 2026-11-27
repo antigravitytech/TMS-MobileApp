@@ -239,6 +239,50 @@ void main() {
       expect(find.text('Aujourd’hui'), findsNothing);
     },
   );
+
+  testWidgets('profile and settings render the mock account', (tester) async {
+    await _openWorkspaceApp(tester, localeLoader, TmsRoute.profile);
+    expect(find.text('Ibrahim Musa'), findsOneWidget);
+    expect(find.text('4 direct reports'), findsOneWidget);
+    expect(find.text('Level 2'), findsOneWidget);
+    expect(find.text('3 of 5'), findsOneWidget);
+    await _openWorkspaceApp(tester, localeLoader, TmsRoute.settings);
+    expect(
+      find.text('23 November · colleagues see day and month'),
+      findsOneWidget,
+    );
+    final footer = find.text('Sabi Pipu TMS · Acme Group');
+    await tester.scrollUntilVisible(
+      footer,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(footer, findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('search finds the reference task after typing', (tester) async {
+    await _openWorkspaceApp(tester, localeLoader, TmsRoute.search);
+    expect(find.text('Customer Portal Revamp'), findsOneWidget);
+    expect(find.text('TK-190'), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'webhook');
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pump();
+    expect(find.text('TK-142 · Submitted · Round 2'), findsOneWidget);
+    expect(find.text('Customer Portal Revamp'), findsNothing);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
+  });
+
+  testWidgets('more shows my name, status and unread count', (tester) async {
+    await _openWorkspaceApp(tester, localeLoader, TmsRoute.more);
+    expect(find.text('Chioma Okafor'), findsOneWidget);
+    expect(find.textContaining('In a meeting'), findsOneWidget);
+    expect(find.text('Acme Group'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
+  });
 }
 
 Future<ProviderContainer> _openWorkspaceApp(

@@ -19,7 +19,11 @@ class _HomeCaption extends StatelessWidget {
 }
 
 class _Heading extends StatelessWidget {
-  const _Heading(this.title, {required this.trailing, this.count});
+  const _Heading(
+    this.title, {
+    this.trailing = const SizedBox.shrink(),
+    this.count,
+  });
   final String title;
   final Widget trailing;
   final int? count;
@@ -132,7 +136,7 @@ class _CardButton extends StatelessWidget {
   final Color color;
   final Color? background, border;
   final IconData? icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   @override
   Widget build(BuildContext context) => TextButton(
     onPressed: onPressed,
@@ -164,7 +168,7 @@ class _CardButton extends StatelessWidget {
 class _DueTask extends StatelessWidget {
   const _DueTask({required this.task, required this.open});
   final PreviewTask task;
-  final VoidCallback open;
+  final VoidCallback? open;
   @override
   Widget build(BuildContext context) => DesignCard(
     onTap: open,
@@ -244,9 +248,16 @@ String _initials(String name) => name
     .join();
 
 class _ReviewCard extends StatelessWidget {
-  const _ReviewCard({super.key, required this.task, required this.onApprove});
+  const _ReviewCard({
+    super.key,
+    required this.task,
+    required this.onApprove,
+    this.onReturn,
+    this.preview = true,
+  });
   final PreviewTask task;
-  final VoidCallback onApprove;
+  final VoidCallback? onApprove, onReturn;
+  final bool preview;
   @override
   Widget build(BuildContext context) {
     final color = switch (task.id) {
@@ -281,34 +292,40 @@ class _ReviewCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    _HomeCaption('${task.person} · $detail'),
+                    _HomeCaption(
+                      preview ? '${task.person} · $detail' : task.person,
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: _CardButton(
-                  context.tr('common.return'),
-                  color: _returnColor,
-                  border: _returnColor.withValues(alpha: .45),
-                  onPressed: () => TmsRoute.approvals.open(context),
+          if (preview || onApprove != null || onReturn != null)
+            Row(
+              spacing: 8,
+              children: [
+                if (preview || onReturn != null)
+                  Expanded(
+                    child: _CardButton(
+                      context.tr('common.return'),
+                      color: _returnColor,
+                      border: _returnColor.withValues(alpha: .45),
+                      onPressed: preview
+                          ? () => TmsRoute.approvals.open(context)
+                          : onReturn,
+                    ),
+                  ),
+                Expanded(
+                  child: _CardButton(
+                    context.tr('common.approve'),
+                    color: DesignColor.ink,
+                    background: DesignColor.green,
+                    icon: TmsIcons.check,
+                    onPressed: onApprove,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: _CardButton(
-                  context.tr('common.approve'),
-                  color: DesignColor.ink,
-                  background: DesignColor.green,
-                  icon: TmsIcons.check,
-                  onPressed: onApprove,
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

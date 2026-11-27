@@ -1,14 +1,29 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/network_failure_localization.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
+import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
-import '../../workspace/application/workspace_preview.dart';
+import '../../authentication/domain/account.dart';
+import '../../chat/application/chat_session.dart';
+import '../../chat/data/chat_directory.dart';
+import '../../chat/data/chat_repository.dart';
+import '../../../shared/kit/kit.dart';
+import '../../chat/presentation/widgets/chat_widgets.dart'
+    show chatErrorMessage;
+import '../../tasks/application/tasks_controller.dart';
+import '../../tasks/presentation/widgets/task_labels.dart';
+import '../application/search_controller.dart';
+import '../domain/search.dart';
 
 part 'widgets/search_results.dart';
+part 'widgets/search_open.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -19,12 +34,25 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _input = TextEditingController();
-  String _query = '';
+  String _query = '', _settled = '';
+  SearchResults? _shown;
+  Timer? _debounce;
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _input.dispose();
     super.dispose();
+  }
+
+  /// Updates the quick actions at once and searches a moment after typing
+  /// stops.
+  void _changed(String value) {
+    setState(() => _query = value);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _settled = value);
+    });
   }
 
   void _setQuery(String value) {
@@ -32,123 +60,116 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       text: value,
       selection: TextSelection.collapsed(offset: value.length),
     );
-    setState(() => _query = value);
+    _debounce?.cancel();
+    setState(() => _query = _settled = value);
   }
 
   @override
   Widget build(BuildContext context) {
     final term = _query.trim().toLowerCase();
-    final preview = ref.watch(workspacePreviewProvider);
+    final settled = _settled.trim();
     final actions = <_SearchItem>[
-      _SearchItem(
-        'common.new_task',
-        'search.new_task_subtitle',
-        TmsIcons.add,
-        DesignColor.purple,
-        TmsRoute.newTask,
-      ),
-      _SearchItem(
-        'search.log_todays_report',
-        'search.report_subtitle',
-        TmsIcons.edit,
-        DesignColor.teal,
-        TmsRoute.reports,
-      ),
-      _SearchItem(
-        'common.clock_in',
-        'search.clock_in_subtitle',
-        TmsIcons.login,
-        DesignColor.blue,
-        TmsRoute.attendance,
-      ),
-      _SearchItem(
-        'quick_create.invite_guest',
-        'search.guest_subtitle',
-        TmsIcons.badge,
-        DesignColor.amber,
-        TmsRoute.visitors,
-      ),
-      _SearchItem(
-        'common.new_note',
-        'search.note_subtitle',
-        TmsIcons.note,
-        DesignColor.rose,
-        TmsRoute.journal,
-      ),
+      for (final (title, subtitle, icon, color, route) in const [
+        (
+          'common.new_task',
+          'search.new_task_subtitle',
+          TmsIcons.add,
+          DesignColor.purple,
+          TmsRoute.newTask,
+        ),
+        (
+          'search.log_todays_report',
+          'search.report_subtitle',
+          TmsIcons.edit,
+          DesignColor.teal,
+          TmsRoute.reports,
+        ),
+        (
+          'common.clock_in',
+          'search.clock_in_subtitle',
+          TmsIcons.login,
+          DesignColor.blue,
+          TmsRoute.attendance,
+        ),
+        (
+          'quick_create.invite_guest',
+          'search.guest_subtitle',
+          TmsIcons.badge,
+          DesignColor.amber,
+          TmsRoute.visitors,
+        ),
+        (
+          'common.new_note',
+          'search.note_subtitle',
+          TmsIcons.note,
+          DesignColor.rose,
+          TmsRoute.journal,
+        ),
+      ])
+        _SearchItem(
+          context.tr(title),
+          context.tr(subtitle),
+          icon,
+          color,
+          () => route.open(context),
+        ),
     ];
-    final projects = <_SearchItem>[
-      _SearchItem(
-        'Customer Portal Revamp',
-        'search.portal_subtitle',
-        TmsIcons.work,
-        DesignColor.rose,
-        TmsRoute.projects,
-        rawTitle: true,
-      ),
-      _SearchItem(
-        'Mobile App Launch',
-        'search.mobile_subtitle',
-        TmsIcons.work,
-        DesignColor.amber,
-        TmsRoute.projects,
-        rawTitle: true,
-      ),
+    final actionHits = term.isEmpty
+        ? actions
+        : actions
+              .where(
+                (a) => '${a.title} ${a.subtitle}'.toLowerCase().contains(term),
+              )
+              .toList();
+    final featured = term.isEmpty
+        ? ref.watch(searchFeaturedProvider).value ?? const <SearchProject>[]
+        : const <SearchProject>[];
+    final recent = ref.watch(recentSearchesProvider);
+    final search = settled.isEmpty || term.isEmpty
+        ? null
+        : ref.watch(searchResultsProvider(settled));
+    // Keep the last results on screen while the next query loads.
+    if (search?.value case final results?) _shown = results;
+    if (term.isEmpty) _shown = null;
+    final results = _shown ?? const SearchResults();
+    final failure = search?.error;
+    final taskHits = [
+      for (final (i, hit) in results.tasks.indexed)
+        _SearchItem(
+          hit.task.title,
+          _taskDetail(context, hit),
+          TmsIcons.checkSquare,
+          _tone(_taskTones, i),
+          () => _openTask(hit),
+        ),
     ];
-    final people = <_SearchItem>[
-      _SearchItem(
-        'Tunde Bakare',
-        'search.tunde_subtitle',
-        TmsIcons.person,
-        DesignColor.teal,
-        TmsRoute.conversation,
-        rawTitle: true,
-      ),
-      _SearchItem(
-        'Ibrahim Musa',
-        'search.ibrahim_subtitle',
-        TmsIcons.person,
-        DesignColor.purple,
-        TmsRoute.conversation,
-        rawTitle: true,
-      ),
+    final projectHits = [
+      for (final (i, hit)
+          in (term.isEmpty ? featured : results.projects).indexed)
+        _SearchItem(
+          hit.project.name,
+          _projectDetail(context, hit),
+          TmsIcons.work,
+          _tone(_projectTones, i),
+          _openProject,
+        ),
     ];
-    final tasks = preview.tasks
-        .where((task) => task.id == 'TK-190' || task.id == 'TK-142')
-        .map(
-          (task) => _SearchItem(
-            task.title,
-            task.id == 'TK-190'
-                ? 'search.hiring_subtitle'
-                : 'search.webhook_subtitle',
-            TmsIcons.checkSquare,
-            task.id == 'TK-190' ? DesignColor.blue : DesignColor.amber,
-            TmsRoute.task,
-            rawTitle: true,
-            task: task,
-          ),
-        )
-        .toList();
-    bool matches(_SearchItem item) =>
-        term.isEmpty ||
-        '${item.title(context)} ${item.subtitle(context)}'
-            .toLowerCase()
-            .contains(term);
-    final actionHits = term.isEmpty ? actions : actions.where(matches).toList();
-    final taskHits = term.isEmpty
-        ? <_SearchItem>[]
-        : tasks.where(matches).toList();
-    final projectHits = term.isEmpty
-        ? projects
-        : projects.where(matches).toList();
-    final peopleHits = term.isEmpty
-        ? <_SearchItem>[]
-        : people.where(matches).toList();
+    final peopleHits = [
+      for (final (i, person) in results.people.indexed)
+        _SearchItem(
+          person.name,
+          _personDetail(context, person),
+          TmsIcons.person,
+          _tone(_personTones, i),
+          () => _openPerson(person),
+        ),
+    ];
     final none =
         term.isNotEmpty &&
+        search?.hasValue == true &&
+        !search!.isLoading &&
         actionHits.isEmpty &&
-        taskHits.isEmpty &&
-        projectHits.isEmpty &&
-        peopleHits.isEmpty;
+        results.isEmpty;
 
     return Scaffold(
       backgroundColor: context.background,
@@ -191,8 +212,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 child: TextField(
                                   controller: _input,
                                   autofocus: true,
-                                  onChanged: (value) =>
-                                      setState(() => _query = value),
+                                  onChanged: _changed,
                                   style: TextStyle(
                                     color: context.foreground,
                                     fontSize: 15,
@@ -231,21 +251,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 14, 20, 30),
                     children: [
-                      if (term.isEmpty) ...[
+                      if (term.isEmpty && recent.isNotEmpty) ...[
                         _Label(context.tr('common.recent')),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            for (final recent in ['webhook', 'Tunde', 'TK-190'])
+                            for (final query in recent)
                               ActionChip(
                                 avatar: Icon(
                                   TmsIcons.clock,
                                   size: 14,
                                   color: context.muted,
                                 ),
-                                label: Text(recent),
-                                onPressed: () => _setQuery(recent),
+                                label: Text(query),
+                                onPressed: () => _setQuery(query),
                                 backgroundColor: context.background,
                                 side: BorderSide(color: context.outline),
                                 labelStyle: TextStyle(
@@ -260,28 +280,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                       ],
                       if (actionHits.isNotEmpty)
-                        _Group(
-                          term.isEmpty
-                              ? context.tr('search.quick_actions')
-                              : context.tr('search.quick_actions'),
-                          actionHits,
-                          preview,
-                        ),
+                        _Group(context.tr('search.quick_actions'), actionHits),
                       if (taskHits.isNotEmpty)
-                        _Group(context.tr('common.tasks'), taskHits, preview),
+                        _Group(context.tr('common.tasks'), taskHits),
                       if (projectHits.isNotEmpty)
                         _Group(
                           term.isEmpty
                               ? context.tr('search.jump_to')
                               : context.tr('common.projects'),
                           projectHits,
-                          preview,
                         ),
                       if (peopleHits.isNotEmpty)
-                        _Group(
-                          context.tr('search.people'),
-                          peopleHits,
-                          preview,
+                        _Group(context.tr('search.people'), peopleHits),
+                      if (failure != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 22),
+                          child: DesignLabel(
+                            failure is AccountFailure
+                                ? failure.type.localizedMessage(context)
+                                : context.tr('network.errors.unknown'),
+                          ),
                         ),
                       if (none)
                         Padding(

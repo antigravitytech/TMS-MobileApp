@@ -71,19 +71,21 @@ class _ProfileRelation extends StatelessWidget {
 }
 
 class _ReportAvatars extends StatelessWidget {
-  const _ReportAvatars();
+  const _ReportAvatars(this.people);
+  final List<ProfilePerson> people;
+  static const _colors = [
+    Color(0xff86d6cb),
+    Color(0xffeeabb0),
+    Color(0xffbcd995),
+    DesignColor.amber,
+  ];
   @override
   Widget build(BuildContext context) => SizedBox(
     width: 86,
     height: 28,
     child: Stack(
       children: [
-        for (final (index, (initial, color)) in const [
-          ('TB', Color(0xff86d6cb)),
-          ('AE', Color(0xffeeabb0)),
-          ('DM', Color(0xffbcd995)),
-          ('SJ', DesignColor.amber),
-        ].indexed)
+        for (final (index, person) in people.take(4).indexed)
           PositionedDirectional(
             start: 19.0 * index,
             child: DecoratedBox(
@@ -93,7 +95,11 @@ class _ReportAvatars extends StatelessWidget {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(1.5),
-                child: DesignAvatar(initial, size: 25, color: color),
+                child: DesignAvatar(
+                  _initials(person.name),
+                  size: 25,
+                  color: _colors[index],
+                ),
               ),
             ),
           ),
@@ -184,24 +190,30 @@ class _StreakGrid extends StatelessWidget {
 }
 
 class _BadgeGrid extends StatelessWidget {
-  const _BadgeGrid();
+  const _BadgeGrid(this.earned);
+  final Set<Badge> earned;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, size) => Wrap(
       spacing: 10,
       runSpacing: 10,
       children: [
-        for (final (index, (key, icon, color)) in const [
-          ('first_time', TmsIcons.check, DesignColor.green),
-          ('week_streak', TmsIcons.flame, Color(0xfff29962)),
-          ('early', TmsIcons.clock, DesignColor.amber),
-          ('zero_overdue', TmsIcons.clock, DesignColor.purple),
-          ('century', TmsIcons.star, DesignColor.purple),
-        ].indexed)
+        for (final (badge, key, icon, color) in const [
+          (Badge.firstTime, 'first_time', TmsIcons.check, DesignColor.green),
+          (Badge.weekStreak, 'week_streak', TmsIcons.flame, Color(0xfff29962)),
+          (Badge.early, 'early', TmsIcons.clock, DesignColor.amber),
+          (
+            Badge.zeroOverdue,
+            'zero_overdue',
+            TmsIcons.clock,
+            DesignColor.purple,
+          ),
+          (Badge.century, 'century', TmsIcons.star, DesignColor.purple),
+        ])
           SizedBox(
             width: (size.maxWidth - 20) / 3,
             child: Opacity(
-              opacity: index < 3 ? 1 : .45,
+              opacity: earned.contains(badge) ? 1 : .45,
               child: DesignCard(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 6,
@@ -212,8 +224,10 @@ class _BadgeGrid extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: index < 3 ? color : context.raised,
-                      foregroundColor: index < 3
+                      backgroundColor: earned.contains(badge)
+                          ? color
+                          : context.raised,
+                      foregroundColor: earned.contains(badge)
                           ? DesignColor.ink
                           : context.muted,
                       child: Icon(icon, size: 18),

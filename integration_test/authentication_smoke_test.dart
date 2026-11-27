@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sabi_pipu_tms/app/tms_app.dart';
+import 'package:sabi_pipu_tms/core/config/environment.dart';
 import 'package:sabi_pipu_tms/modules/authentication/presentation/sign_in_screen.dart';
 import 'package:sabi_pipu_tms/modules/authentication/presentation/widgets/sign_in_ready.dart';
 import 'package:sabi_pipu_tms/modules/authentication/presentation/welcome_screen.dart';
@@ -74,5 +75,45 @@ void main() {
     );
     expect(find.text('“Ada’s birthday · 23 November”'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+  testWidgets('live Specials enrollment reaches account creation on device', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    await EasyLocalization.ensureInitialized();
+    final container = ProviderContainer.test(
+      overrides: [
+        environmentProvider.overrideWithValue(
+          const AppEnvironment(source: DataSource.live),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const TmsApp()),
+    );
+    await tester.pump();
+    await container.read(routerConfigProvider).replaceAll([
+      NamedRoute(TmsRoute.setup.name),
+    ]);
+    await tester.pumpAndSettle();
+
+    Future<void> tap(String label) async {
+      final target = find.text(label);
+      await tester.ensureVisible(target);
+      await tester.tap(target);
+      await tester.pumpAndSettle();
+    }
+
+    await tap('Specials');
+    await tester.enterText(find.byType(TextFormField), 'Fixture Event');
+    tester.testTextInput.hide();
+    await tester.pumpAndSettle();
+    await tap('Continue');
+    await tap('Event');
+    await tap('Continue');
+    expect(find.text('Guest list & RSVP'), findsOneWidget);
+    await tap('Build my space');
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Create account'), findsOneWidget);
   });
 }

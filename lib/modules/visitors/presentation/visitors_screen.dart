@@ -1,33 +1,48 @@
 import 'package:easy_localization/easy_localization.dart';
-import '../../../shared/kit/qr_painter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
+import '../../../shared/kit/qr_painter.dart';
+import '../../tasks/presentation/tasks_screen.dart' show taskErrorMessage;
+import '../application/visitors_controller.dart';
+import '../domain/visit_pass.dart';
 
 part 'widgets/visitor_cards.dart';
 
-class VisitorsScreen extends StatefulWidget {
+/// A failed request in words; refusals use the server's sentence.
+String _visitorError(BuildContext context, Object? error) =>
+    error is VisitorRefused ? error.detail : taskErrorMessage(context, error);
+
+class VisitorsScreen extends ConsumerStatefulWidget {
   const VisitorsScreen({super.key});
   @override
-  State<VisitorsScreen> createState() => _VisitorsScreenState();
+  ConsumerState<VisitorsScreen> createState() => _VisitorsScreenState();
 }
 
-class _VisitorsScreenState extends State<VisitorsScreen> {
-  String? reception;
-  static const expectedGuests = [('Bayo Ogunleye', 'visitors.bayo_expected')];
-  final invites = <(String, String)>[];
+class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
+  /// Guests I answered on this visit, shown as a confirmation.
+  final answered = <String, GuestAnswer>{};
+
+  Future<void> answer(VisitPass pass, GuestAnswer decision) async {
+    try {
+      await ref.read(visitorsProvider.notifier).answer(pass, decision);
+      if (mounted) setState(() => answered[pass.id] = decision);
+    } catch (error) {
+      if (mounted) designToast(context, _visitorError(context, error));
+    }
+  }
+
   Future<void> invite() async {
-    var name = 'Kemi Lawal',
-        purpose = 'Vendor demo',
-        day = DateFormat(
-          'EEE, d MMM',
-          context.locale.toString(),
-        ).format(DateTime(2026, 11, 25)),
-        time = '11:00';
-    final result = await designSheet<(String, String, String, String)>(
+    var name = '', purpose = '';
+    final now = DateTime.now();
+    var day = DateTime(now.year, now.month, now.day);
+    var time = const TimeOfDay(hour: 10, minute: 30);
+    final result = await designSheet<GuestInvite>(
       context,
       title: context.tr('visitors.invite_a_guest'),
       builder: (sheet) => StatefulBuilder(
@@ -47,9 +62,11 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                   flex: 2,
                   child: _VisitorDateField(
                     label: context.tr('visitors.day'),
-                    value: day,
+                    value: DateFormat(
+                      'EEE, d MMM',
+                      context.locale.toString(),
+                    ).format(day),
                     onTap: () async {
-                      final now = DateTime.now();
                       final value = await showDatePicker(
                         switchToInputEntryModeIcon: const Icon(
                           TmsIcons.keyboard,
@@ -58,16 +75,12 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                           TmsIcons.calendar,
                         ),
                         context: context,
-                        initialDate: now,
-                        firstDate: now,
+                        initialDate: day,
+                        firstDate: DateTime(now.year, now.month, now.day),
                         lastDate: DateTime(now.year + 2),
                       );
                       if (context.mounted && value != null) {
-                        update(
-                          () => day = MaterialLocalizations.of(
-                            context,
-                          ).formatShortDate(value),
-                        );
+                        update(() => day = value);
                       }
                     },
                   ),
@@ -75,7 +88,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                 Expanded(
                   child: _VisitorDateField(
                     label: context.tr('visitors.time'),
-                    value: time,
+                    value: time.format(context),
                     onTap: () async {
                       final value = await showTimePicker(
                         switchToInputEntryModeIcon: const Icon(
@@ -83,10 +96,10 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
                         ),
                         switchToTimerEntryModeIcon: const Icon(TmsIcons.clock),
                         context: context,
-                        initialTime: const TimeOfDay(hour: 10, minute: 30),
+                        initialTime: time,
                       );
                       if (context.mounted && value != null) {
-                        update(() => time = value.format(context));
+                        update(() => time = value);
                       }
                     },
                   ),
@@ -100,13 +113,17 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
             ),
             DesignButton(
               context.tr('visitors.create_invite'),
-              onPressed: name.trim().isEmpty
+              onPressed: name.trim().length < 2
                   ? null
-                  : () => Navigator.pop(sheet, (
-                      name.trim(),
-                      day,
-                      time,
-                      purpose.trim(),
+                  : () => Navigator.pop<GuestInvite>(sheet, (
+                      name: name.trim(),
+                      day: day,
+                      // Passes carry a date only, so the time leads the
+                      // purpose that the desk sees.
+                      purpose: [
+                        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
+                        if (purpose.trim().isNotEmpty) purpose.trim(),
+                      ].join(' · '),
                     )),
             ),
           ],
@@ -114,14 +131,16 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
       ),
     );
     if (!mounted || result == null) return;
-    final (guest, date, hour, why) = result;
-    setState(
-      () => invites.insert(0, (
-        guest,
-        '$date · $hour${why.isNotEmpty ? ' · $why' : ''}',
-      )),
-    );
-    final code = 'K7Q-${41 + invites.length}M';
+    final VisitPass pass;
+    try {
+      pass = await ref.read(visitorsProvider.notifier).invite(result);
+    } catch (error) {
+      if (mounted) designToast(context, _visitorError(context, error));
+      return;
+    }
+    if (!mounted) return;
+    final guest = pass.guest;
+    final code = pass.code;
     await designSheet<void>(
       context,
       title: context.tr(
@@ -191,136 +210,129 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => DesignPage(
-    title: context.tr('common.visitors'),
-    subtitleBelow: true,
-    subtitle: context.tr('visitors.invite_guests_and_answer_when_they_arrive'),
-    footer: DesignButton(
-      context.tr('visitors.invite_a_guest'),
-      icon: TmsIcons.add,
-      onPressed: invite,
-    ),
-    children: [
-      _VisitorHeading(context.tr('visitors.waiting_for_you')),
-      AnimatedSwitcher(
-        duration: DesignMotion.duration(context, DesignMotion.page),
-        child: reception == null
-            ? _WaitingVisitor(
-                onDecision: (decision) => setState(() => reception = decision),
-              )
-            : DesignCard(
-                key: ValueKey(reception),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: DesignColor.green.withValues(alpha: .15),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: DesignColor.green.withValues(alpha: .3),
+  Widget build(BuildContext context) {
+    final async = ref.watch(visitorsProvider);
+    final passes = async.value;
+    final waiting = [
+      for (final p in passes ?? const <VisitPass>[])
+        if (p.needsAnswer || answered.containsKey(p.id)) p,
+    ];
+    final expected = [
+      for (final p in passes ?? const <VisitPass>[])
+        if (p.status == 'expected') p,
+    ]..sort((a, b) => a.validOn.compareTo(b.validOn));
+    return DesignPage(
+      title: context.tr('common.visitors'),
+      subtitleBelow: true,
+      subtitle: context.tr(
+        'visitors.invite_guests_and_answer_when_they_arrive',
+      ),
+      footer: DesignButton(
+        context.tr('visitors.invite_a_guest'),
+        icon: TmsIcons.add,
+        onPressed: passes == null ? null : invite,
+      ),
+      children: [
+        if (passes == null && !async.hasError)
+          const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (passes == null) ...[
+          DesignLabel(_visitorError(context, async.error)),
+          DesignButton(
+            context.tr('workspaces.try_again'),
+            secondary: true,
+            onPressed: () => ref.invalidate(visitorsProvider),
+          ),
+        ] else ...[
+          _VisitorHeading(context.tr('visitors.waiting_for_you')),
+          if (waiting.isEmpty)
+            DesignLabel(context.tr('visitors.nobody_waiting')),
+          for (final pass in waiting)
+            AnimatedSwitcher(
+              key: ValueKey(pass.id),
+              duration: DesignMotion.duration(context, DesignMotion.page),
+              child: switch (answered[pass.id]) {
+                null => _WaitingVisitor(
+                  pass: pass,
+                  onDecision: (decision) => answer(pass, decision),
+                ),
+                final decision => _AnsweredVisitor(
+                  key: ValueKey(decision),
+                  name: pass.guest.split(' ').first,
+                  decision: decision,
+                ),
+              },
+            ),
+          _VisitorHeading(context.tr('visitors.expected')),
+          if (expected.isEmpty)
+            DesignLabel(context.tr('visitors.nobody_expected'))
+          else
+            DesignSection(
+              children: [
+                for (final pass in expected)
+                  Padding(
+                    key: ValueKey(pass.id),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        DesignAvatar(
+                          kitPerson(pass.guest).$1,
+                          color: kitPerson(pass.guest).$2,
+                          size: 36,
                         ),
-                      ),
-                      child: const Icon(
-                        TmsIcons.check,
-                        color: DesignColor.green,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr(
-                              reception == 'visitors.wait_10_min'
-                                  ? 'visitors.asked_to_wait'
-                                  : reception == 'visitors.not_today'
-                                  ? 'visitors.told_not_today'
-                                  : 'visitors.asked_to_come',
-                            ),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                pass.guest,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                [
+                                  _visitDay(context, pass.validOn),
+                                  if (pass.purpose.isNotEmpty) pass.purpose,
+                                ].join(' · '),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: context.muted,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            context.tr('visitors.reception_has_been_told'),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.raised,
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Text(
+                            pass.code,
                             style: TextStyle(
                               fontSize: 12,
                               color: context.muted,
+                              letterSpacing: 1,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-      ),
-      _VisitorHeading(context.tr('visitors.expected')),
-      DesignSection(
-        children: [
-          for (final (guest, detail) in [
-            ...invites,
-            for (final (name, key) in expectedGuests) (name, context.tr(key)),
-          ])
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  DesignAvatar(
-                    guest.split(' ').map((v) => v[0]).take(2).join(),
-                    color: guest == 'Bayo Ogunleye'
-                        ? const Color(0xffbcd995)
-                        : const Color(0xffd8b4ec),
-                    size: 36,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          guest,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          detail,
-                          style: TextStyle(fontSize: 12, color: context.muted),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.raised,
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: Text(
-                      guest == 'Bayo Ogunleye' ? 'B2X-81P' : 'K7Q-42M',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: context.muted,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
         ],
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

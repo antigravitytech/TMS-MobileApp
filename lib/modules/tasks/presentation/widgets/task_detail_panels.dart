@@ -1,103 +1,153 @@
 part of '../task_detail_screen.dart';
 
-class _CommentsPanel extends StatelessWidget {
-  const _CommentsPanel({
-    required this.task,
-    required this.state,
-    required this.controller,
-  });
-  final PreviewTask task;
-  final WorkspacePreview state;
+class _CommentsPanel extends ConsumerStatefulWidget {
+  const _CommentsPanel({required this.task, required this.controller});
+  final TaskItem task;
   final TextEditingController controller;
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CircleAvatar(
-            radius: 14,
-            backgroundColor: DesignColor.blue,
-            child: Text(
-              'IM',
-              style: TextStyle(fontSize: 10, color: DesignColor.ink),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: DesignCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr('tasks.ibrahim_2d'),
-                    style: TextStyle(fontSize: 11, color: context.muted),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr('tasks.sample_comment'),
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      for (final value in state.comments[task.id] ?? <String>[]) ...[
-        const SizedBox(height: 10),
-        Align(
-          alignment: Alignment.centerRight,
-          child: DesignCard(child: Text(value)),
-        ),
-      ],
-      const SizedBox(height: 14),
-      Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              decoration: InputDecoration(
-                hintText: context.tr('tasks.comment_hint'),
-                filled: true,
-                fillColor: context.panel,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          IconButton.filled(
-            onPressed: () {
-              final text = controller.text.trim();
-              if (text.isEmpty) return;
-              state.addComment(task.id, text);
-              controller.clear();
-            },
-            icon: const Icon(TmsIcons.send),
-            tooltip: context.tr('tasks.send_comment'),
-          ),
-        ],
-      ),
-    ],
-  );
+  ConsumerState<_CommentsPanel> createState() => _CommentsPanelState();
 }
 
-class _FilesPanel extends StatelessWidget {
+class _CommentsPanelState extends ConsumerState<_CommentsPanel> {
+  bool sending = false;
+
+  Future<void> send() async {
+    final text = widget.controller.text.trim();
+    if (text.isEmpty || sending) return;
+    setState(() => sending = true);
+    try {
+      await ref.read(taskCommentsProvider(widget.task).notifier).add(text);
+      widget.controller.clear();
+    } catch (error) {
+      if (mounted) designToast(context, taskErrorMessage(context, error));
+    } finally {
+      if (mounted) setState(() => sending = false);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => DesignSection(
+  Widget build(BuildContext context) {
+    final provider = taskCommentsProvider(widget.task);
+    return Column(
+      children: [
+        _tabState(
+          context,
+          ref,
+          ref.watch(provider),
+          provider,
+          (rows) => Column(
+            spacing: 10,
+            children: [
+              for (final c in rows)
+                c.mine
+                    ? Align(
+                        alignment: Alignment.centerRight,
+                        child: DesignCard(child: Text(c.body)),
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 14,
+                            backgroundColor: kitPerson(c.author.name).$2,
+                            child: Text(
+                              kitPerson(c.author.name).$1,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: DesignColor.ink,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: DesignCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${c.author.firstName} · ${_when(context, c.at)}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: context.muted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    c.body,
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+            ],
+          ),
+        ),
+        if (widget.task.permissions.canComment) ...[
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  onSubmitted: (_) => send(),
+                  decoration: InputDecoration(
+                    hintText: context.tr('tasks.comment_hint'),
+                    filled: true,
+                    fillColor: context.panel,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton.filled(
+                onPressed: sending ? null : send,
+                icon: const Icon(TmsIcons.send),
+                tooltip: context.tr('tasks.send_comment'),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _FilesPanel extends ConsumerWidget {
+  const _FilesPanel(this.task);
+  final TaskItem task;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Column(
+    spacing: 12,
     children: [
-      DesignTile(
-        title: context.tr('tasks.sample_file'),
-        subtitle: context.tr('tasks.sample_file_meta'),
-        icon: TmsIcons.file,
-        onTap: () => TmsRoute.files.open(context),
+      _tabState(
+        context,
+        ref,
+        ref.watch(taskFilesProvider(task)),
+        taskFilesProvider(task),
+        (rows) => DesignSection(
+          children: [
+            for (final f in rows)
+              DesignTile(
+                title: f.name,
+                subtitle: '${(f.size / 1024).ceil()} KB',
+                icon: TmsIcons.file,
+              ),
+          ],
+        ),
       ),
-      DesignTile(
-        title: context.tr('tasks.attach_a_file'),
-        icon: TmsIcons.add,
-        onTap: () => TmsRoute.files.open(context),
+      DesignSection(
+        children: [
+          DesignTile(
+            title: context.tr('tasks.attach_a_file'),
+            icon: TmsIcons.add,
+            onTap: () => TmsRoute.files.open(context),
+          ),
+        ],
       ),
     ],
   );
@@ -105,17 +155,19 @@ class _FilesPanel extends StatelessWidget {
 
 class _DetailsPanel extends StatelessWidget {
   const _DetailsPanel(this.task);
-  final PreviewTask task;
+  final TaskItem task;
   @override
   Widget build(BuildContext context) => DesignSection(
     children: [
+      _DetailRow(context.tr('tasks.type'), taskTypeText(context, task.type)),
+      if (task.project.isNotEmpty)
+        _DetailRow(context.tr('common.project'), task.project),
       _DetailRow(
-        context.tr('tasks.type'),
-        taskProjectLabel(context, task.project),
+        context.tr('tasks.visibility'),
+        context.tr(task.confidential ? 'tasks.confidential' : 'tasks.public'),
       ),
-      _DetailRow(context.tr('tasks.visibility'), context.tr('tasks.public')),
-      _DetailRow(context.tr('tasks.watching'), 'CO · IM'),
-      _DetailRow(context.tr('tasks.created'), context.tr('tasks.created_date')),
+      if (task.createdAt case final created?)
+        _DetailRow(context.tr('tasks.created'), _when(context, created)),
     ],
   );
 }

@@ -170,3 +170,47 @@ class _TaskPrivacy extends StatelessWidget {
     ),
   );
 }
+
+/// Standalone, Project, Team or Recurring.
+class _TaskTypeSwitch extends StatelessWidget {
+  const _TaskTypeSwitch({required this.type, required this.onChanged});
+  final TaskType type;
+  final ValueChanged<TaskType> onChanged;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(4),
+    decoration: BoxDecoration(
+      color: context.panel,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: context.outline),
+    ),
+    child: Row(
+      children: [
+        for (final t in TaskType.values)
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(t),
+              child: AnimatedContainer(
+                duration: DesignMotion.fast,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: type == t ? context.raised : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FittedBox(
+                  child: Text(
+                    taskTypeText(context, t),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: type == t ? context.foreground : context.muted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
+}

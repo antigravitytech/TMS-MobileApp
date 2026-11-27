@@ -169,7 +169,7 @@ class IndividualKpi extends StatelessWidget {
   final Color? color;
   final String value, label;
   final String? suffix;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext c) => GestureDetector(
     onTap: onTap,
@@ -220,7 +220,7 @@ class IndividualKpi extends StatelessWidget {
 class IndividualTaskRow extends StatelessWidget {
   const IndividualTaskRow({super.key, required this.task, required this.onTap});
   final WorkspaceRecord task;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   @override
   Widget build(BuildContext c) {
     final locale = c.locale.toString();

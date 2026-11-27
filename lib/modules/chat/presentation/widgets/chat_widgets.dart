@@ -1,6 +1,28 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/design/design_tokens.dart';
+import '../../../authentication/domain/account.dart';
+import '../../../authentication/presentation/widgets/account_action_form.dart';
 import '../../data/chat_directory.dart';
+
+/// A failed chat request, in words.
+String chatErrorMessage(BuildContext context, Object error) =>
+    error is AccountFailure
+    ? accountErrorMessage(context, error)
+    : context.tr('network.errors.unknown');
+
+/// The row's time: the prototype's label, or how long ago the last message
+/// arrived.
+String chatTime(BuildContext context, ChatRow row) {
+  final at = row.at;
+  if (row.time.isNotEmpty || at == null) return row.time;
+  final age = DateTime.now().difference(at);
+  if (age.inMinutes < 1) return context.tr('chat.now');
+  if (age.inHours < 1) return '${age.inMinutes}m';
+  if (age.inDays < 1) return '${age.inHours}h';
+  if (age.inDays < 7) return DateFormat.E(context.locale.toString()).format(at);
+  return DateFormat.MMMd(context.locale.toString()).format(at);
+}
 
 Color chatColor(String value) {
   const palette = [
@@ -118,7 +140,7 @@ class ChatListRow extends StatelessWidget {
             spacing: 5,
             children: [
               Text(
-                row.time,
+                chatTime(context, row),
                 style: TextStyle(fontSize: 12, color: context.muted),
               ),
               if (row.badge.isNotEmpty)

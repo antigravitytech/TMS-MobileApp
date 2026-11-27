@@ -3,15 +3,23 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/config/environment.dart';
 import '../../../router/tms_routes.dart';
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../../authentication/presentation/widgets/account_action_form.dart';
+import '../../home/application/live_home.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
 import '../../workspace/application/workspace_preview.dart';
+import '../application/live_notifications.dart';
 import '../application/open_notification.dart';
+import '../data/live_notifications_repository.dart';
 import '../data/notification_previews.dart';
 
 part 'widgets/notification_widgets.dart';
+part 'live_notifications_screen.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -31,6 +39,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (ref.watch(environmentProvider).isLive) {
+      return const _LiveNotificationsScreen();
+    }
     final state = ref.watch(workspacePreviewProvider);
     final read = state.readNotifications;
     final shown = notificationPreviews

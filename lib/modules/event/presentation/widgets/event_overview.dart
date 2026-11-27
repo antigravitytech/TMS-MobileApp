@@ -14,8 +14,14 @@ import 'event_guest_page.dart';
 import 'event_hero.dart';
 
 class EventOverview extends StatelessWidget {
-  const EventOverview({super.key, required this.view, required this.onTab});
+  const EventOverview({
+    super.key,
+    required this.view,
+    required this.onTab,
+    this.readOnly = false,
+  });
   final EventView view;
+  final bool readOnly;
   final ValueChanged<EventTab> onTab;
   @override
   Widget build(BuildContext c) {
@@ -40,7 +46,7 @@ class EventOverview extends StatelessWidget {
                 if (space.eventVenue.isNotEmpty) space.eventVenue,
               ].join(' · '),
               style: info?.fields['style'] ?? '',
-              onShare: () => showGuestPage(c, space.id),
+              onShare: readOnly ? null : () => showGuestPage(c, space.id),
             ),
           ),
         const SizedBox(height: 12),

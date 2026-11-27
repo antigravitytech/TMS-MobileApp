@@ -7,18 +7,15 @@ import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
 import '../../chat/application/chat_session.dart';
 import '../../chat/data/chat_directory.dart';
-import '../../workspace/application/workspace_preview.dart';
+import '../../chat/data/chat_repository.dart';
+import '../../tasks/presentation/tasks_screen.dart' show taskErrorMessage;
+import '../application/teams_controller.dart';
+import '../domain/team.dart';
 
 part 'widgets/team_card.dart';
-
-typedef _Member = (String, String, String, Color, int, bool);
-
-const _tunde = ('TB', 'Tunde Bakare', 'a2', Color(0xff86d6cb), 4, false);
-const _amaka = ('AE', 'Amaka Eze', 'a4', Color(0xffeeabb0), 3, false);
-const _david = ('DM', 'David Mensah', 'a6', Color(0xffbcd995), 2, false);
-const _sarah = ('SJ', 'Sarah Johnson', 'a3', DesignColor.amber, 2, false);
 
 class TeamsScreen extends ConsumerStatefulWidget {
   const TeamsScreen({super.key});
@@ -27,62 +24,47 @@ class TeamsScreen extends ConsumerStatefulWidget {
 }
 
 class _TeamsScreenState extends ConsumerState<TeamsScreen> {
-  int? expanded = 0;
+  /// The open card; the first one starts open, as in the design.
+  String? expanded;
 
-  Future<void> openMember(_Member member) async {
-    final directory = await ref
-        .read(chatDirectoryProvider.future)
-        .then<ChatDirectory?>((value) => value, onError: (Object _) => null);
-    if (!mounted) return;
-    if (directory == null) {
-      TmsRoute.chat.open(context);
-      return;
+  /// Teams whose members were loaded, kept while the screen is open.
+  final opened = <TeamItem>{};
+
+  /// Opens a direct message with [member].
+  Future<void> openMember(TeamMember member) async {
+    try {
+      final inbox = await ref.read(chatDirectoryProvider.future);
+      final contact = ChatContact(
+        kitPerson(member.name).$1,
+        'a1',
+        member.name,
+        '',
+        false,
+        id: member.userId,
+      );
+      var row = await ref.read(chatRepositoryProvider).start(inbox, [
+        contact,
+      ], group: false);
+      // Prototype people reopen their sample thread.
+      if (row.id.isEmpty) {
+        row =
+            inbox.recent.where((r) => r.name == member.name).firstOrNull ?? row;
+      }
+      if (!mounted) return;
+      ref.read(chatSessionProvider(inbox.workspace).notifier).open(row);
+      TmsRoute.conversation.open(context);
+    } catch (error) {
+      if (mounted) designToast(context, taskErrorMessage(context, error));
     }
-    final peer =
-        directory.recent.where((item) => item.name == member.$2).firstOrNull ??
-        ChatRow(initials: member.$1, name: member.$2, color: member.$3);
-    ref.read(chatSessionProvider(directory.workspace).notifier).open(peer);
-    TmsRoute.conversation.open(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final workspace = ref.watch(workspacePreviewProvider);
-    final lead = '${workspace.firstName} ${workspace.lastName}';
-    final teams = [
-      (
-        'Tech Team',
-        lead,
-        8,
-        context.lavender,
-        <_Member>[
-          (
-            '${workspace.firstName.characters.firstOrNull ?? ''}${workspace.lastName.characters.firstOrNull ?? ''}'
-                .toUpperCase(),
-            lead,
-            'a1',
-            const Color(0xffc4bdf6),
-            2,
-            true,
-          ),
-          _tunde,
-          _amaka,
-          _sarah,
-          _david,
-        ],
-      ),
-      (
-        context.tr('teams.compliance'),
-        'Ngozi Adeyemi',
-        0,
-        DesignColor.teal,
-        <_Member>[
-          ('NA', 'Ngozi Adeyemi', 'a7', const Color(0xffd8b4ec), 1, true),
-          ('DM', 'David Mensah', 'a6', const Color(0xffbcd995), 0, false),
-          ('SJ', 'Sarah Johnson', 'a3', DesignColor.amber, 1, false),
-        ],
-      ),
-    ];
+    final async = ref.watch(teamsProvider);
+    final directory = async.value;
+    for (final team in opened) {
+      ref.watch(teamMembersProvider(team));
+    }
     return Scaffold(
       backgroundColor: context.background,
       body: SafeArea(
@@ -119,17 +101,18 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
                                 letterSpacing: -.4,
                               ),
                             ),
-                            _TeamCaption(
-                              context.tr(
-                                'teams.workspace_count',
-                                namedArgs: {
-                                  'count': NumberFormat.decimalPattern(
-                                    context.locale.toString(),
-                                  ).format(teams.length),
-                                  'workspace': workspace.workspace,
-                                },
+                            if (directory != null)
+                              _TeamCaption(
+                                context.tr(
+                                  'teams.workspace_count',
+                                  namedArgs: {
+                                    'count': NumberFormat.decimalPattern(
+                                      context.locale.toString(),
+                                    ).format(directory.teams.length),
+                                    'workspace': directory.workspace,
+                                  },
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -137,32 +120,51 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                    children: [
-                      for (final (
-                            index,
-                            (name, manager, progress, color, members),
-                          )
-                          in teams.indexed)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _TeamCard(
-                            name: name,
-                            manager: manager,
-                            progress: progress,
-                            color: color,
-                            members: members,
-                            expanded: expanded == index,
-                            job: index == 0 ? workspace.jobTitle : null,
-                            toggle: () => setState(
-                              () => expanded = expanded == index ? null : index,
-                            ),
-                            open: openMember,
+                  child: switch (async) {
+                    AsyncValue(value: final d?) => ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                      children: [
+                        if (d.teams.isEmpty)
+                          DesignEmpty(
+                            context.tr('common.nothing_here'),
+                            context.tr('teams.empty'),
                           ),
-                        ),
-                    ],
-                  ),
+                        for (final (i, team) in d.teams.indexed)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _TeamCard(
+                              team: team,
+                              expanded: expanded == null
+                                  ? i == 0
+                                  : expanded == team.id,
+                              onOpen: () => opened.add(team),
+                              toggle: () => setState(() {
+                                final open = expanded == null
+                                    ? i == 0
+                                    : expanded == team.id;
+                                expanded = open ? '' : team.id;
+                              }),
+                              open: openMember,
+                            ),
+                          ),
+                      ],
+                    ),
+                    AsyncValue(:final error?) => Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        spacing: 12,
+                        children: [
+                          DesignLabel(taskErrorMessage(context, error)),
+                          DesignButton(
+                            context.tr('workspaces.try_again'),
+                            secondary: true,
+                            onPressed: () => ref.invalidate(teamsProvider),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _ => const Center(child: CircularProgressIndicator()),
+                  },
                 ),
               ],
             ),

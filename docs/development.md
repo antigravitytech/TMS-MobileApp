@@ -43,9 +43,9 @@ run `./tool/run` once or copy `.env.example` to `.env` before using the launch
 configuration. In Android Studio, set `--dart-define-from-file=.env` once in
 the Flutter run configuration's additional run arguments.
 
-Mock mode opens the local workspace previews. Live mode opens Account or resumes
-profile setup after sign-in. Account displays supported server workspaces and
-polls pending approvals. See [backend coverage](mobile-architecture.md#data-modes-and-backend-coverage)
+Mock mode opens the local workspace previews. Live mode resumes unfinished
+profile setup or shows Home for an approved workspace. Account lists the server
+workspaces and polls pending approvals. See [backend coverage](mobile-architecture.md#data-modes-and-backend-coverage)
 for the current routing and storage boundaries.
 
 ## OAuth and account links
@@ -64,10 +64,13 @@ Workspace repository tests exercise local seeding against fixture directories.
 
 ```sh
 flutter test --no-pub test/modules/authentication
+flutter test --no-pub test/modules/home
+flutter test --no-pub test/modules/notifications
 flutter test --no-pub test/modules/workspace
 flutter test --no-pub -d <device-id> integration_test/authentication_smoke_test.dart
 ```
 
-The device smoke test exercises startup, mock sign-in, and profile setup. Use a
-configured test deployment and fixture account to verify backend behavior and
-OAuth redirects on a device.
+The device smoke tests exercise startup, mock sign-in, profile setup, and the
+live Specials setup wizard up to account creation. Use a configured test
+deployment and fixture account to verify backend behavior and OAuth redirects
+on a device.

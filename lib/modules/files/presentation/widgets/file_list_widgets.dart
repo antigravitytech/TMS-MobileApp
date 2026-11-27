@@ -50,57 +50,28 @@ class _FileChip extends StatelessWidget {
   );
 }
 
+/// "240 KB" or "2.3 MB".
+String _size(int bytes) => bytes < 1024 * 1024
+    ? '${(bytes / 1024).round()} KB'
+    : '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+
 class _FileRow extends StatelessWidget {
-  const _FileRow({
-    required this.name,
-    required this.owner,
-    required this.category,
-  });
-  final String name, owner, category;
+  const _FileRow({required this.file, required this.onTap});
+  final FileItem file;
+  final VoidCallback onTap;
   @override
   Widget build(BuildContext context) {
-    final ext = name.split('.').last.toUpperCase();
-    final color = switch (ext) {
-      'PDF' => const Color(0xffeeabb0),
-      'PNG' => const Color(0xff86d6cb),
-      'MP4' => const Color(0xffa3c8f1),
-      _ => const Color(0xffc4bdf6),
-    };
-    final (task, date, size) = switch (name) {
-      'webhook-retry-tests.pdf' => (
-        'files.webhook_task',
-        DateTime(2026, 11, 23),
-        '240 KB',
-      ),
-      'form-errors.png' => (
-        'files.errors_task',
-        DateTime(2026, 11, 23),
-        '420 KB',
-      ),
-      'usability-findings.pdf' => (
-        'files.usability_task',
-        DateTime(2026, 11, 22),
-        '2.3 MB',
-      ),
-      'session-3-clip.mp4' => (
-        'files.usability_task',
-        DateTime(2026, 11, 22),
-        '48.0 MB',
-      ),
-      'checkout-step2.png' => (
-        'files.checkout_task',
-        DateTime(2026, 11, 19),
-        '640 KB',
-      ),
-      'retry-sequence.png' => (
-        'files.webhook_task',
-        DateTime(2026, 11, 17),
-        '1.1 MB',
-      ),
-      _ => ('files.checkout_task', DateTime(2026, 11, 16), '3.4 MB'),
+    final ext = file.name.contains('.')
+        ? file.name.split('.').last.toUpperCase()
+        : '';
+    final color = switch (file.kind) {
+      FileKind.pdf => const Color(0xffeeabb0),
+      FileKind.image => const Color(0xff86d6cb),
+      FileKind.video => const Color(0xffa3c8f1),
+      FileKind.document => const Color(0xffc4bdf6),
     };
     return InkWell(
-      onTap: () => TmsRoute.task.open(context),
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         child: Row(
@@ -115,6 +86,7 @@ class _FileRow extends StatelessWidget {
               ),
               child: Text(
                 ext,
+                maxLines: 1,
                 style: const TextStyle(
                   color: DesignColor.ink,
                   fontSize: 10.5,
@@ -129,7 +101,7 @@ class _FileRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    file.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -139,7 +111,7 @@ class _FileRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    context.tr(task),
+                    file.taskTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: 12, color: context.muted),
@@ -149,12 +121,12 @@ class _FileRow extends StatelessWidget {
                     context.tr(
                       'files.metadata',
                       namedArgs: {
-                        'owner': owner,
+                        'owner': file.uploader,
                         'date': DateFormat(
                           'd MMM',
                           context.locale.toString(),
-                        ).format(date),
-                        'size': size,
+                        ).format(file.createdAt),
+                        'size': _size(file.size),
                       },
                     ),
                     style: TextStyle(

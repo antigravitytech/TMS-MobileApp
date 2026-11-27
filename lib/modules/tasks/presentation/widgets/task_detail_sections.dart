@@ -33,60 +33,72 @@ class _SmallTag extends StatelessWidget {
 }
 
 class _PersonCard extends StatelessWidget {
-  const _PersonCard(this.initials, this.name, this.role, this.color);
-  final String initials, name, role;
-  final Color color;
+  const _PersonCard(this.name, this.role);
+  final String name, role;
   @override
-  Widget build(BuildContext context) => DesignCard(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-    child: Row(
-      children: [
-        CircleAvatar(
-          radius: 14,
-          backgroundColor: color,
-          child: Text(
-            initials,
-            style: const TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              color: DesignColor.ink,
+  Widget build(BuildContext context) {
+    final (initials, color) = kitPerson(name);
+    return DesignCard(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 14,
+            backgroundColor: color,
+            child: Text(
+              initials,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                color: DesignColor.ink,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(role, style: TextStyle(color: context.muted, fontSize: 11)),
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  role,
+                  style: TextStyle(color: context.muted, fontSize: 11),
                 ),
-              ),
-            ],
+                Text(
+                  name.isEmpty ? '–' : name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 class _ProgressCard extends StatelessWidget {
   const _ProgressCard(this.task);
-  final PreviewTask task;
+  final TaskItem task;
   @override
   Widget build(BuildContext context) {
     final current = switch (task.status) {
-      'Completed' => 3,
-      'Submitted' => 2,
-      'In progress' => 1,
-      _ => 0,
+      TaskStatus.completed => 3,
+      TaskStatus.submitted => 2,
+      TaskStatus.inProgress || TaskStatus.returned => 1,
+      TaskStatus.notStarted => 0,
     };
+    final locale = context.locale.toString();
+    String day(DateTime? date) =>
+        date == null ? '–' : DateFormat('d MMM', locale).format(date);
+    final moved =
+        task.originalDue != null &&
+        task.due != null &&
+        !DateUtils.isSameDay(task.originalDue, task.due);
     final steps = [
       context.tr('common.not_started'),
       context.tr('common.in_progress'),
@@ -169,19 +181,21 @@ class _ProgressCard extends StatelessWidget {
             children: [
               _TargetCell(
                 context.tr('tasks.original_target'),
-                context.tr('tasks.original_target_date'),
+                day(task.originalDue ?? task.due),
                 context.tr('tasks.never_changes'),
               ),
               _TargetCell(
                 context.tr('tasks.current_target'),
-                taskDueLabel(context, task.due),
-                context.tr('tasks.on_original_date'),
+                taskDueText(context, task.due, done: task.done),
+                moved
+                    ? context.tr('tasks.moved_target')
+                    : context.tr('tasks.on_original_date'),
                 highlight: true,
               ),
               _TargetCell(
                 context.tr('common.completed'),
-                current == 3
-                    ? context.tr('common.today')
+                task.done
+                    ? day(task.completedAt ?? DateTime.now())
                     : context.tr('tasks.not_yet'),
                 context.tr('tasks.set_on_approval'),
               ),

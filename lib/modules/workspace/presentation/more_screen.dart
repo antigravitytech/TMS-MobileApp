@@ -13,12 +13,24 @@ import 'workspace_tools.dart';
 import '../domain/workspace_kind.dart';
 import 'widgets/workspace_ui.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../core/config/environment.dart';
+import '../../../l10n/network_failure_localization.dart';
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../../home/application/live_home.dart';
+import '../../notifications/application/live_notifications.dart';
+import '../../profile/application/profile_controller.dart';
+import '../../profile/presentation/widgets/presence_labels.dart';
+
+part 'widgets/more_live.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(workspacePreviewProvider);
+    final live = ref.watch(environmentProvider).isLive;
+    final me = _moreHeader(ref, live);
     final workspace = ref.watch(localWorkspacesProvider).asData?.value.active;
     final head = workspace?.kind == WorkspaceKind.family
         ? workspace!
@@ -111,9 +123,12 @@ class MoreScreen extends ConsumerWidget {
               )
             else
               DesignTile(
-                title: '${state.firstName} ${state.lastName}',
-                subtitle: '${state.jobTitle} · ${context.tr(state.status)}',
-                leading: const DesignAvatar('CO', size: 48),
+                title: me.name,
+                subtitle: [
+                  me.job,
+                  if (me.statusKey case final key?) context.tr(key),
+                ].where((s) => s.isNotEmpty).join(' · '),
+                leading: DesignAvatar(kitPerson(me.name).$1, size: 48),
                 onTap: () => TmsRoute.profile.open(context),
               ),
           ],
@@ -151,24 +166,29 @@ class MoreScreen extends ConsumerWidget {
             else
               DesignTile(
                 title: workspace == null
-                    ? state.workspace
+                    ? me.workspace
                     : workspaceName(context, workspace),
                 subtitle: workspace == null
                     ? context.tr('more.workspace')
                     : workspace.kind.label(context),
                 leading: workspace == null
-                    ? const DesignAvatar('AG', color: DesignColor.teal)
+                    ? DesignAvatar(
+                        kitPerson(me.workspace).$1,
+                        color: DesignColor.teal,
+                      )
                     : head != null
                     ? _Logo(workspaceName(context, workspace))
                     : null,
                 icon: head != null ? null : workspace?.kind.icon,
                 trailing: TextButton(
-                  onPressed: () => showWorkspacePicker(
-                    context,
-                    ref,
-                    state.workspace,
-                    returnHome: true,
-                  ),
+                  onPressed: () => live && workspace == null
+                      ? _switchLiveWorkspace(context, ref)
+                      : showWorkspacePicker(
+                          context,
+                          ref,
+                          state.workspace,
+                          returnHome: true,
+                        ),
                   child: Text(context.tr('more.switch')),
                 ),
               ),
@@ -185,16 +205,14 @@ class MoreScreen extends ConsumerWidget {
             DesignTile(
               title: context.tr('common.notifications'),
               icon: TmsIcons.notifications,
-              trailing: DesignPill(
-                (6 - state.readNotifications.length).toString(),
-              ),
+              trailing: me.unread > 0 ? DesignPill('${me.unread}') : null,
               onTap: () => TmsRoute.notifications.open(context),
             ),
             DesignTile(
               title: context.tr('common.sign_out'),
               icon: TmsIcons.logout,
               color: DesignColor.rose,
-              onTap: () => TmsRoute.welcome.reset(context),
+              onTap: () => _signOut(context, ref),
             ),
           ],
         ),

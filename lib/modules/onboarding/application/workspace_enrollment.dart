@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/network/api_response.dart';
 import '../../authentication/application/account_session.dart';
 import '../../authentication/data/auth_repository.dart';
 import '../../authentication/domain/account.dart';
@@ -24,8 +23,9 @@ class WorkspaceEnrollment {
     try {
       await _repository.createWorkspace(
         signup.name,
-        signup.kind.name,
+        signup.backendKind,
         signup.details,
+        subtype: signup.subtype,
       );
     } on AccountFailure catch (error) {
       await _session.expire(error);
@@ -41,15 +41,17 @@ class WorkspaceSignup {
   final WorkspaceKind kind;
   final WorkspaceSetup setup;
 
+  String? get subtype =>
+      WorkspaceKind.specials.contains(kind) ? kind.name : null;
+  String get backendKind => subtype == null ? kind.name : 'specials';
+
   Map<String, Object?> get details {
-    if (!const {
-      WorkspaceKind.business,
-      WorkspaceKind.individual,
-      WorkspaceKind.family,
-    }.contains(kind)) {
-      throw const AccountFailure(NetworkFailureType.validation);
-    }
+    final eventDate = setup.date;
     return {
+      if (subtype != null && setup.occasion.trim().isNotEmpty)
+        'event_name': setup.occasion.trim(),
+      if (subtype != null && eventDate != null)
+        'event_date': eventDate.toIso8601String().split('T').first,
       if (setup.occupation != null) 'job': setup.occupation!.name,
       if (kind == WorkspaceKind.individual) 'has_clients': setup.withClients,
       if (setup.members.isNotEmpty)
@@ -69,7 +71,8 @@ class WorkspaceSignup {
 
   Map<String, Object?> get fields => {
     'workspace_name': name,
-    'workspace_type': kind.name,
+    'workspace_type': backendKind,
+    'workspace_subtype': ?subtype,
     if (details case final setup when setup.isNotEmpty)
       'workspace_setup': setup,
   };

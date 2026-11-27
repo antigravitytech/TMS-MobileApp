@@ -14,9 +14,11 @@ class FamilyHomeMetric extends StatelessWidget {
     super.key,
     required this.index,
     required this.workspace,
+    this.readOnly = false,
   });
   final int index;
   final LocalWorkspace workspace;
+  final bool readOnly;
   @override
   Widget build(BuildContext context) {
     final color = [
@@ -29,10 +31,10 @@ class FamilyHomeMetric extends StatelessWidget {
       WorkspaceSection.chores,
       WorkspaceSection.school,
       WorkspaceSection.bills,
-      WorkspaceSection.plans,
+      readOnly ? WorkspaceSection.shopping : WorkspaceSection.plans,
     ];
     return DesignCard(
-      onTap: () => sections[index].open(context),
+      onTap: readOnly ? null : () => sections[index].open(context),
       padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +52,7 @@ class FamilyHomeMetric extends StatelessWidget {
                 TmsIcons.shoppingBag,
                 TmsIcons.school,
                 TmsIcons.receipt,
-                TmsIcons.calendar,
+                readOnly ? TmsIcons.shoppingCart : TmsIcons.calendar,
               ][index],
               color: color,
               size: 18,
@@ -73,7 +75,9 @@ class FamilyHomeMetric extends StatelessWidget {
                       'family_reference.chores',
                       'family_reference.school',
                       '',
-                      'workspaces.sections.plans.title',
+                      readOnly
+                          ? 'more.tools.shopping'
+                          : 'workspaces.sections.plans.title',
                     ][index],
                   ),
             style: TextStyle(fontSize: 11, color: context.muted),
@@ -115,6 +119,9 @@ class FamilyHomeMetric extends StatelessWidget {
           .where((r) => r.status == WorkspaceStatus.submitted)
           .length,
     2 => _dueThisWeek.$1,
-    _ => workspace.items(WorkspaceSection.plans).length,
+    _ =>
+      workspace
+          .items(readOnly ? WorkspaceSection.shopping : WorkspaceSection.plans)
+          .length,
   };
 }

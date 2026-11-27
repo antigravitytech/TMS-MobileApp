@@ -15,11 +15,14 @@ import '../../workspace/domain/workspace_kind.dart';
 import '../../../shared/kit/kit_visuals.dart';
 import '../../workspace/presentation/widgets/workspace_ui.dart';
 import '../application/chat_session.dart';
+import '../application/chat_thread.dart';
 import '../data/chat_directory.dart';
 import 'widgets/chat_widgets.dart';
 
 part 'widgets/conversation_motion.dart';
 part 'widgets/conversation_composer.dart';
+part 'widgets/conversation_parts.dart';
+part 'widgets/live_thread.dart';
 
 class ConversationScreen extends ConsumerWidget {
   const ConversationScreen({super.key});
@@ -99,6 +102,9 @@ class _ThreadState extends ConsumerState<_Thread> {
     final provider = chatSessionProvider(book.workspace);
     final session = ref.watch(provider);
     final peer = session.selected ?? book.example?.peer.row;
+    if (peer != null && peer.id.isNotEmpty) {
+      return _LiveThread(key: ValueKey(peer.id), peer: peer);
+    }
     if (peer == null) {
       return DesignPage(
         title: context.tr('common.chat'),
@@ -107,7 +113,7 @@ class _ThreadState extends ConsumerState<_Thread> {
     }
     final example =
         peer.name == book.example?.peer.row.name ||
-            peer.name == book.task.firstOrNull
+            peer.name == book.tasks.firstOrNull?.name
         ? book.example
         : null;
     final legacy =
@@ -140,53 +146,13 @@ class _ThreadState extends ConsumerState<_Thread> {
       body: SafeArea(
         child: Column(
           children: [
-            Container(
-              color: context.background,
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
-              child: Row(
-                spacing: 10,
-                children: [
-                  IconButton(
-                    icon: const Icon(TmsIcons.chevronBack, size: 18),
-                    tooltip: context.tr('common.back'),
-                    onPressed: () async {
-                      if (!await context.router.maybePop() && context.mounted) {
-                        TmsRoute.chat.reset(context);
-                      }
-                    },
-                  ),
-                  ChatAvatar(peer, size: 36),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          peer.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                          ),
-                        ),
-                        if (typing || peer.online)
-                          Text(
-                            context.tr(typing ? 'chat.typing' : 'chat.online'),
-                            style: const TextStyle(
-                              color: DesignColor.green,
-                              fontSize: 12,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                  Tooltip(
-                    message: context.tr('chat.voice_call'),
-                    child: const SizedBox.square(
-                      dimension: 44,
-                      child: Icon(TmsIcons.phone, size: 19),
-                    ),
-                  ),
-                ],
-              ),
+            _ConversationHeader(
+              peer: peer,
+              status: typing
+                  ? context.tr('chat.typing')
+                  : peer.online
+                  ? context.tr('chat.online')
+                  : null,
             ),
             Expanded(
               child: ListView(
@@ -279,24 +245,6 @@ class _ThreadState extends ConsumerState<_Thread> {
       mine: mine,
     ),
   );
-  Widget bubble(Widget child, {bool mine = false}) => Align(
-    alignment: mine ? Alignment.centerRight : Alignment.centerLeft,
-    child: Container(
-      constraints: BoxConstraints(
-        maxWidth: (MediaQuery.sizeOf(context).width - 40) * .78,
-      ),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: mine
-            ? (context.dark ? const Color(0xff3b3a57) : const Color(0xffe6e2ff))
-            : context.panel,
-        borderRadius: BorderRadius.circular(20).copyWith(
-          bottomLeft: Radius.circular(mine ? 20 : 6),
-          bottomRight: Radius.circular(mine ? 6 : 20),
-        ),
-      ),
-      child: child,
-    ),
-  );
+  Widget bubble(Widget child, {bool mine = false}) =>
+      _Bubble(mine: mine, child: child);
 }

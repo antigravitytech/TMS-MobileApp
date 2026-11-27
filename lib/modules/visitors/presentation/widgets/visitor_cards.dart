@@ -1,8 +1,22 @@
 part of '../visitors_screen.dart';
 
+/// "Today", "Tomorrow" or a short date.
+String _visitDay(BuildContext context, DateTime day) {
+  final now = DateTime.now();
+  final days = DateTime(
+    day.year,
+    day.month,
+    day.day,
+  ).difference(DateTime(now.year, now.month, now.day)).inDays;
+  if (days == 0) return context.tr('common.today');
+  if (days == 1) return context.tr('common.tomorrow');
+  return DateFormat('EEE, d MMM', context.locale.toString()).format(day);
+}
+
 class _WaitingVisitor extends StatelessWidget {
-  const _WaitingVisitor({required this.onDecision});
-  final ValueChanged<String> onDecision;
+  const _WaitingVisitor({required this.pass, required this.onDecision});
+  final VisitPass pass;
+  final ValueChanged<GuestAnswer> onDecision;
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
@@ -19,19 +33,31 @@ class _WaitingVisitor extends StatelessWidget {
       children: [
         Row(
           children: [
-            const DesignAvatar('FA', color: DesignColor.amber, size: 52),
+            DesignAvatar(
+              kitPerson(pass.guest).$1,
+              color: kitPerson(pass.guest).$2,
+              size: 52,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Folake Adebayo',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  Text(
+                    pass.guest,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    context.tr('visitors.at_reception_arrived_2_min_ago'),
+                    context.plural(
+                      'visitors.arrived_minutes_ago',
+                      DateTime.now()
+                          .difference(pass.arrivedAt ?? DateTime.now())
+                          .inMinutes,
+                    ),
                     style: TextStyle(fontSize: 12, color: context.lavender),
                   ),
                 ],
@@ -53,29 +79,31 @@ class _WaitingVisitor extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 16),
-        Text(
-          context.tr('visitors.interview_backend_engineer_role'),
-          style: TextStyle(fontSize: 13, color: context.lavender),
-        ),
+        if (pass.purpose.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(
+            pass.purpose,
+            style: TextStyle(fontSize: 13, color: context.lavender),
+          ),
+        ],
         const SizedBox(height: 18),
         Row(
           spacing: 8,
           children: [
-            for (final key in [
-              'visitors.come_in',
-              'visitors.wait_10_min',
-              'visitors.not_today',
+            for (final (key, decision) in const [
+              ('visitors.come_in', GuestAnswer.admit),
+              ('visitors.wait_10_min', GuestAnswer.hold),
+              ('visitors.not_today', GuestAnswer.decline),
             ])
               Expanded(
-                child: key == 'visitors.come_in'
+                child: decision == GuestAnswer.admit
                     ? DesignButton(
                         context.tr(key),
                         color: DesignColor.green,
-                        onPressed: () => onDecision(key),
+                        onPressed: () => onDecision(decision),
                       )
                     : OutlinedButton(
-                        onPressed: () => onDecision(key),
+                        onPressed: () => onDecision(decision),
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size(0, 52),
                           padding: EdgeInsets.zero,
@@ -96,6 +124,61 @@ class _WaitingVisitor extends StatelessWidget {
                       ),
               ),
           ],
+        ),
+      ],
+    ),
+  );
+}
+
+/// What reception was told about a guest I answered.
+class _AnsweredVisitor extends StatelessWidget {
+  const _AnsweredVisitor({
+    super.key,
+    required this.name,
+    required this.decision,
+  });
+  final String name;
+  final GuestAnswer decision;
+  @override
+  Widget build(BuildContext context) => DesignCard(
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: DesignColor.green.withValues(alpha: .15),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: DesignColor.green.withValues(alpha: .3)),
+          ),
+          child: const Icon(TmsIcons.check, color: DesignColor.green),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.tr(
+                  switch (decision) {
+                    GuestAnswer.admit => 'visitors.asked_to_come',
+                    GuestAnswer.hold => 'visitors.asked_to_wait',
+                    GuestAnswer.decline => 'visitors.told_not_today',
+                  },
+                  namedArgs: {'name': name},
+                ),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                context.tr('visitors.reception_has_been_told'),
+                style: TextStyle(fontSize: 12, color: context.muted),
+              ),
+            ],
+          ),
         ),
       ],
     ),

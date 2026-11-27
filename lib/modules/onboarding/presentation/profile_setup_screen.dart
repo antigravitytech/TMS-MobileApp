@@ -54,7 +54,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         TmsRoute.signIn.reset(context);
       case ProfileSetupResult.complete:
         if (ref.read(environmentProvider).isLive) {
-          TmsRoute.account.reset(context);
+          TmsRoute.home.reset(context);
           return;
         }
         final directory = await ref

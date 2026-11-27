@@ -1,25 +1,50 @@
 part of '../search_screen.dart';
 
+/// One row: what it shows and what tapping it does.
 class _SearchItem {
   const _SearchItem(
-    this.titleKey,
-    this.subtitleKey,
+    this.title,
+    this.subtitle,
     this.icon,
     this.color,
-    this.route, {
-    this.rawTitle = false,
-    this.task,
-  });
-  final String titleKey, subtitleKey;
+    this.open,
+  );
+  final String title, subtitle;
   final IconData icon;
   final Color color;
-  final TmsRoute route;
-  final bool rawTitle;
-  final PreviewTask? task;
-  String title(BuildContext context) =>
-      rawTitle ? titleKey : context.tr(titleKey);
-  String subtitle(BuildContext context) => context.tr(subtitleKey);
+  final VoidCallback open;
 }
+
+/// Tones cycle within each group, as in the design.
+const _taskTones = [DesignColor.blue, DesignColor.amber];
+const _projectTones = [DesignColor.rose, DesignColor.amber];
+const _personTones = [DesignColor.teal, DesignColor.purple];
+
+Color _tone(List<Color> tones, int i) => tones[i % tones.length];
+
+String _taskDetail(BuildContext context, SearchTask hit) =>
+    hit.detailKey != null
+    ? context.tr(hit.detailKey!)
+    : [
+        hit.task.reference,
+        taskStatusText(context, hit.task.status),
+      ].where((s) => s.isNotEmpty).join(' · ');
+
+String _projectDetail(BuildContext context, SearchProject hit) =>
+    hit.detailKey != null
+    ? context.tr(hit.detailKey!)
+    : context.tr(
+        'search.project_detail',
+        namedArgs: {
+          'health': context.tr('projects.${hit.project.health.code}'),
+          'progress': '${hit.project.progress}',
+        },
+      );
+
+String _personDetail(BuildContext context, SearchPerson p) =>
+    p.detailKey != null
+    ? context.tr(p.detailKey!)
+    : [p.jobTitle, p.team].where((s) => s.isNotEmpty).join(' · ');
 
 class _Label extends StatelessWidget {
   const _Label(this.text);
@@ -40,10 +65,9 @@ class _Label extends StatelessWidget {
 }
 
 class _Group extends StatelessWidget {
-  const _Group(this.label, this.items, this.preview);
+  const _Group(this.label, this.items);
   final String label;
   final List<_SearchItem> items;
-  final WorkspacePreview preview;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(top: 22),
@@ -68,7 +92,7 @@ class _Group extends StatelessWidget {
                     endIndent: 16,
                     color: context.outline,
                   ),
-                _ResultRow(items[i], preview),
+                _ResultRow(items[i]),
               ],
             ],
           ),
@@ -79,15 +103,11 @@ class _Group extends StatelessWidget {
 }
 
 class _ResultRow extends StatelessWidget {
-  const _ResultRow(this.item, this.preview);
+  const _ResultRow(this.item);
   final _SearchItem item;
-  final WorkspacePreview preview;
   @override
   Widget build(BuildContext context) => InkWell(
-    onTap: () {
-      if (item.task != null) preview.selectTask(item.task!);
-      item.route.open(context);
-    },
+    onTap: item.open,
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
       child: Row(
@@ -108,7 +128,7 @@ class _ResultRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.title(context),
+                  item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -118,7 +138,7 @@ class _ResultRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  item.subtitle(context),
+                  item.subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 12, color: context.muted),

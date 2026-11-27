@@ -97,7 +97,6 @@ class LiveAuthRepository implements AuthRepository {
         () => (result['items'] as List)
             .cast<Map<String, dynamic>>()
             .map(AccountWorkspace.fromJson)
-            .where((workspace) => workspace.kind != 'specials')
             .toList(),
       );
       workspaces.addAll(entries);
@@ -108,11 +107,13 @@ class LiveAuthRepository implements AuthRepository {
   Future<void> createWorkspace(
     String name,
     String kind,
-    Map<String, Object?> setup,
-  ) async {
+    Map<String, Object?> setup, {
+    String? subtype,
+  }) async {
     await _action('/workspace/create-workspace/', {
       'name': name,
       'kind': kind,
+      'subtype': ?subtype,
       if (setup.isNotEmpty) 'setup': setup,
     }, authenticated: true);
   }

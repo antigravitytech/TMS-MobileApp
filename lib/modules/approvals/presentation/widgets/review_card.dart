@@ -1,124 +1,150 @@
 part of '../approvals_screen.dart';
 
-class _ReviewCard extends StatelessWidget {
+/// "Just now", "3h ago" or "2d ago" since the task was submitted.
+String _ago(BuildContext context, DateTime? at) {
+  if (at == null) return context.tr('approvals.just_now');
+  final age = DateTime.now().difference(at);
+  if (age.inMinutes < 1) return context.tr('approvals.just_now');
+  if (age.inHours < 1) {
+    return context.tr(
+      'approvals.minutes_ago',
+      namedArgs: {'n': '${age.inMinutes}'},
+    );
+  }
+  if (age.inDays < 1) {
+    return context.tr(
+      'approvals.hours_ago',
+      namedArgs: {'n': '${age.inHours}'},
+    );
+  }
+  return context.tr('approvals.days_ago', namedArgs: {'n': '${age.inDays}'});
+}
+
+class _ReviewCard extends ConsumerWidget {
   const _ReviewCard({
     required this.task,
     required this.dx,
     required this.onOpen,
   });
-  final PreviewTask task;
+  final TaskItem task;
   final double dx;
   final VoidCallback onOpen;
   @override
-  Widget build(BuildContext context) => Stack(
-    children: [
-      DesignCard(
-        padding: const EdgeInsets.all(19),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 12,
-          children: [
-            Row(
-              spacing: 10,
-              children: [
-                DesignAvatar(
-                  task.person.split(' ').map((name) => name[0]).take(2).join(),
-                  color: DesignColor.teal,
-                  size: 46,
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      DesignTitle(task.person),
-                      DesignLabel('${task.project} · ${task.id}'),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                height: 1.18,
-              ),
-            ),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                _ReviewChip(
-                  context.tr('common.submitted'),
-                  color: DesignColor.amber,
-                ),
-                _ReviewChip(
-                  context.tr(
-                    task.id == 'TK-142'
-                        ? 'approvals.round_2'
-                        : 'approvals.round_1',
-                  ),
-                ),
-                _ReviewChip(
-                  context.tr('approvals.just_now'),
-                  icon: TmsIcons.clock,
-                ),
-              ],
-            ),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: context.raised,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text('“${task.note}”'),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 8,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final person = task.assignee?.name ?? '';
+    final note = ref.watch(reviewNoteProvider(task)).value ?? '';
+    return Stack(
+      children: [
+        DesignCard(
+          padding: const EdgeInsets.all(19),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 12,
+            children: [
+              Row(
+                spacing: 10,
                 children: [
-                  _ReviewChip(
-                    context.tr('approvals.2_files'),
-                    icon: TmsIcons.attachment,
+                  DesignAvatar(
+                    kitPerson(person).$1,
+                    color: kitPerson(person).$2,
+                    size: 46,
                   ),
-                  TextButton(
-                    onPressed: onOpen,
-                    child: Text(context.tr('approvals.open_task_link')),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DesignTitle(person),
+                        DesignLabel(
+                          '${taskPlaceText(context, task)} · ${task.reference}',
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Text(
+                task.title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  height: 1.18,
+                ),
+              ),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _ReviewChip(
+                    context.tr('common.submitted'),
+                    color: DesignColor.amber,
+                  ),
+                  _ReviewChip(
+                    context.tr(
+                      'tasks.round',
+                      namedArgs: {'n': '${task.round < 1 ? 1 : task.round}'},
+                    ),
+                  ),
+                  _ReviewChip(
+                    _ago(context, task.submittedAt),
+                    icon: TmsIcons.clock,
+                  ),
+                ],
+              ),
+              if (note.isNotEmpty)
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: context.raised,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text('“$note”'),
+                  ),
+                ),
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  children: [
+                    _ReviewChip(
+                      context.plural('approvals.files_count', task.fileCount),
+                      icon: TmsIcons.attachment,
+                    ),
+                    TextButton(
+                      onPressed: onOpen,
+                      child: Text(context.tr('approvals.open_task_link')),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      if (dx.abs() > 10)
-        Positioned(
-          top: 20,
-          left: dx > 0 ? 18 : null,
-          right: dx < 0 ? 18 : null,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: (dx.abs() / 95).clamp(0, 1),
-              child: Transform.rotate(
-                angle: dx > 0 ? -.18 : .18,
-                child: _ReviewChip(
-                  dx > 0
-                      ? context.tr('approvals.approve_swipe')
-                      : context.tr('approvals.return_swipe'),
-                  color: dx > 0 ? DesignColor.green : DesignColor.rose,
+        if (dx.abs() > 10)
+          Positioned(
+            top: 20,
+            left: dx > 0 ? 18 : null,
+            right: dx < 0 ? 18 : null,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: (dx.abs() / 95).clamp(0, 1),
+                child: Transform.rotate(
+                  angle: dx > 0 ? -.18 : .18,
+                  child: _ReviewChip(
+                    dx > 0
+                        ? context.tr('approvals.approve_swipe')
+                        : context.tr('approvals.return_swipe'),
+                    color: dx > 0 ? DesignColor.green : DesignColor.rose,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 class _ReviewChip extends StatelessWidget {

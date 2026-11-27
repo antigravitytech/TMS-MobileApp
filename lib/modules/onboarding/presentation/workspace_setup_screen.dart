@@ -69,10 +69,6 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
 
   Future<void> proceed() async {
     if (saving) return;
-    if (door == _WorkspaceDoor.specials &&
-        ref.read(environmentProvider).isLive) {
-      return;
-    }
     if (!choosingKind && door != _WorkspaceDoor.business) {
       setState(() {
         choosingKind = true;
@@ -165,8 +161,6 @@ class _WorkspaceSetupScreenState extends ConsumerState<WorkspaceSetupScreen> {
     final personalKind = choosingKind && door == _WorkspaceDoor.personal;
     final canContinue =
         !saving &&
-        !(door == _WorkspaceDoor.specials &&
-            ref.watch(environmentProvider).isLive) &&
         (choosingKind
             ? selected != null
             : name.trim().isNotEmpty && slug.isNotEmpty);

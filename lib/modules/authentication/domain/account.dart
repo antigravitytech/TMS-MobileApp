@@ -38,11 +38,12 @@ class AccountWorkspace {
     : id = json['id'] as String,
       name = json['name'] as String,
       kind = json['kind'] as String,
+      subtype = json['subtype'] as String?,
       approval = json['approval_status'] as String,
       rejectionReason = json['rejected_reason'] as String?;
 
   final String id, name, kind, approval;
-  final String? rejectionReason;
+  final String? subtype, rejectionReason;
 }
 
 class AccountFailure implements Exception {

@@ -128,3 +128,95 @@ class _DashedDay extends CustomPainter {
   @override
   bool shouldRepaint(_DashedDay oldDelegate) => false;
 }
+
+class _LiveDailyReport extends StatelessWidget {
+  const _LiveDailyReport({
+    required this.report,
+    required this.actions,
+    required this.busy,
+  });
+
+  final DashboardJson report;
+  final LiveHomeActions actions;
+  final bool busy;
+
+  @override
+  Widget build(BuildContext context) {
+    final routine = dashboardObject(report['routine']);
+    final occurrence = dashboardObject(report['current_occurrence']);
+    final dateFormat = DateFormat.E(context.locale.toString());
+    final history = dashboardRows(report['occurrences']);
+    final due = dashboardText(routine['due_time']);
+    final sent = occurrence['log'] != null;
+    final routineId = routine['id'];
+    final occurrenceDate = occurrence['date'];
+    final canLog =
+        occurrence['can_log'] == true &&
+        routineId is String &&
+        occurrenceDate is String &&
+        occurrence['log'] == null;
+    return DesignCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 12,
+        children: [
+          Row(
+            spacing: 12,
+            children: [
+              const Icon(TmsIcons.edit, color: DesignColor.teal),
+              Expanded(
+                child: Text(
+                  dashboardText(routine['title']),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          if (sent || due.isNotEmpty)
+            _HomeCaption(
+              sent
+                  ? context.tr('home.sent_today')
+                  : context.tr('home.live_due_by', namedArgs: {'time': due}),
+            ),
+          if (history.isNotEmpty)
+            Row(
+              children: [
+                for (final entry in history.take(7))
+                  if (dashboardDate(entry['date']) case final day?)
+                    Expanded(
+                      child: Column(
+                        spacing: 6,
+                        children: [
+                          _ReportDay(
+                            missed: entry['state'] == 'missed',
+                            pending:
+                                entry['log'] == null &&
+                                entry['state'] != 'missed',
+                          ),
+                          _HomeCaption(dateFormat.format(day)),
+                        ],
+                      ),
+                    ),
+              ],
+            ),
+          if (canLog)
+            _CardButton(
+              context.tr('home.log_todays_report'),
+              color: context.foreground,
+              background: context.raised,
+              border: context.outline,
+              onPressed: busy
+                  ? null
+                  : () => _openReportForm(
+                      context,
+                      actions,
+                      routineId,
+                      occurrenceDate,
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
+}

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/config/environment.dart';
@@ -44,25 +45,39 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _continue() async {
+    final email = _email.text;
+    final password = _password.text;
     try {
-      final attempt = ref
+      final result = await ref
           .read(signInProvider.notifier)
           .signIn(
-            email: _email.text,
-            password: _password.text,
+            email: email,
+            password: password,
             remember: _remember,
             delay: DesignMotion.duration(
               context,
               const Duration(milliseconds: 1100),
             ),
           );
-      final result = await attempt;
       if (!mounted) return;
-      if (result == SignInResult.invalidCredentials) {
-        designToast(
-          context,
-          context.tr('onboarding.enter_an_email_address_and_password'),
-        );
+      switch (result) {
+        case SignInResult.ignored:
+          break;
+        case SignInResult.invalidCredentials:
+          designToast(
+            context,
+            context.tr('onboarding.enter_an_email_address_and_password'),
+          );
+        case SignInResult.preview:
+          _showSignedIn();
+        case SignInResult.authenticated:
+          if (ModalRoute.isCurrentOf(context) == true &&
+              email == _email.text &&
+              password == _password.text) {
+            // Commit the submitted credentials while both fields are attached.
+            TextInput.finishAutofillContext(shouldSave: true);
+          }
+          _showSignedIn();
       }
     } on AccountFailure catch (error) {
       if (mounted) designToast(context, accountErrorMessage(context, error));
@@ -128,7 +143,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           .read(accountSessionProvider.notifier)
           .shouldResumeOnboarding(account);
       if (mounted) {
-        (resume ? TmsRoute.profileSetup : TmsRoute.account).reset(context);
+        (resume ? TmsRoute.profileSetup : TmsRoute.home).reset(context);
       }
     } catch (_) {
       if (mounted) {

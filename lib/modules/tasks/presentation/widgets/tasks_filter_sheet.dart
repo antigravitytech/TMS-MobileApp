@@ -2,28 +2,36 @@ part of '../tasks_screen.dart';
 
 class _TaskFilterSheet extends StatefulWidget {
   const _TaskFilterSheet({
-    required this.priority,
-    required this.project,
-    required this.sort,
+    required this.filters,
     required this.tasks,
+    required this.place,
+    required this.narrow,
   });
-  final int priority, project, sort;
-  final List<PreviewTask> tasks;
+  final TaskFilters filters;
+  final List<TaskItem> tasks;
+  final String Function(TaskItem) place;
+  final List<TaskItem> Function(List<TaskItem>, TaskFilters) narrow;
   @override
   State<_TaskFilterSheet> createState() => _TaskFilterSheetState();
 }
 
 class _TaskFilterSheetState extends State<_TaskFilterSheet> {
-  late int p = widget.priority, j = widget.project, s = widget.sort;
+  late TaskPriority? p = widget.filters.priority;
+  late String? j = widget.filters.place;
+  late int s = widget.filters.sort;
+
+  /// Projects, teams and task types in the loaded tab, with how each reads.
+  late final places = {
+    for (final t in widget.tasks) widget.place(t): taskPlaceText(context, t),
+  };
+
   @override
   Widget build(BuildContext context) {
-    final count = widget.tasks
-        .where(
-          (t) =>
-              (p == 0 || t.priority == _TasksScreenState.priorities[p]) &&
-              (j == 0 || t.project == _TasksScreenState.projects[j]),
-        )
-        .length;
+    final count = widget.narrow(widget.tasks, (
+      priority: p,
+      place: j,
+      sort: s,
+    )).length;
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -56,8 +64,8 @@ class _TaskFilterSheetState extends State<_TaskFilterSheet> {
                 ),
                 TextButton(
                   onPressed: () => setState(() {
-                    p = 0;
-                    j = 0;
+                    p = null;
+                    j = null;
                     s = 0;
                   }),
                   child: Text(
@@ -111,17 +119,19 @@ class _TaskFilterSheetState extends State<_TaskFilterSheet> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (var i = 1; i < 5; i++)
+                for (final (i, priority)
+                    in TaskPriority.values.reversed.indexed)
                   _FilterChoice(
-                    taskPriorityLabel(context, _TasksScreenState.priorities[i]),
-                    selected: p == i,
+                    taskPriorityText(context, priority),
+                    selected: p == priority,
                     dot: [
                       DesignColor.red,
                       const Color(0xfff59562),
                       DesignColor.amber,
                       context.muted,
-                    ][i - 1],
-                    onTap: () => setState(() => p = p == i ? 0 : i),
+                    ][i],
+                    onTap: () =>
+                        setState(() => p = p == priority ? null : priority),
                   ),
               ],
             ),
@@ -131,16 +141,16 @@ class _TaskFilterSheetState extends State<_TaskFilterSheet> {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final i in [0, 3, 4, 1, 2])
+                _FilterChoice(
+                  context.tr('common.all_projects'),
+                  selected: j == null,
+                  onTap: () => setState(() => j = null),
+                ),
+                for (final MapEntry(:key, :value) in places.entries)
                   _FilterChoice(
-                    i == 0
-                        ? context.tr('common.all_projects')
-                        : taskProjectLabel(
-                            context,
-                            _TasksScreenState.projects[i],
-                          ),
-                    selected: j == i,
-                    onTap: () => setState(() => j = i),
+                    value,
+                    selected: j == key,
+                    onTap: () => setState(() => j = key),
                   ),
               ],
             ),
@@ -154,7 +164,11 @@ class _TaskFilterSheetState extends State<_TaskFilterSheet> {
                   ).format(count),
                 },
               ),
-              onPressed: () => Navigator.pop(context, (p, j, s)),
+              onPressed: () => Navigator.pop<TaskFilters>(context, (
+                priority: p,
+                place: j,
+                sort: s,
+              )),
             ),
           ],
         ),

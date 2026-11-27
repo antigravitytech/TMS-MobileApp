@@ -9,6 +9,7 @@ import '../../../shared/design/tms_icons.dart';
 import '../../workspace/presentation/widgets/workspace_ui.dart';
 import '../application/chat_session.dart';
 import '../data/chat_directory.dart';
+import '../data/chat_repository.dart';
 import 'widgets/chat_widgets.dart';
 import 'widgets/compose_chat.dart';
 
@@ -55,7 +56,7 @@ class _InboxState extends ConsumerState<_Inbox> {
   }
 
   Future<void> compose() async {
-    final result = await showModalBottomSheet<(ChatRow, bool)>(
+    final result = await showModalBottomSheet<ComposeResult>(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.panel,
@@ -65,8 +66,39 @@ class _InboxState extends ConsumerState<_Inbox> {
       builder: (_) => ComposeChat(directory: book),
     );
     if (result == null || !mounted) return;
-    controller.create(result.$1, group: result.$2);
-    TmsRoute.conversation.open(context);
+    try {
+      final row = await ref
+          .read(chatRepositoryProvider)
+          .start(book, result.people, group: result.group, title: result.title);
+      if (!mounted) return;
+      if (row.id.isEmpty) {
+        controller.create(row, group: result.group);
+      } else {
+        controller.open(row);
+        ref.invalidate(chatDirectoryProvider);
+      }
+      TmsRoute.conversation.open(context);
+    } catch (error) {
+      if (mounted) designToast(context, chatErrorMessage(context, error));
+    }
+  }
+
+  Future<void> respond(ChatRequest request, {required bool accept}) async {
+    try {
+      await ref.read(chatRepositoryProvider).respond(request, accept: accept);
+      if (!mounted) return;
+      controller.resolveRequest(accept ? request.row : null);
+      if (request.id.isNotEmpty) ref.invalidate(chatDirectoryProvider);
+      designToast(
+        context,
+        context.tr(
+          accept ? request.accepted : 'chat.chat_request_declined',
+          namedArgs: {'name': request.row.name.split(' ').first},
+        ),
+      );
+    } catch (error) {
+      if (mounted) designToast(context, chatErrorMessage(context, error));
+    }
   }
 
   @override
@@ -79,7 +111,7 @@ class _InboxState extends ConsumerState<_Inbox> {
       ),
     ];
     final groups = [...session.groups, ...book.groups];
-    final task = book.task;
+    final tasks = book.tasks;
     final request = book.request;
     return Scaffold(
       backgroundColor: context.background,
@@ -134,7 +166,8 @@ class _InboxState extends ConsumerState<_Inbox> {
                       context.tr(
                         'chat.chat_count',
                         namedArgs: {
-                          'count': '${recent.length + (task.isEmpty ? 0 : 2)}',
+                          'count':
+                              '${recent.length + (tasks.isEmpty ? 0 : tasks.length + 1)}',
                         },
                       ),
                       context.tr(
@@ -196,6 +229,8 @@ class _InboxState extends ConsumerState<_Inbox> {
                           ),
                         ),
                         const SizedBox(height: 16),
+                      ],
+                      if (book.filters.isNotEmpty)
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
@@ -210,9 +245,8 @@ class _InboxState extends ConsumerState<_Inbox> {
                             ],
                           ),
                         ),
-                      ],
                       if (tab == 0) ...[
-                        if (request.isNotEmpty && !session.requestHandled)
+                        if (request != null && !session.requestHandled)
                           Padding(
                             padding: const EdgeInsets.only(top: 16),
                             child: _requestCard(request),
@@ -221,44 +255,33 @@ class _InboxState extends ConsumerState<_Inbox> {
                           _heading(context.tr('common.pinned')),
                           ChatListRow(pin, group: true, onTap: () => open(pin)),
                         ],
-                        if (task.isNotEmpty) ...[
+                        if (tasks.isNotEmpty) ...[
                           _heading(context.tr(book.section)),
-                          Builder(
-                            builder: (context) {
-                              final row = ChatRow(
-                                initials: '',
-                                color: 'a3',
-                                name: task[0],
-                                preview: task[1],
-                                time: task[2],
-                                badge: '@',
-                              );
-                              return ChatListRow(
-                                row,
-                                leading: Container(
-                                  width: 52,
-                                  height: 52,
-                                  decoration: BoxDecoration(
-                                    color: DesignColor.amber.withValues(
-                                      alpha: .12,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: DesignColor.amber.withValues(
-                                        alpha: .3,
-                                      ),
-                                    ),
+                          for (final row in tasks)
+                            ChatListRow(
+                              row,
+                              leading: Container(
+                                width: 52,
+                                height: 52,
+                                decoration: BoxDecoration(
+                                  color: DesignColor.amber.withValues(
+                                    alpha: .12,
                                   ),
-                                  child: const Icon(
-                                    TmsIcons.checkSquare,
-                                    size: 20,
-                                    color: DesignColor.amber,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: DesignColor.amber.withValues(
+                                      alpha: .3,
+                                    ),
                                   ),
                                 ),
-                                onTap: () => open(row),
-                              );
-                            },
-                          ),
+                                child: const Icon(
+                                  TmsIcons.checkSquare,
+                                  size: 20,
+                                  color: DesignColor.amber,
+                                ),
+                              ),
+                              onTap: () => open(row),
+                            ),
                         ],
                         _heading(context.tr('chat.recent')),
                         if (recent.isEmpty)

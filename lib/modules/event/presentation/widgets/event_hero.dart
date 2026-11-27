@@ -15,7 +15,7 @@ class EventHero extends StatelessWidget {
   });
   final int days;
   final String hosts, title, line, style;
-  final VoidCallback onShare;
+  final VoidCallback? onShare;
   @override
   Widget build(BuildContext c) => Container(
     padding: const EdgeInsets.all(18),
@@ -113,22 +113,23 @@ class EventHero extends StatelessWidget {
               child: Text(style, style: const TextStyle(fontSize: 12)),
             ),
           ],
-          const SizedBox(height: 14),
-          Row(
-            spacing: 8,
-            children: [
-              Expanded(
-                child: HeroButton(
-                  c.tr('event.share_invite'),
-                  light: true,
-                  onTap: onShare,
+          if (onShare != null) const SizedBox(height: 14),
+          if (onShare != null)
+            Row(
+              spacing: 8,
+              children: [
+                Expanded(
+                  child: HeroButton(
+                    c.tr('event.share_invite'),
+                    light: true,
+                    onTap: onShare!,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: HeroButton(c.tr('event.guest_page'), onTap: onShare),
-              ),
-            ],
-          ),
+                Expanded(
+                  child: HeroButton(c.tr('event.guest_page'), onTap: onShare!),
+                ),
+              ],
+            ),
         ],
       ),
     ),

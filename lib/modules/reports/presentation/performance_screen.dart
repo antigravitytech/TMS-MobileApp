@@ -1,266 +1,155 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../tasks/presentation/tasks_screen.dart' show taskErrorMessage;
+import '../application/reports_controller.dart';
+import '../domain/report.dart';
 
 part 'widgets/performance_widgets.dart';
+part 'widgets/performance_charts.dart';
 
-class PerformanceScreen extends StatefulWidget {
+class PerformanceScreen extends ConsumerStatefulWidget {
   const PerformanceScreen({super.key});
   @override
-  State<PerformanceScreen> createState() => _PerformanceScreenState();
+  ConsumerState<PerformanceScreen> createState() => _PerformanceScreenState();
 }
 
-class _PerformanceScreenState extends State<PerformanceScreen> {
-  int tab = 0, period = 1;
+class _PerformanceScreenState extends ConsumerState<PerformanceScreen> {
+  int tab = 0;
+  ReportPeriod period = ReportPeriod.thisMonth;
+
   @override
-  Widget build(BuildContext context) => DesignPage(
-    title: context.tr('common.performance'),
-    actions: [
-      DesignIcon(
-        icon: TmsIcons.download,
-        label: context.tr('reports.export_appraisal'),
-        onPressed: () => TmsRoute.profile.open(context),
-      ),
-    ],
-    children: [
-      _PerformanceSegments(tab: tab, onChanged: (i) => setState(() => tab = i)),
-      SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          spacing: 8,
-          children: [
-            for (var i = 0; i < 4; i++)
-              _PeriodChip(
-                context.tr(
-                  [
-                    'reports.this_week',
-                    'reports.this_month',
-                    'reports.last_month',
-                    'reports.this_quarter',
-                  ][i],
-                ),
-                selected: period == i,
-                onTap: () => setState(() => period = i),
-              ),
-          ],
-        ),
-      ),
-      DesignLabel(
-        context.tr(
-          'reports.compared_with_previous',
-          namedArgs: {
-            'period': context.tr(
-              const [
-                'reports.range_week',
-                'reports.range_month',
-                'reports.range_last_month',
-                'reports.range_quarter',
-              ][period],
-            ),
-          },
-        ),
-      ),
-      _PerformanceMetrics(team: tab == 1),
-      if (tab == 0) ...[
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: const LinearGradient(
-              colors: [Color(0xff203750), Color(0xff424587)],
-              begin: Alignment.bottomLeft,
-              end: Alignment.topRight,
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(TmsIcons.badge, size: 34),
-              const SizedBox(width: 18),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.tr('reports.level_points'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      context.tr('reports.next_level'),
-                      style: TextStyle(color: context.lavender),
-                    ),
-                    const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: .64,
-                      color: context.foreground,
-                      backgroundColor: Colors.white24,
-                      minHeight: 6,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        DesignButton(
-          context.tr('reports.badges_history'),
-          secondary: true,
+  Widget build(BuildContext context) {
+    final provider = performanceProvider((tab == 1, period));
+    final async = ref.watch(provider);
+    final data = async.value;
+    final locale = context.locale.toString();
+    return DesignPage(
+      title: context.tr('common.performance'),
+      actions: [
+        DesignIcon(
+          icon: TmsIcons.download,
+          label: context.tr('reports.export_appraisal'),
           onPressed: () => TmsRoute.profile.open(context),
         ),
       ],
-      if (tab == 1) ...[
-        DesignCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 14,
+      children: [
+        _PerformanceSegments(
+          tab: tab,
+          onChanged: (i) => setState(() => tab = i),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            spacing: 8,
             children: [
-              DesignTitle(context.tr('reports.performance_thermometer')),
-              DesignLabel(context.tr('reports.vs_original_targets')),
-              Text(
-                context.tr('reports.1_5_days'),
-                style: TextStyle(
-                  color: tab == 0 ? DesignColor.rose : DesignColor.green,
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
+              for (final p in ReportPeriod.values)
+                _PeriodChip(
+                  context.tr(
+                    'reports.${p.name.replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]!.toLowerCase()}')}',
+                  ),
+                  selected: period == p,
+                  onTap: () => setState(() => period = p),
                 ),
-              ),
-              DesignLabel(
-                tab == 0
-                    ? context.tr(
-                        'reports.time_lost_against_original_targets_this_month',
-                      )
-                    : context.tr(
-                        'reports.time_saved_against_original_targets_this_month',
-                      ),
-              ),
-              const _Thermometer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  DesignLabel(context.tr('reports.lost')),
-                  DesignLabel(context.tr('reports.on_target')),
-                  DesignLabel(context.tr('reports.saved')),
-                ],
-              ),
             ],
           ),
         ),
-        DesignCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: 12,
-            children: [
-              DesignTitle(context.tr('reports.completed_vs_returned')),
-              DesignLabel(context.tr('reports.per_week')),
-              SizedBox(
-                height: 130,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    for (var i = 0; i < 8; i++)
-                      Flexible(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          spacing: 2,
-                          children: [
-                            _Bar(
-                              height: 36 + (i * 13 + period * 7 + tab * 9) % 79,
-                              color: DesignColor.green,
-                            ),
-                            _Bar(
-                              height: 12 + i * 8 % 32,
-                              color: DesignColor.rose,
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(child: DesignLabel(context.tr('reports.5_oct'))),
-                  Expanded(
-                    child: Center(
-                      child: DesignLabel(context.tr('reports.19_oct')),
-                    ),
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: DesignLabel(context.tr('reports.2_nov')),
-                    ),
-                  ),
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: DesignLabel(context.tr('reports.16_nov')),
-                    ),
-                  ),
-                ],
-              ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  DesignPill(
-                    context.tr('common.completed'),
-                    color: DesignColor.green,
-                  ),
-                  DesignPill(
-                    context.tr('common.returned'),
-                    color: DesignColor.rose,
-                  ),
-                ],
-              ),
-            ],
+        if (data == null && async.hasError) ...[
+          DesignLabel(taskErrorMessage(context, async.error)),
+          DesignButton(
+            context.tr('workspaces.try_again'),
+            secondary: true,
+            onPressed: () => ref.invalidate(provider),
           ),
-        ),
-        DesignTitle(context.tr('reports.needs_attention')),
-        DesignSection(
-          children: [
-            DesignTile(
-              title: 'Regression test plan for portal',
-              subtitle: context.tr('reports.2_days_late_david'),
-              icon: TmsIcons.warning,
-              onTap: () => TmsRoute.task.open(context),
+        ] else if (data == null)
+          const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else ...[
+          DesignLabel(
+            context.tr(
+              'reports.compared_with_previous',
+              namedArgs: {
+                'period':
+                    '${DateFormat('d MMM', locale).format(data.from)} – ${DateFormat('d MMM', locale).format(data.to)}',
+              },
             ),
-            DesignTile(
-              title: 'Refactor auth middleware',
-              subtitle: context.tr('reports.1_day_late_tunde'),
-              icon: TmsIcons.clock,
-              onTap: () => TmsRoute.task.open(context),
+          ),
+          _PerformanceMetrics(
+            team: tab == 1,
+            metrics: [
+              for (final key
+                  in tab == 1
+                      ? const [
+                          'completed',
+                          'on_time_rate',
+                          'first_time_right_rate',
+                          'average_rounds',
+                        ]
+                      : const [
+                          'completed',
+                          'on_time_streak',
+                          'on_time_rate',
+                          'recurring_compliance',
+                          'punctuality',
+                          'first_time_right_rate',
+                        ])
+                ?data.metric(key),
+            ].take(4).toList(),
+          ),
+          if (data.level case final level? when tab == 0) ...[
+            _LevelCard(level),
+            DesignButton(
+              context.tr('reports.badges_history'),
+              secondary: true,
+              onPressed: () => TmsRoute.profile.open(context),
             ),
           ],
+          if (tab == 1) ...[
+            if (data.metric('saved_days') case final saved?)
+              _SavedDays(saved.value.toDouble()),
+            if (data.weekly.isNotEmpty) _WeeklyBars(data.weekly),
+            if (data.attention.isNotEmpty) ...[
+              DesignTitle(context.tr('reports.needs_attention')),
+              DesignSection(
+                children: [
+                  for (final (title, why) in data.attention)
+                    DesignTile(
+                      title: title,
+                      subtitle: why,
+                      icon: TmsIcons.warning,
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ],
+        OutlinedButton(
+          onPressed: () => TmsRoute.profile.open(context),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 52),
+            foregroundColor: context.foreground,
+            side: BorderSide(color: context.outline),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(TmsIcons.download, size: 17),
+              const SizedBox(width: 8),
+              Text(context.tr('reports.export_appraisal')),
+            ],
+          ),
         ),
       ],
-      OutlinedButton(
-        onPressed: () => TmsRoute.profile.open(context),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 52),
-          foregroundColor: context.foreground,
-          side: BorderSide(color: context.outline),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(TmsIcons.download, size: 17),
-            const SizedBox(width: 8),
-            Text(context.tr('reports.export_appraisal')),
-          ],
-        ),
-      ),
-    ],
-  );
+    );
+  }
 }

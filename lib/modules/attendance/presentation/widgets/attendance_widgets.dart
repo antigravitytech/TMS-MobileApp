@@ -63,229 +63,257 @@ class _AttendanceTag extends StatelessWidget {
 }
 
 class _AttendanceMonth extends StatelessWidget {
-  const _AttendanceMonth();
+  const _AttendanceMonth(this.stats);
+  final AttendanceStats stats;
+
+  /// Weekday cells by week, Monday first; null where the month hasn't
+  /// reached yet.
+  List<List<(DateTime, DayStatus)?>> get _weeks {
+    final weeks = <List<(DateTime, DayStatus)?>>[];
+    for (final day in stats.days) {
+      final (date, _) = day;
+      if (date.weekday > DateTime.friday) continue;
+      if (weeks.isEmpty || date.weekday == DateTime.monday) {
+        weeks.add(List.filled(5, null));
+      }
+      weeks.last[date.weekday - 1] = day;
+    }
+    return weeks;
+  }
+
   @override
-  Widget build(BuildContext context) => DesignCard(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      children: [
-        Row(
-          children: [
-            SizedBox(
-              width: 96,
-              height: 96,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const SizedBox.expand(
-                    child: CircularProgressIndicator(
-                      value: .8,
-                      strokeWidth: 10,
-                      color: DesignColor.purple,
-                      backgroundColor: Color(0xff303241),
+  Widget build(BuildContext context) {
+    final counts = [
+      (stats.early, 'attendance.early', DesignColor.teal),
+      (stats.onTime, 'common.on_time', DesignColor.green),
+      (stats.late, 'attendance.late', DesignColor.amber),
+      (stats.absent, 'attendance.absent', DesignColor.red),
+    ];
+    return DesignCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 96,
+                height: 96,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox.expand(
+                      child: CircularProgressIndicator(
+                        value: stats.punctuality / 100,
+                        strokeWidth: 10,
+                        color: DesignColor.purple,
+                        backgroundColor: const Color(0xff303241),
+                      ),
                     ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '80%',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        context.tr('common.on_time'),
-                        style: TextStyle(fontSize: 12, color: context.muted),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 22),
-            Expanded(
-              child: Column(
-                children: [
-                  for (final row in [0, 1])
-                    Row(
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (final col in [0, 1])
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    ['2', '10', '1', '2'][row * 2 + col],
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: [
-                                        DesignColor.teal,
-                                        DesignColor.green,
-                                        DesignColor.amber,
-                                        DesignColor.red,
-                                      ][row * 2 + col],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 5),
-                                  Text(
-                                    context.tr(
-                                      [
-                                        'attendance.early',
-                                        'common.on_time',
-                                        'attendance.late',
-                                        'attendance.absent',
-                                      ][row * 2 + col],
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: context.muted,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                        Text(
+                          '${stats.punctuality}%',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
                           ),
+                        ),
+                        Text(
+                          context.tr('common.on_time'),
+                          style: TextStyle(fontSize: 12, color: context.muted),
+                        ),
                       ],
                     ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 22),
+              Expanded(
+                child: Column(
+                  children: [
+                    for (final row in [0, 1])
+                      Row(
+                        children: [
+                          for (final (value, key, color)
+                              in counts.skip(row * 2).take(2))
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '$value',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                        color: color,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      context.tr(key),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: context.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          for (final week in _weeks)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Row(
+                spacing: 6,
+                children: [
+                  for (final cell in week)
+                    Expanded(
+                      child: Container(
+                        height: 34,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: cell == null
+                              ? Colors.transparent
+                              : switch (cell.$2) {
+                                  DayStatus.early => DesignColor.teal,
+                                  DayStatus.onTime => DesignColor.green,
+                                  DayStatus.late => DesignColor.amber,
+                                  DayStatus.absent => DesignColor.red,
+                                  _ => context.raised,
+                                },
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: cell == null
+                            ? null
+                            : Text(
+                                '${cell.$1.day}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      cell.$2.present ||
+                                          cell.$2 == DayStatus.absent
+                                      ? DesignColor.ink
+                                      : context.muted,
+                                ),
+                              ),
+                      ),
+                    ),
                 ],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        for (var week = 0; week < 3; week++)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 7),
-            child: Row(
-              spacing: 6,
-              children: [
-                for (var day = 0; day < 5; day++)
-                  Expanded(
-                    child: Container(
-                      height: 34,
-                      alignment: Alignment.center,
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '${DateTime.now().day}',
+              style: TextStyle(
+                color: context.lavender,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            children: [
+              for (final (_, key, color) in counts)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
                       decoration: BoxDecoration(
-                        color: [5, 16].contains(week * 7 + day + 2)
-                            ? DesignColor.teal
-                            : week * 7 + day + 2 == 10
-                            ? DesignColor.amber
-                            : [12, 20].contains(week * 7 + day + 2)
-                            ? DesignColor.red
-                            : DesignColor.green,
-                        borderRadius: BorderRadius.circular(10),
+                        color: color,
+                        borderRadius: BorderRadius.circular(2),
                       ),
-                      child: Text(
-                        '${week * 7 + day + 2}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: DesignColor.ink,
-                        ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      context.tr(key),
+                      style: TextStyle(fontSize: 11, color: context.muted),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AttendanceMetrics extends StatelessWidget {
+  const _AttendanceMetrics(this.stats);
+  final AttendanceStats stats;
+  @override
+  Widget build(BuildContext context) {
+    final cards = [
+      ('attendance.usual_arrival', stats.avgIn ?? '–'),
+      ('attendance.usual_leaving', stats.avgOut ?? '–'),
+      ('attendance.time_logged', _duration(context, stats.minutesWorked)),
+      (
+        'attendance.late_arrivals',
+        stats.lateLimit == null
+            ? '${stats.late}'
+            : context.tr(
+                'attendance.late_of_limit',
+                namedArgs: {
+                  'n': '${stats.late}',
+                  'limit': '${stats.lateLimit}',
+                },
+              ),
+      ),
+    ];
+    return Column(
+      children: [
+        for (var row = 0; row < 2; row++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              spacing: 10,
+              children: [
+                for (final (label, value) in cards.skip(row * 2).take(2))
+                  Expanded(
+                    child: DesignCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr(label),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: context.muted,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            value,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
               ],
             ),
           ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            '23',
-            style: TextStyle(
-              color: context.lavender,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        Wrap(
-          spacing: 12,
-          children: [
-            for (final (key, color) in [
-              ('attendance.early', DesignColor.teal),
-              ('common.on_time', DesignColor.green),
-              ('attendance.late', DesignColor.amber),
-              ('attendance.absent', DesignColor.red),
-            ])
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.tr(key),
-                    style: TextStyle(fontSize: 11, color: context.muted),
-                  ),
-                ],
-              ),
-          ],
-        ),
       ],
-    ),
-  );
-}
-
-class _AttendanceMetrics extends StatelessWidget {
-  const _AttendanceMetrics();
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      for (var row = 0; row < 2; row++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
-            spacing: 10,
-            children: [
-              for (var col = 0; col < 2; col++)
-                Expanded(
-                  child: DesignCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr(
-                            [
-                              'attendance.usual_arrival',
-                              'attendance.usual_leaving',
-                              'attendance.time_logged',
-                              'attendance.late_arrivals',
-                            ][row * 2 + col],
-                          ),
-                          style: TextStyle(fontSize: 12, color: context.muted),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          [
-                            '9:01',
-                            '17:25',
-                            context.tr('attendance.109h_19m'),
-                            context.tr('attendance.one_of_five'),
-                          ][row * 2 + col],
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-    ],
-  );
+    );
+  }
 }

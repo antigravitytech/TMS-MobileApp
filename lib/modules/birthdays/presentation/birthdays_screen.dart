@@ -4,9 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
-import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
+import '../../authentication/application/account_session.dart';
+import '../../authentication/domain/account.dart';
+import '../../authentication/presentation/widgets/account_action_form.dart';
+import '../../workspace/application/workspace_preview.dart';
+import '../application/birthdays_controller.dart';
+import '../domain/birthday.dart';
 
+part 'widgets/birthday_card_sheet.dart';
 part 'widgets/birthday_overview.dart';
 
 class BirthdaysScreen extends ConsumerStatefulWidget {
@@ -16,241 +23,209 @@ class BirthdaysScreen extends ConsumerStatefulWidget {
 }
 
 class _BirthdaysScreenState extends ConsumerState<BirthdaysScreen> {
-  int month = 2;
-  static const months = [
-    'birthdays.sep_0',
-    'birthdays.oct_0',
-    'birthdays.nov_5',
-    'birthdays.dec_4',
-    'birthdays.jan_2',
-    'birthdays.feb_2',
-    'birthdays.apr_1',
-    'birthdays.jun_1',
-  ];
-  static const styles = [
-    ('birthdays.confetti', Color(0xff6940c8), TmsIcons.celebration),
-    ('birthdays.cake', Color(0xffa63990), TmsIcons.birthday),
-    ('birthdays.warm_wishes', Color(0xff217b78), TmsIcons.heart),
-    ('birthdays.confetti', Color(0xff4933aa), TmsIcons.celebration),
-    ('birthdays.warm_wishes', Color(0xff238664), TmsIcons.heart),
-  ];
-  Future<void> compose(String person) async {
-    var style = 0;
-    var message = context.tr(
-      'birthdays.card_template',
-      namedArgs: {'name': person.split(' ').first},
+  /// Months from today: -2 and -1 are the two before this one.
+  int month = 0;
+
+  /// My name, from the signed-in account or the preview profile.
+  (String, String) get _me {
+    final account = ref.read(accountSessionProvider);
+    final preview = ref.read(workspacePreviewProvider);
+    return account == null
+        ? (preview.firstName, preview.lastName)
+        : (account.firstName, account.lastName);
+  }
+
+  Future<void> _run(Future<void> Function() action, String done) async {
+    try {
+      await action();
+      if (mounted) designToast(context, done);
+    } catch (error) {
+      if (!mounted) return;
+      designToast(
+        context,
+        error is AccountFailure
+            ? accountErrorMessage(context, error)
+            : context.tr('network.errors.unknown'),
+      );
+    }
+  }
+
+  Future<void> compose(BirthdayPerson person) async {
+    final card = await _composeCard(context, to: person.name, from: _me.$1);
+    if (!mounted || card == null) return;
+    final done = context.tr(
+      'birthdays.card_sent',
+      namedArgs: {'name': person.name.split(' ').first},
     );
-    final sent = await designSheet<bool>(
-      context,
-      title: context.tr('birthdays.send_a_birthday_card'),
-      builder: (sheet) => StatefulBuilder(
-        builder: (context, update) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: 12,
-          children: [
-            AnimatedContainer(
-              duration: DesignMotion.duration(context, DesignMotion.object),
-              padding: const EdgeInsets.all(22),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    styles[style].$2,
-                    [
-                      const Color(0xffb744a5),
-                      const Color(0xff1b9f9d),
-                      const Color(0xffd34e54),
-                      const Color(0xff713bc3),
-                      const Color(0xff50a044),
-                    ][style],
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(23),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 8,
-                children: [
-                  const SizedBox(height: 46),
-                  Text(
-                    context.tr(
-                      'birthdays.card_greeting',
-                      namedArgs: {'name': person.split(' ').first},
-                    ),
-                    textAlign: TextAlign.left,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 23,
-                      color: Colors.white,
-                    ),
-                  ),
-                  DesignLabel(
-                    context.tr('birthdays.card_signature'),
-                    color: Colors.white70,
-                  ),
-                ],
-              ),
-            ),
-            DesignTitle(context.tr('birthdays.pick_a_style')),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                spacing: 10,
-                children: [
-                  for (var i = 0; i < styles.length; i++)
-                    GestureDetector(
-                      onTap: () => update(() => style = i),
-                      child: AnimatedContainer(
-                        duration: DesignMotion.fast,
-                        width: 62,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(17),
-                          border: Border.all(
-                            color: style == i
-                                ? context.foreground
-                                : styles[i].$2,
-                            width: 2,
-                          ),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              styles[i].$2,
-                              [
-                                const Color(0xffb744a5),
-                                const Color(0xff1b9f9d),
-                                const Color(0xffd34e54),
-                                const Color(0xff713bc3),
-                                const Color(0xff50a044),
-                              ][i],
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            DesignField(
-              label: context.tr('birthdays.message'),
-              initialValue: message,
-              lines: 3,
-              onChanged: (value) => update(() => message = value),
-            ),
-            DesignButton(
-              context.tr('birthdays.send_card'),
-              onPressed: message.trim().isEmpty
-                  ? null
-                  : () => Navigator.pop(sheet, true),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!mounted || sent != true) return;
-    ref.read(workspacePreviewProvider).sendCard(person);
-    designToast(
-      context,
-      context.tr(
-        'birthdays.card_sent',
-        namedArgs: {'name': person.split(' ').first},
-      ),
+    await _run(
+      () => ref
+          .read(birthdaysProvider.notifier)
+          .sendWish(person, message: card.message, style: card.style),
+      done,
     );
   }
 
+  Future<void> celebrate(BirthdayEntry entry) => _run(
+    () => ref.read(birthdaysProvider.notifier).celebrate(entry),
+    context.tr('birthdays.wished_toast', namedArgs: {'name': entry.name}),
+  );
+
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(workspacePreviewProvider);
-    final people = switch (month) {
-      2 => [
-        ('TB', 'Tunde Bakare', context.tr('common.today')),
-        ('CO', 'Chioma Okafor', context.tr('common.today')),
-        ('NA', 'Ngozi Adebayo', context.tr('common.today')),
-        ('IM', 'Ibrahim Musa', context.tr('birthdays.27_november')),
-        ('AE', 'Amaka Eze', context.tr('birthdays.29_november')),
-      ],
-      3 => [
-        ('SJ', 'Sarah Johnson', context.tr('birthdays.4_december')),
-        ('DM', 'David Martins', context.tr('birthdays.16_december')),
-      ],
-      4 => [('FA', 'Folake Adebayo', context.tr('birthdays.10_january'))],
-      5 => [('AE', 'Amaka Eze', context.tr('birthdays.9_february'))],
-      6 => [('IM', 'Ibrahim Musa', context.tr('birthdays.12_april'))],
-      7 => [('NA', 'Ngozi Adebayo', context.tr('birthdays.15_june'))],
-      _ => <(String, String, String)>[],
-    };
+    final calendar = ref.watch(birthdaysProvider);
+    final data = calendar.value;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    DateTime dateOf(int daysAway) => today.add(Duration(days: daysAway));
+    int monthOf(int daysAway) {
+      final date = dateOf(daysAway);
+      return (date.year - today.year) * 12 + date.month - today.month;
+    }
+
+    final people = [
+      for (final p in data?.members ?? const <BirthdayPerson>[])
+        (p.name, p.daysAway),
+      for (final e in data?.entries ?? const <BirthdayEntry>[])
+        (e.name, e.daysAway),
+    ];
+    final counts = <int, int>{};
+    for (final (_, away) in people) {
+      counts.update(monthOf(away), (n) => n + 1, ifAbsent: () => 1);
+    }
+    // The two months before this one, this one, then months with birthdays.
+    final months = [
+      -2,
+      -1,
+      0,
+      for (var m = 1; m < 12; m++)
+        if ((counts[m] ?? 0) > 0) m,
+    ];
+    final inMonth = people.where((p) => monthOf(p.$2) == month).toList()
+      ..sort((a, b) => a.$2.compareTo(b.$2));
+    final locale = context.locale.toString();
+
     return DesignPage(
       title: context.tr('common.birthdays'),
-      subtitle: context.tr('birthdays.15_to_celebrate_this_year'),
+      subtitle: data == null
+          ? null
+          : context.plural('birthdays.to_celebrate', people.length),
       children: [
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            spacing: 8,
-            children: [
-              for (var i = 0; i < months.length; i++)
-                GestureDetector(
-                  onTap: () => setState(() => month = i),
-                  child: Container(
-                    width: 52,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: month == i ? DesignColor.purple : context.panel,
-                      border: Border.all(color: context.outline),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          context.tr(months[i]).split('·').first.trim(),
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: month == i ? DesignColor.ink : context.muted,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          context.tr(months[i]).split('·').last.trim(),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: month == i
-                                ? DesignColor.ink
-                                : context.foreground,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        if (people.isEmpty)
+        if (data == null && !calendar.hasError)
+          const Padding(
+            padding: EdgeInsets.all(40),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (data == null) ...[
           DesignEmpty(
-            context.tr('birthdays.nothing_to_celebrate_this_month'),
-            context.tr('birthdays.choose_another_month'),
+            context.tr('birthdays.load_failed'),
+            calendar.error is AccountFailure
+                ? accountErrorMessage(
+                    context,
+                    calendar.error! as AccountFailure,
+                  )
+                : context.tr('network.errors.unknown'),
             icon: TmsIcons.birthday,
           ),
-        if (month == 2)
-          _BirthdayOverview(
-            sent: state.birthdayCards,
-            onSend: compose,
-            onWish: () =>
-                ref.read(workspacePreviewProvider).sendCard('Mama Bisi'),
-          )
-        else if (people.isNotEmpty) ...[
-          DesignTitle(context.tr('birthdays.coming_up')),
-          for (final (initials, name, date) in people)
-            DesignTile(
-              title: name,
-              subtitle: date,
-              leading: DesignAvatar(initials),
+          DesignButton(
+            context.tr('workspaces.try_again'),
+            secondary: true,
+            onPressed: () => ref.invalidate(birthdaysProvider),
+          ),
+        ] else ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              spacing: 8,
+              children: [
+                for (final m in months)
+                  _MonthChip(
+                    label: DateFormat.MMM(
+                      locale,
+                    ).format(DateTime(today.year, today.month + m)),
+                    count: counts[m] ?? 0,
+                    selected: month == m,
+                    onTap: () => setState(() => month = m),
+                  ),
+              ],
             ),
+          ),
+          if (month == 0)
+            _BirthdayOverview(
+              calendar: data,
+              me: '${_me.$1} ${_me.$2}',
+              dateOf: dateOf,
+              onSend: compose,
+              onCelebrate: celebrate,
+            )
+          else if (inMonth.isEmpty)
+            DesignEmpty(
+              context.tr('birthdays.nothing_to_celebrate_this_month'),
+              context.tr('birthdays.choose_another_month'),
+              icon: TmsIcons.birthday,
+            )
+          else ...[
+            DesignTitle(context.tr('birthdays.coming_up')),
+            for (final (name, away) in inMonth)
+              DesignTile(
+                title: name,
+                subtitle: DateFormat.MMMMd(locale).format(dateOf(away)),
+                leading: DesignAvatar(kitPerson(name).$1),
+              ),
+          ],
         ],
       ],
     );
   }
+}
+
+/// A month in the strip: its short name and how many birthdays it has.
+class _MonthChip extends StatelessWidget {
+  const _MonthChip({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 52,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? DesignColor.purple : context.panel,
+          border: Border.all(color: context.outline),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: TextStyle(
+                fontSize: 10,
+                color: selected ? DesignColor.ink : context.muted,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: selected ? DesignColor.ink : context.foreground,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

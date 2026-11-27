@@ -100,109 +100,112 @@ class _TaskFilterChip extends StatelessWidget {
 
 class _CompactTaskCard extends ConsumerWidget {
   const _CompactTaskCard(this.task);
-  final PreviewTask task;
+  final TaskItem task;
   @override
-  Widget build(BuildContext context, WidgetRef ref) => DesignCard(
-    padding: const EdgeInsets.all(16),
-    onTap: () {
-      ref.read(workspacePreviewProvider).selectTask(task);
-      TmsRoute.task.open(context);
-    },
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-              decoration: BoxDecoration(
-                color: taskStatusColor(task.status).withValues(alpha: .16),
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: taskStatusColor(task.status),
-                      shape: BoxShape.circle,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tone = taskStatusTone(task.status);
+    final overdue = task.overdueDays(DateTime.now()) > 0;
+    final today =
+        task.due != null && DateUtils.isSameDay(task.due, DateTime.now());
+    final person = task.assignee?.name ?? '';
+    return DesignCard(
+      padding: const EdgeInsets.all(16),
+      onTap: () {
+        ref.read(openedTaskProvider.notifier).open(task);
+        TmsRoute.task.open(context);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: .16),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: tone,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    taskStatusLabel(context, task.status),
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: taskStatusColor(task.status),
-                      fontWeight: FontWeight.w700,
+                    const SizedBox(width: 5),
+                    Text(
+                      taskStatusText(context, task.status),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: tone,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            Text(
-              taskPriorityLabel(context, task.priority),
-              style: TextStyle(
-                fontSize: 12,
-                color: task.priority == 'Low'
-                    ? context.muted
-                    : DesignColor.amber,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 11),
-        Text(
-          task.title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 14,
-              backgroundColor: task.person.startsWith('Ibrahim')
-                  ? DesignColor.blue
-                  : task.person.startsWith('Tunde')
-                  ? DesignColor.teal
-                  : DesignColor.amber,
-              child: Text(
-                task.person.split(' ').map((v) => v[0]).take(2).join(),
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: DesignColor.ink,
-                  fontWeight: FontWeight.w700,
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                '${taskProjectLabel(context, task.project)} · ${task.id}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: context.muted),
+              const Spacer(),
+              Text(
+                taskPriorityText(context, task.priority),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: task.priority == TaskPriority.low
+                      ? context.muted
+                      : DesignColor.amber,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              taskDueLabel(context, task.due),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: task.due.contains('overdue')
-                    ? DesignColor.red
-                    : task.due == 'Today'
-                    ? DesignColor.amber
-                    : context.muted,
+            ],
+          ),
+          const SizedBox(height: 11),
+          Text(
+            task.title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: kitPerson(person).$2,
+                child: Text(
+                  kitPerson(person).$1,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: DesignColor.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${taskPlaceText(context, task)} · ${task.reference}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: context.muted),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                taskDueText(context, task.due, done: task.done),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: overdue
+                      ? DesignColor.red
+                      : today
+                      ? DesignColor.amber
+                      : context.muted,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

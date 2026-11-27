@@ -1,29 +1,62 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/design/design_tokens.dart';
 import '../../../../shared/design/design_widgets.dart';
 import '../../../../shared/design/tms_icons.dart';
 import '../../data/chat_directory.dart';
+import '../../data/chat_repository.dart';
 import 'chat_widgets.dart';
 
-class ComposeChat extends StatefulWidget {
+/// Who to message, whether as a group, and the group's name.
+typedef ComposeResult = ({List<ChatContact> people, bool group, String title});
+
+class ComposeChat extends ConsumerStatefulWidget {
   const ComposeChat({super.key, required this.directory});
   final ChatDirectory directory;
   @override
-  State<ComposeChat> createState() => _ComposeChatState();
+  ConsumerState<ComposeChat> createState() => _ComposeChatState();
 }
 
-class _ComposeChatState extends State<ComposeChat> {
+class _ComposeChatState extends ConsumerState<ComposeChat> {
   bool group = false;
   String query = '', name = '';
   final picked = <ChatContact>{};
+  List<ChatContact> matches = const [];
+  Timer? _debounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _search('');
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
+  /// Searches as the person types, a moment after they stop.
+  void _search(String value) {
+    query = value;
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        final found = await ref
+            .read(chatRepositoryProvider)
+            .searchPeople(widget.directory, value);
+        if (mounted && query == value) setState(() => matches = found);
+      } catch (_) {
+        if (mounted) setState(() => matches = const []);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final matches = widget.directory.people.where(
-      (p) => '${p.name} ${p.role}'.toLowerCase().contains(
-        query.toLowerCase().trim(),
-      ),
-    );
     final ready = group ? picked.length >= 2 : picked.length == 1;
     return SafeArea(
       top: false,
@@ -82,7 +115,7 @@ class _ComposeChatState extends State<ComposeChat> {
                 }),
               ),
               TextField(
-                onChanged: (v) => setState(() => query = v),
+                onChanged: _search,
                 decoration: InputDecoration(
                   hintText: context.tr('chat.search_people'),
                   prefixIcon: const Icon(TmsIcons.search, size: 18),
@@ -187,23 +220,11 @@ class _ComposeChatState extends State<ComposeChat> {
                           : context.tr('chat.pick_direct')),
                 onPressed: !ready
                     ? null
-                    : () {
-                        final row = group
-                            ? ChatRow(
-                                initials: picked
-                                    .take(2)
-                                    .map((p) => p.initials[0])
-                                    .join(),
-                                color: 'a1',
-                                name: name.trim().isEmpty
-                                    ? picked
-                                          .map((p) => p.name.split(' ').first)
-                                          .join(', ')
-                                    : name.trim(),
-                              )
-                            : picked.first.row;
-                        Navigator.pop(context, (row, group));
-                      },
+                    : () => Navigator.pop<ComposeResult>(context, (
+                        people: picked.toList(),
+                        group: group,
+                        title: name,
+                      )),
               ),
             ],
           ),

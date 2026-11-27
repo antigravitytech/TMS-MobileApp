@@ -85,7 +85,7 @@ class _NotificationFilter extends StatelessWidget {
 class _UnreadToggle extends StatelessWidget {
   const _UnreadToggle({required this.selected, required this.onTap});
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -185,6 +185,40 @@ class _NotificationRow extends StatelessWidget {
             age < 60 ? age : age ~/ 60,
             name: 'count',
           );
+    return _NotificationTile(
+      initials: item.initials,
+      avatar: avatar,
+      icon: icon,
+      badge: badge,
+      message: context.tr('notifications.${item.message}'),
+      time: time,
+      unread: unread,
+      onTap: onTap,
+    );
+  }
+}
+
+class _NotificationTile extends StatelessWidget {
+  const _NotificationTile({
+    super.key,
+    required this.initials,
+    required this.avatar,
+    required this.icon,
+    required this.badge,
+    required this.message,
+    required this.time,
+    required this.unread,
+    required this.onTap,
+  });
+
+  final String initials, message, time;
+  final Color avatar, badge;
+  final IconData icon;
+  final bool unread;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
     const radius = BorderRadius.all(Radius.circular(18));
     return AnimatedContainer(
       duration: DesignMotion.duration(
@@ -209,7 +243,7 @@ class _NotificationRow extends StatelessWidget {
                 Stack(
                   clipBehavior: Clip.none,
                   children: [
-                    DesignAvatar(item.initials, color: avatar, size: 36),
+                    DesignAvatar(initials, color: avatar, size: 36),
                     PositionedDirectional(
                       end: -4,
                       bottom: -4,
@@ -235,7 +269,7 @@ class _NotificationRow extends StatelessWidget {
                     spacing: 3,
                     children: [
                       Text(
-                        context.tr('notifications.${item.message}'),
+                        message,
                         style: const TextStyle(
                           fontSize: 13.5,
                           height: 1.4,

@@ -5,11 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../router/tms_routes.dart';
 import '../../../shared/design/design_tokens.dart';
 import '../../../shared/design/design_widgets.dart';
-import '../../workspace/application/workspace_preview.dart';
 import '../../../shared/design/tms_icons.dart';
+import '../../../shared/kit/kit.dart';
+import '../../tasks/presentation/tasks_screen.dart' show taskErrorMessage;
+import '../application/reports_controller.dart';
+import '../domain/report.dart';
 
 export 'performance_screen.dart';
 part 'widgets/report_widgets.dart';
+part 'widgets/report_form.dart';
 part 'widgets/team_summaries.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
@@ -19,257 +23,149 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
-  int tab = 0, project = 0;
-  bool blocked = false;
-  final nudged = <String>{};
-  String report =
-      'Shortlisted 6 backend candidates. Drafted the Q4 hiring budget.';
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(workspacePreviewProvider);
-    return DesignPage(
-      title: context.tr('common.reports'),
-      actions: [
-        TextButton(
-          onPressed: () => TmsRoute.performance.open(context),
-          child: Text(
-            context.tr('common.performance'),
-            style: TextStyle(
-              color: context.lavender,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+  int tab = 0;
+
+  Widget _states<T>(
+    AsyncValue<T> value,
+    VoidCallback retry,
+    Widget Function(T) data,
+  ) => switch (value) {
+    AsyncValue(hasValue: true, :final value) => data(value as T),
+    AsyncValue(:final error?) => Column(
+      spacing: 12,
+      children: [
+        DesignLabel(taskErrorMessage(context, error)),
+        DesignButton(
+          context.tr('workspaces.try_again'),
+          secondary: true,
+          onPressed: retry,
         ),
       ],
-      children: [
-        _ReportTabs(tab: tab, onChanged: (i) => setState(() => tab = i)),
-        if (tab == 0 && state.reportSent) ...[
-          const SizedBox(height: 60),
-          const _ReportSuccessMark(),
-          const SizedBox(height: 16),
-          Text(
-            context.tr('reports.report_sent'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+    ),
+    _ => const Padding(
+      padding: EdgeInsets.all(40),
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  };
+
+  @override
+  Widget build(BuildContext context) => DesignPage(
+    title: context.tr('common.reports'),
+    actions: [
+      TextButton(
+        onPressed: () => TmsRoute.performance.open(context),
+        child: Text(
+          context.tr('common.performance'),
+          style: TextStyle(
+            color: context.lavender,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
           ),
-          Text(
-            context.tr('reports.ibrahim_has_it_thats_4_of_6'),
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 14, color: context.muted),
-          ),
-          const SizedBox(height: 16),
-          DesignCard(
-            child: Row(
-              children: [
-                const Icon(TmsIcons.flame, color: Color(0xfff59562)),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('reports.points'),
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        context.tr('reports.on_time_before'),
-                        style: TextStyle(color: context.muted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        ),
+      ),
+    ],
+    children: [
+      _ReportTabs(tab: tab, onChanged: (i) => setState(() => tab = i)),
+      if (tab == 0)
+        _states(
+          ref.watch(dailyReportProvider),
+          () => ref.invalidate(dailyReportProvider),
+          (report) => switch (report) {
+            null => DesignEmpty(
+              context.tr('common.nothing_here'),
+              context.tr('reports.no_report_due'),
             ),
-          ),
-          OutlinedButton(
-            onPressed: () => TmsRoute.home.open(context),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: context.raised,
-              foregroundColor: context.foreground,
-              minimumSize: const Size(double.infinity, 52),
-              side: BorderSide(color: context.outline),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+            final r when r.sent => _ReportSent(r),
+            final r => _ReportForm(key: ValueKey(r.routineId), report: r),
+          },
+        )
+      else
+        _states(
+          ref.watch(teamReportsProvider),
+          () => ref.invalidate(teamReportsProvider),
+          (team) => team == null
+              ? DesignEmpty(
+                  context.tr('common.nothing_here'),
+                  context.tr('reports.no_team_reports'),
+                )
+              : _TeamSummaries(team),
+        ),
+    ],
+  );
+}
+
+/// The "Report sent" view.
+class _ReportSent extends StatelessWidget {
+  const _ReportSent(this.report);
+  final DailyReport report;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    spacing: 16,
+    children: [
+      const SizedBox(height: 44),
+      const _ReportSuccessMark(),
+      Text(
+        context.tr('reports.report_sent'),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+      ),
+      Text(
+        report.reviewer.isEmpty
+            ? context.tr('reports.report_saved')
+            : context.tr(
+                'reports.reviewer_has_it',
+                namedArgs: {'name': report.reviewer.split(' ').first},
               ),
-            ),
-            child: Text(context.tr('common.done')),
-          ),
-        ] else if (tab == 0) ...[
-          Row(
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 14, color: context.muted),
+      ),
+      if (report.points case final points?)
+        DesignCard(
+          child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: DesignColor.teal.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: DesignColor.teal.withValues(alpha: .25),
-                  ),
-                ),
-                child: const Icon(
-                  TmsIcons.edit,
-                  color: DesignColor.teal,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 12),
+              const Icon(TmsIcons.flame, color: Color(0xfff59562)),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.tr('common.daily_status_update'),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                      context.tr(
+                        'reports.plus_points',
+                        namedArgs: {'n': '$points'},
                       ),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      context.tr('reports.for_ibrahim_musa'),
-                      style: TextStyle(color: context.muted, fontSize: 12),
-                    ),
+                    if (report.dueTime.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        context.tr(
+                          'reports.on_time_before_time',
+                          namedArgs: {'time': report.dueTime},
+                        ),
+                        style: TextStyle(color: context.muted, fontSize: 12),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: DesignColor.amber.withValues(alpha: .15),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Text(
-                  '•  ${context.tr('reports.due_5_00_pm')}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: DesignColor.amber,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ],
           ),
-          DesignLabel(context.tr('reports.what_did_you_get_done_today')),
-          _ReportInput(
-            initialValue: report,
-            lines: 3,
-            onChanged: (v) => setState(() => report = v),
+        ),
+      OutlinedButton(
+        onPressed: () => TmsRoute.home.open(context),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: context.raised,
+          foregroundColor: context.foreground,
+          minimumSize: const Size(double.infinity, 52),
+          side: BorderSide(color: context.outline),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-          DesignLabel(context.tr('reports.whats_next')),
-          _ReportInput(hint: context.tr('reports.tomorrows_focus'), lines: 2),
-          DesignLabel(context.tr('reports.link_to_a_project')),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (var i = 0; i < 3; i++)
-                _ReportChip(
-                  i == 0
-                      ? context.tr('common.standalone')
-                      : ['', 'Customer Portal Revamp', 'Mobile App Launch'][i],
-                  selected: project == i,
-                  onTap: () => setState(() => project = i),
-                ),
-            ],
-          ),
-          DesignCard(
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: DesignColor.red.withValues(alpha: .13),
-                    borderRadius: BorderRadius.circular(13),
-                    border: Border.all(
-                      color: DesignColor.red.withValues(alpha: .3),
-                    ),
-                  ),
-                  child: const Icon(
-                    TmsIcons.warning,
-                    color: DesignColor.red,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('reports.im_blocked'),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        context.tr('reports.flags_it_to_ibrahim_straight_away'),
-                        style: TextStyle(color: context.muted, fontSize: 11),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => setState(() => blocked = !blocked),
-                  child: AnimatedContainer(
-                    duration: DesignMotion.fast,
-                    width: 52,
-                    height: 32,
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      color: blocked
-                          ? DesignColor.purple
-                          : context.foreground.withValues(alpha: .16),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: AnimatedAlign(
-                      duration: DesignMotion.fast,
-                      alignment: blocked
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        width: 26,
-                        height: 26,
-                        decoration: BoxDecoration(
-                          color: context.foreground,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (blocked)
-            DesignField(
-              label: context.tr('reports.what_is_blocking_you'),
-              lines: 3,
-            ),
-          DesignButton(
-            context.tr('reports.send_report'),
-            onPressed: report.trim().isEmpty ? null : state.sendReport,
-          ),
-        ] else ...[
-          _TeamSummaries(
-            nudged: nudged,
-            onNudge: (name) {
-              setState(() => nudged.add(name));
-              designToast(
-                context,
-                context.tr(
-                  'reports.reminder_sent_to_name',
-                  namedArgs: {'name': name},
-                ),
-              );
-            },
-          ),
-        ],
-      ],
-    );
-  }
+        ),
+        child: Text(context.tr('common.done')),
+      ),
+    ],
+  );
 }

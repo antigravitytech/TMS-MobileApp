@@ -2,12 +2,17 @@ part of '../home_screen.dart';
 
 class _HomeOverview extends StatelessWidget {
   const _HomeOverview({
-    required this.state,
+    required this.firstName,
     required this.due,
     required this.reviews,
+    this.overdue = 0,
+    this.preview = true,
+    this.birthday,
   });
-  final WorkspacePreview state;
-  final int due, reviews;
+  final String firstName;
+  final int? due, reviews, overdue;
+  final bool preview;
+  final Widget? birthday;
   @override
   Widget build(BuildContext context) {
     final greeting = context.tr('home.greeting').split('{name}');
@@ -21,7 +26,7 @@ class _HomeOverview extends StatelessWidget {
             children: [
               for (final suffix in greeting.skip(1)) ...[
                 TextSpan(
-                  text: state.firstName,
+                  text: firstName,
                   style: TextStyle(color: context.lavender),
                 ),
                 TextSpan(text: suffix),
@@ -35,88 +40,95 @@ class _HomeOverview extends StatelessWidget {
             letterSpacing: -.7,
           ),
         ),
-        const SizedBox(height: 16),
-        Material(
-          color: context.panel,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: context.outline),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => TmsRoute.search.open(context),
-            child: Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(16, 5, 6, 5),
-              child: Row(
-                spacing: 12,
-                children: [
-                  Icon(TmsIcons.search, size: 19, color: context.muted),
-                  Expanded(
-                    child: Text(
-                      context.tr('common.search_tasks_people_or_actions'),
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: context.muted,
-                        letterSpacing: 0,
+        if (preview) const SizedBox(height: 16),
+        if (preview)
+          Material(
+            color: context.panel,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: context.outline),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => TmsRoute.search.open(context),
+              child: Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 5, 6, 5),
+                child: Row(
+                  spacing: 12,
+                  children: [
+                    Icon(TmsIcons.search, size: 19, color: context.muted),
+                    Expanded(
+                      child: Text(
+                        context.tr('common.search_tasks_people_or_actions'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: context.muted,
+                          letterSpacing: 0,
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: DesignColor.purple.withValues(alpha: .18),
-                      borderRadius: BorderRadius.circular(12),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: DesignColor.purple.withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        TmsIcons.microphone,
+                        size: 17,
+                        color: context.lavender,
+                      ),
                     ),
-                    child: Icon(
-                      TmsIcons.microphone,
-                      size: 17,
-                      color: context.lavender,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         const SizedBox(height: 14),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             spacing: 8,
             children: [
-              _Metric(
-                context.tr(
-                  'home.due_today',
-                  namedArgs: {'count': numbers.format(due)},
+              if (due case final count?)
+                _Metric(
+                  context.tr(
+                    'home.due_today',
+                    namedArgs: {'count': numbers.format(count)},
+                  ),
+                  DesignColor.amber,
+                  preview ? TmsRoute.tasks : null,
                 ),
-                DesignColor.amber,
-                TmsRoute.tasks,
-              ),
-              _Metric(
-                context.tr('home.0_overdue'),
-                DesignColor.red,
-                TmsRoute.tasks,
-              ),
-              _Metric(
-                context.tr(
-                  'home.to_review',
-                  namedArgs: {'count': numbers.format(reviews)},
+              if (overdue case final count?)
+                _Metric(
+                  context.tr(
+                    'home.live_overdue',
+                    namedArgs: {'count': numbers.format(count)},
+                  ),
+                  DesignColor.red,
+                  preview ? TmsRoute.tasks : null,
                 ),
-                DesignColor.purple,
-                TmsRoute.approvals,
-              ),
+              if (reviews case final count?)
+                _Metric(
+                  context.tr(
+                    'home.to_review',
+                    namedArgs: {'count': numbers.format(count)},
+                  ),
+                  DesignColor.purple,
+                  preview ? TmsRoute.approvals : null,
+                ),
             ],
           ),
         ),
         AnimatedSize(
           duration: DesignMotion.duration(context, DesignMotion.page),
           alignment: Alignment.topCenter,
-          child: state.birthdayDismissed
+          child: birthday == null
               ? const SizedBox(width: double.infinity)
               : Padding(
                   padding: const EdgeInsets.only(top: 14),
-                  child: _BirthdayBanner(onClose: state.dismissBirthday),
+                  child: birthday!,
                 ),
         ),
       ],
@@ -141,14 +153,14 @@ class _Metric extends StatelessWidget {
   const _Metric(this.label, this.color, this.route);
   final String label;
   final Color color;
-  final TmsRoute route;
+  final TmsRoute? route;
   @override
   Widget build(BuildContext context) => Material(
     color: context.panel,
     shape: StadiumBorder(side: BorderSide(color: context.outline)),
     clipBehavior: Clip.antiAlias,
     child: InkWell(
-      onTap: () => route.open(context),
+      onTap: route == null ? null : () => route!.open(context),
       child: Container(
         constraints: const BoxConstraints(minHeight: 32),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -172,8 +184,9 @@ class _Metric extends StatelessWidget {
 }
 
 class _BirthdayBanner extends StatelessWidget {
-  const _BirthdayBanner({required this.onClose});
-  final VoidCallback onClose;
+  const _BirthdayBanner({required this.onClose, this.name, this.onWish});
+  final VoidCallback? onClose, onWish;
+  final String? name;
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
@@ -236,34 +249,45 @@ class _BirthdayBanner extends StatelessWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: () => TmsRoute.birthdays.open(context),
-            style: TextButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xff4a2d8f),
-              minimumSize: const Size(0, 32),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+          if (name == null || onWish != null)
+            TextButton(
+              onPressed: name == null
+                  ? () => TmsRoute.birthdays.open(context)
+                  : onWish,
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xff4a2d8f),
+                minimumSize: const Size(0, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              textStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
+              child: Text(
+                name == null
+                    ? context.tr('home.wish_tunde')
+                    : context.tr(
+                        'home.wish_person',
+                        namedArgs: {'name': name!},
+                      ),
               ),
             ),
-            child: Text(context.tr('home.wish_tunde')),
-          ),
-          IconButton(
-            tooltip: context.tr('home.dismiss_birthday_banner'),
-            onPressed: onClose,
-            style: IconButton.styleFrom(
-              minimumSize: const Size(32, 44),
-              padding: EdgeInsets.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          if (onClose != null)
+            IconButton(
+              tooltip: context.tr('home.dismiss_birthday_banner'),
+              onPressed: onClose,
+              style: IconButton.styleFrom(
+                minimumSize: const Size(32, 44),
+                padding: EdgeInsets.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(TmsIcons.close, size: 14, color: Colors.white70),
             ),
-            icon: const Icon(TmsIcons.close, size: 14, color: Colors.white70),
-          ),
         ],
       ),
     ),

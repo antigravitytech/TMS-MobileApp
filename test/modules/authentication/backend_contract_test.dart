@@ -12,6 +12,9 @@ import 'package:sabi_pipu_tms/modules/authentication/domain/account.dart';
 import 'package:sabi_pipu_tms/core/network/token_utils.dart';
 import 'package:sabi_pipu_tms/modules/authentication/data/auth_repository.dart';
 import 'package:sabi_pipu_tms/modules/onboarding/data/profile_setup_repository.dart';
+import 'package:sabi_pipu_tms/modules/onboarding/application/workspace_enrollment.dart';
+import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_kind.dart';
+import 'package:sabi_pipu_tms/modules/workspace/domain/workspace_setup.dart';
 
 const _user = {
   'id': 'fixture-user',
@@ -97,6 +100,7 @@ void main() {
                 'id': 'two',
                 'name': 'Event',
                 'kind': 'specials',
+                'subtype': 'event',
                 'approval_status': 'approved',
               },
             ],
@@ -109,7 +113,7 @@ void main() {
           _ => {'message': 'OK'},
         };
         request.response.statusCode = switch (path) {
-          '/auth/signup/' => 201,
+          '/auth/signup/' || '/workspace/create-workspace/' => 201,
           '/auth/login/' when pendingLogin => 403,
           '/auth/check-auth/' when expired => 401,
           _ => 200,
@@ -152,7 +156,9 @@ void main() {
 
         expect((await repository.restore())?.id, user.id);
         expect(requests.last.authorization, 'Bearer $_token');
-        expect((await repository.workspaces()).single.approval, 'pending');
+        final workspaces = await repository.workspaces();
+        expect(workspaces.first.approval, 'pending');
+        expect(workspaces.last.subtype, 'event');
         await repository.requestReset(user.email);
         expect(requests.last.authorization, isNull);
         expired = true;
@@ -208,6 +214,59 @@ void main() {
           ),
         );
         expect(await TokenUtils().getAccessToken(), isNull);
+      },
+    );
+
+    test(
+      'signup and workspace creation send the documented fields for every kind',
+      () async {
+        final auth =
+            container.read(authRepositoryProvider) as LiveAuthRepository;
+        final enrollment = container.read(workspaceEnrollmentProvider);
+        for (final kind in WorkspaceKind.values) {
+          final specials = WorkspaceKind.specials.contains(kind);
+          final signup = WorkspaceSignup(
+            'Fixture',
+            kind,
+            WorkspaceSetup(
+              occasion: 'Fixture event',
+              date: DateTime(2027, 1, 9, 10),
+            ),
+          );
+          final expectedKind = specials ? 'specials' : kind.name;
+          final expectedSetup = {
+            if (specials) ...{
+              'event_name': 'Fixture event',
+              'event_date': '2027-01-09',
+            },
+            if (kind == WorkspaceKind.individual) 'has_clients': true,
+          };
+          final credentials = {
+            'first_name': 'Ari',
+            'email': _user['email'],
+            'password': 'fixture-password',
+          };
+          await auth.signup({...credentials, ...signup.fields});
+          expect(requests.last.path, '/auth/signup/');
+          expect(requests.last.authorization, isNull);
+          expect(jsonDecode(requests.last.body), {
+            ...credentials,
+            'workspace_name': 'Fixture',
+            'workspace_type': expectedKind,
+            if (specials) 'workspace_subtype': kind.name,
+            if (expectedSetup.isNotEmpty) 'workspace_setup': expectedSetup,
+          });
+
+          await enrollment.create(signup);
+          expect(requests.last.path, '/workspace/create-workspace/');
+          expect(requests.last.authorization, 'Bearer $_token');
+          expect(jsonDecode(requests.last.body), {
+            'name': 'Fixture',
+            'kind': expectedKind,
+            if (specials) 'subtype': kind.name,
+            if (expectedSetup.isNotEmpty) 'setup': expectedSetup,
+          });
+        }
       },
     );
 
